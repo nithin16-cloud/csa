@@ -46,9 +46,32 @@
                 <a href="{{ url_for('main.manage') }}" class="nav-action-link" id="nav-checkin">
                     <i class="fa-solid fa-qrcode"></i> Web Check-in
                 </a>
-                <a href="#signin" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signin">
-                    <i class="fa-regular fa-circle-user"></i> Sign In
-                </a>
+                {% if current_user %}
+                    <div class="user-profile-menu">
+                        <button type="button" class="user-pill-btn" id="user-menu-btn">
+                            <i class="fa-solid fa-circle-user"></i>
+                            <span>{{ current_user.name.split()[0] }}</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
+                        </button>
+                        <div class="user-dropdown-card" id="user-dropdown-menu">
+                            <div class="user-dropdown-header">
+                                <strong>{{ current_user.name }}</strong>
+                                <small>{{ current_user.email }}</small>
+                            </div>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="{{ url_for('main.manage') }}" class="dropdown-item">
+                                <i class="fa-solid fa-ticket"></i> My Itineraries
+                            </a>
+                            <a href="{{ url_for('auth.logout') }}" class="dropdown-item text-danger">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signin">
+                        <i class="fa-regular fa-circle-user"></i> Sign In
+                    </a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -128,6 +151,21 @@
         </div>
     </footer>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const userBtn = document.getElementById("user-menu-btn");
+            const dropdown = document.getElementById("user-dropdown-menu");
+            if (userBtn && dropdown) {
+                userBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle("show");
+                });
+                document.addEventListener("click", () => {
+                    dropdown.classList.remove("show");
+                });
+            }
+        });
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

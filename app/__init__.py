@@ -1,5 +1,5 @@
 import click
-from flask import Flask
+from flask import Flask, session
 from app.config import Config
 from app import db
 
@@ -9,6 +9,19 @@ def create_app(config_class=Config):
 
     # Initialize database hooks
     db.init_app(app)
+
+    # Context processor to make current_user available in all templates
+    @app.context_processor
+    def inject_user():
+        from app.db import get_db
+        if 'user_id' in session:
+            try:
+                db_conn = get_db()
+                user = db_conn.execute("SELECT id, name, email, phone FROM users WHERE id = ?", (session['user_id'],)).fetchone()
+                return {'current_user': user}
+            except Exception:
+                return {'current_user': None}
+        return {'current_user': None}
 
     # Register custom CLI commands
     @app.cli.command("init-db")
@@ -28,8 +41,10 @@ def create_app(config_class=Config):
     # Register Blueprints
     from app.routes.main import main_bp
     from app.routes.api import api_bp
+    from app.routes.auth import auth_bp
 
     app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
 
     return app

@@ -222,6 +222,100 @@ a:hover {
     font-weight: 700;
 }
 
+/* User Profile Menu & Dropdown */
+.user-profile-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.user-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--border-subtle);
+    background: #FFFFFF;
+    color: var(--accent-navy);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    transition: all 0.2s ease;
+}
+
+.user-pill-btn:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.user-dropdown-card {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 220px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 0.75rem 0;
+    z-index: 150;
+    display: none;
+    animation: fadeIn 0.2s ease;
+}
+
+.user-dropdown-card.show {
+    display: block;
+}
+
+.user-dropdown-header {
+    padding: 0.5rem 1.25rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-dropdown-header strong {
+    font-size: 0.95rem;
+    color: var(--accent-navy);
+}
+
+.user-dropdown-header small {
+    font-size: 0.78rem;
+    color: var(--text-subtle);
+}
+
+.user-dropdown-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 0.35rem 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-surface-subtle);
+    color: var(--primary);
+}
+
+.dropdown-item.text-danger {
+    color: var(--danger);
+}
+
+.dropdown-item.text-danger:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
 /* Toast Messages */
 .toast-container {
     max-width: 1260px;

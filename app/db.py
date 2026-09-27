@@ -6,7 +6,6 @@ def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
             current_app.config['DATABASE_PATH'],
-            detect_types=sqlite3.PARSE_DECLTYPES,
             timeout=10.0  # Wait up to 10 seconds for locks to clear in concurrent writes
         )
         g.db.row_factory = sqlite3.Row

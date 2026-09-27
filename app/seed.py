@@ -87,13 +87,21 @@ def seed_database():
     db = get_db()
     cursor = db.cursor()
 
-    # 1. Insert Airports
+    # 1. Insert Demo Registered User
+    from werkzeug.security import generate_password_hash
+    demo_pw = generate_password_hash("Password@123")
+    cursor.execute("""
+        INSERT OR IGNORE INTO users (name, email, phone, password_hash)
+        VALUES ('Rohan Sharma', 'rohan.sharma@example.in', '+91 98765 43210', ?)
+    """, (demo_pw,))
+
+    # 2. Insert Airports
     cursor.executemany("""
         INSERT OR IGNORE INTO airports (code, name, city, country)
         VALUES (?, ?, ?, ?)
     """, AIRPORTS_DATA)
 
-    # 2. Insert Flights across upcoming 14 days
+    # 3. Insert Flights across upcoming 14 days
     today = datetime.date.today()
     flight_records = []
 

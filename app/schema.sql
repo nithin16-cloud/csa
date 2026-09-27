@@ -1,10 +1,20 @@
--- CloudSky Airlines Database Schema (Day 2: Real-Time Seat Hold & Concurrency Engine)
+-- CloudSky Airways Database Schema
 
 DROP TABLE IF EXISTS booking_seats;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS seats;
 DROP TABLE IF EXISTS flights;
 DROP TABLE IF EXISTS airports;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(120) UNIQUE NOT NULL,
+    phone VARCHAR(30) DEFAULT '',
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE airports (
     code VARCHAR(3) PRIMARY KEY,
@@ -44,6 +54,7 @@ CREATE TABLE seats (
 
 CREATE TABLE bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER DEFAULT NULL,                      -- Optional reference for registered users
     booking_reference VARCHAR(10) UNIQUE NOT NULL,     -- 6-character PNR code e.g. CS-9X4A
     flight_id INTEGER NOT NULL,
     passenger_name VARCHAR(100) NOT NULL,
@@ -52,6 +63,7 @@ CREATE TABLE bookings (
     total_amount REAL NOT NULL,                         -- Total fare in Indian Rupees (₹)
     payment_status VARCHAR(20) NOT NULL DEFAULT 'Confirmed',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL,
     FOREIGN KEY (flight_id) REFERENCES flights (id)
 );
 
@@ -68,6 +80,8 @@ CREATE TABLE booking_seats (
     UNIQUE (flight_id, seat_id)                         -- Prevent same seat mapped to multiple bookings
 );
 
+CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_flights_search ON flights(origin_code, destination_code, departure_time);
 CREATE INDEX idx_seats_flight ON seats(flight_id, is_booked, locked_until);
 CREATE INDEX idx_bookings_pnr ON bookings(booking_reference);
+CREATE INDEX idx_bookings_user ON bookings(user_id);

@@ -46,12 +46,49 @@
                 <a href="/manage" class="nav-action-link" id="nav-checkin">
                     <i class="fa-solid fa-qrcode"></i> Web Check-in
                 </a>
-                <a href="#signin" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signin">
-                    <i class="fa-regular fa-circle-user"></i> Sign In
-                </a>
+                {% if current_user %}
+                    <div class="user-profile-menu">
+                        <button type="button" class="user-pill-btn" onclick="document.getElementById('user-dropdown-home').classList.toggle('show')">
+                            <i class="fa-solid fa-circle-user"></i>
+                            <span>{{ current_user.name.split()[0] }}</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
+                        </button>
+                        <div class="user-dropdown-card" id="user-dropdown-home">
+                            <div class="user-dropdown-header">
+                                <strong>{{ current_user.name }}</strong>
+                                <small>{{ current_user.email }}</small>
+                            </div>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="/manage" class="dropdown-item">
+                                <i class="fa-solid fa-ticket"></i> My Itineraries
+                            </a>
+                            <a href="/logout" class="dropdown-item text-danger">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="/login" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signin">
+                        <i class="fa-regular fa-circle-user"></i> Sign In
+                    </a>
+                {% endif %}
             </div>
         </div>
     </header>
+
+    <!-- Flash Notifications Container -->
+    <div class="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast-card toast-{{ category }}">
+                        <i class="fa-solid {% if category == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
     <!-- Main Content Area -->
     <main class="main-content" id="home-vue-app">
