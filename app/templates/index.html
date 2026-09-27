@@ -1,124 +1,172 @@
-{% extends "base.html" %}
-
-{% block title %}CloudSky Airlines — Precision Flight Ticket Booking Simulator{% endblock %}
-
-{% block content %}
-<div id="home-vue-app">
-    <!-- Hero Section with Clean White & Royal Blue Accents -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <i class="fa-solid fa-plane-up"></i> Next-Gen Flight Booking Simulator
-            </div>
-            <h1 class="hero-title">
-                Precision Flight Booking with <span>Zero Double-Booking</span>
-            </h1>
-            <p class="hero-subtitle">
-                Explore scheduled international flights, reserve real-time seats across an interactive 2D aircraft cabin, and experience ACID concurrency safety powered by Vue 3 and SQLite.
-            </p>
-
-            <!-- Vue 3 Interactive Search Widget -->
-            <div class="search-card">
-                <form action="{{ url_for('main.flights_search') }}" method="GET" class="search-form" id="flight-search-form">
-                    <div class="form-group">
-                        <label for="origin-select"><i class="fa-solid fa-plane-departure"></i> Origin</label>
-                        <select name="origin" id="origin-select" class="form-control" v-model="selectedOrigin" required>
-                            <option value="" disabled>Select Departure Airport</option>
-                            {% for airport in airports %}
-                                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-swap-btn" type="button" title="Swap origin & destination" @click="swapAirports">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="destination-select"><i class="fa-solid fa-plane-arrival"></i> Destination</label>
-                        <select name="destination" id="destination-select" class="form-control" v-model="selectedDestination" required>
-                            <option value="" disabled>Select Arrival Airport</option>
-                            {% for airport in airports %}
-                                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="flight-date"><i class="fa-regular fa-calendar"></i> Departure Date</label>
-                        <input type="date" name="date" id="flight-date" class="form-control" v-model="selectedDate" required>
-                    </div>
-
-                    <div class="form-submit">
-                        <button type="submit" class="btn btn-primary btn-search" id="btn-search-flights">
-                            <i class="fa-solid fa-magnifying-glass"></i> Find Flights
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- Concurrency Architecture Section -->
-    <section class="section-container">
-        <div class="section-header">
-            <span class="section-tag">ENGINEERED FOR RELIABILITY</span>
-            <h2 class="section-title">Zero Double-Booking Guarantee</h2>
-            <p class="section-desc">A multi-layer database transaction engine ensuring duplicate seat reservations are physically impossible.</p>
-        </div>
-
-        <div class="architecture-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-atom"></i></div>
-                <h3>1. Atomic Conditional Updates</h3>
-                <p>Seat reservation executes an atomic <code>UPDATE seats SET is_booked = 1 WHERE is_booked = 0</code>. If two users click book at the same millisecond, the second transaction gets <code>rowcount = 0</code> and rolls back safely with HTTP 409.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
-                <h3>2. SQLite Immediate Locks</h3>
-                <p>Transactions reserve immediate write locks using <code>BEGIN IMMEDIATE</code> combined with Write-Ahead Logging (WAL) to prevent race intervals between seat availability checks and insertion.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <h3>3. Hard Database Constraints</h3>
-                <p>Relational <code>UNIQUE(flight_id, seat_number)</code> and <code>UNIQUE(flight_id, seat_id)</code> table constraints eliminate any possibility of duplicate seat rows at the database engine level.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Featured Scheduled Flights -->
-    <section class="section-container">
-        <div class="section-header-row">
-            <div>
-                <span class="section-tag">GLOBAL SCHEDULES</span>
-                <h2 class="section-title">Featured Upcoming Flights</h2>
-            </div>
-            <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">
-                View All Flights <i class="fa-solid fa-arrow-right"></i>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudSky Airlines — Flight Ticket Booking Simulator</title>
+    <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Dual Path CSS: Works in BOTH Flask (/static) and VS Code Live Server (../static) -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <!-- Vue.js 3 Production Bundle -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo" id="brand-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-plane-departure"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">CloudSky</span>
+                    <span class="brand-sub">AIRLINES SIMULATOR</span>
+                </div>
             </a>
-        </div>
 
-        <div class="flights-grid">
-            {% for flight in featured_flights %}
-                <div class="flight-card" id="flight-card-{{ flight.id }}">
+            <nav class="nav-links">
+                <a href="/" class="nav-item active" id="nav-home">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="/flights" class="nav-item" id="nav-flights">
+                    <i class="fa-solid fa-plane-up"></i> Schedules
+                </a>
+                <a href="/manage" class="nav-item" id="nav-manage">
+                    <i class="fa-solid fa-ticket"></i> Manage Booking (PNR)
+                </a>
+            </nav>
+
+            <div class="nav-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Modern White Architecture Active</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="home-vue-app">
+        <!-- Hero Section with Clean White & Royal Blue Accents -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-plane-up"></i> Next-Gen Flight Booking Simulator
+                </div>
+                <h1 class="hero-title">
+                    Precision Flight Booking with <span>Zero Double-Booking</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Explore scheduled international flights, reserve real-time seats across an interactive 2D aircraft cabin, and experience ACID concurrency safety powered by Vue 3 and SQLite.
+                </p>
+
+                <!-- Vue 3 Interactive Search Widget -->
+                <div class="search-card">
+                    <form @submit.prevent="handleSearch" class="search-form" id="flight-search-form">
+                        <div class="form-group">
+                            <label for="origin-select"><i class="fa-solid fa-plane-departure"></i> Origin</label>
+                            <select id="origin-select" class="form-control" v-model="selectedOrigin" required>
+                                <option value="" disabled>Select Departure Airport</option>
+                                <option v-for="airport in airports" :key="airport.code" :value="airport.code">
+                                    [[ airport.city ]] ([[ airport.code ]])
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-swap-btn" type="button" title="Swap origin & destination" @click="swapAirports">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destination-select"><i class="fa-solid fa-plane-arrival"></i> Destination</label>
+                            <select id="destination-select" class="form-control" v-model="selectedDestination" required>
+                                <option value="" disabled>Select Arrival Airport</option>
+                                <option v-for="airport in airports" :key="airport.code" :value="airport.code">
+                                    [[ airport.city ]] ([[ airport.code ]])
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="flight-date"><i class="fa-regular fa-calendar"></i> Departure Date</label>
+                            <input type="date" id="flight-date" class="form-control" v-model="selectedDate" required>
+                        </div>
+
+                        <div class="form-submit">
+                            <button type="submit" class="btn btn-primary btn-search" id="btn-search-flights">
+                                <i class="fa-solid fa-magnifying-glass"></i> Find Flights
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Concurrency Architecture Section -->
+        <section class="section-container">
+            <div class="section-header">
+                <span class="section-tag">ENGINEERED FOR RELIABILITY</span>
+                <h2 class="section-title">Zero Double-Booking Guarantee</h2>
+                <p class="section-desc">A multi-layer database transaction engine ensuring duplicate seat reservations are physically impossible.</p>
+            </div>
+
+            <div class="architecture-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-atom"></i></div>
+                    <h3>1. Atomic Conditional Updates</h3>
+                    <p>Seat reservation executes an atomic <code>UPDATE seats SET is_booked = 1 WHERE is_booked = 0</code>. If two users click book at the same millisecond, the second transaction gets <code>rowcount = 0</code> and rolls back safely with HTTP 409.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+                    <h3>2. SQLite Immediate Locks</h3>
+                    <p>Transactions reserve immediate write locks using <code>BEGIN IMMEDIATE</code> combined with Write-Ahead Logging (WAL) to prevent race intervals between seat availability checks and insertion.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>3. Hard Database Constraints</h3>
+                    <p>Relational <code>UNIQUE(flight_id, seat_number)</code> and <code>UNIQUE(flight_id, seat_id)</code> table constraints eliminate any possibility of duplicate seat rows at the database engine level.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Scheduled Flights Grid -->
+        <section class="section-container" id="flights-section">
+            <div class="section-header-row">
+                <div>
+                    <span class="section-tag">GLOBAL SCHEDULES</span>
+                    <h2 class="section-title">Featured Upcoming Flights</h2>
+                </div>
+                <div style="display: flex; gap: 0.5rem;" v-if="selectedOrigin || selectedDestination">
+                    <button class="btn btn-secondary btn-sm" @click="resetFilters">
+                        <i class="fa-solid fa-xmark"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <div class="flights-grid">
+                <div v-for="flight in filteredFlights" :key="flight.id" class="flight-card" :id="'flight-card-' + flight.id">
                     <div class="flight-card-header">
                         <div class="airline-meta">
                             <i class="fa-solid fa-paper-plane flight-logo"></i>
                             <div>
-                                <span class="flight-num">{{ flight.flight_number }}</span>
-                                <span class="aircraft-name">{{ flight.aircraft_model }}</span>
+                                <span class="flight-num">[[ flight.flight_number ]]</span>
+                                <span class="aircraft-name">[[ flight.aircraft_model ]]</span>
                             </div>
                         </div>
-                        <span class="status-badge status-scheduled">{{ flight.status }}</span>
+                        <span class="status-badge status-scheduled">[[ flight.status ]]</span>
                     </div>
 
                     <div class="route-display">
                         <div class="route-point">
-                            <div class="route-code">{{ flight.origin_code }}</div>
-                            <div class="route-city">{{ flight.origin_city }}</div>
-                            <div class="route-time">{{ flight.departure_time[11:16] }}</div>
+                            <div class="route-code">[[ flight.origin_code ]]</div>
+                            <div class="route-city">[[ flight.origin_city ]]</div>
+                            <div class="route-time">[[ flight.departure_time ]]</div>
                         </div>
 
                         <div class="route-flight-path">
@@ -128,68 +176,443 @@
                         </div>
 
                         <div class="route-point right">
-                            <div class="route-code">{{ flight.destination_code }}</div>
-                            <div class="route-city">{{ flight.dest_city }}</div>
-                            <div class="route-time">{{ flight.arrival_time[11:16] }}</div>
+                            <div class="route-code">[[ flight.dest_code ]]</div>
+                            <div class="route-city">[[ flight.dest_city ]]</div>
+                            <div class="route-time">[[ flight.arrival_time ]]</div>
                         </div>
                     </div>
 
                     <div class="flight-card-footer">
                         <div class="flight-meta-col">
                             <div class="flight-date-tag">
-                                <i class="fa-regular fa-calendar-days"></i> {{ flight.departure_time[:10] }}
+                                <i class="fa-regular fa-calendar-days"></i> [[ flight.departure_date || flight.date ]]
                             </div>
                             <div class="seat-availability">
                                 <span class="seats-dot"></span>
-                                <span class="seats-count">{{ flight.available_seats }} seats available</span>
+                                <span class="seats-count">[[ flight.available_seats ]] seats available</span>
                             </div>
                         </div>
 
                         <div class="price-action">
                             <div class="price-box">
                                 <span class="price-from">From</span>
-                                <span class="price-value">${{ "%.2f"|format(flight.base_price) }}</span>
+                                <span class="price-value">$[[ Number(flight.base_price).toFixed(2) ]]</span>
                             </div>
-                            <a href="{{ url_for('main.booking_view', flight_id=flight.id) }}" class="btn btn-primary btn-sm" id="book-btn-{{ flight.id }}">
+                            <a :href="'/booking/' + flight.id" class="btn btn-primary btn-sm" :id="'book-btn-' + flight.id" @click.prevent="openSeatModal(flight)">
                                 Select Seat <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </div>
                     </div>
                 </div>
-            {% endfor %}
+            </div>
+        </section>
+
+        <!-- Interactive 2D Cabin Seat Map Modal -->
+        <div v-if="activeFlight" class="modal-backdrop" id="booking-preview">
+            <div class="cabin-card" style="max-width: 820px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    <div>
+                        <span class="flight-tag">[[ activeFlight.flight_number ]] • [[ activeFlight.aircraft_model ]]</span>
+                        <h2 style="font-size: 1.7rem; color: var(--accent-navy);">
+                            [[ activeFlight.origin_city ]] ([[ activeFlight.origin_code ]]) → [[ activeFlight.dest_city ]] ([[ activeFlight.dest_code ]])
+                        </h2>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" @click="activeFlight = null">
+                        <i class="fa-solid fa-xmark"></i> Close
+                    </button>
+                </div>
+
+                <!-- Seat Legend -->
+                <div class="seat-legend">
+                    <div class="legend-item"><span class="legend-box seat-sample available"></span> Available</div>
+                    <div class="legend-item"><span class="legend-box seat-sample selected"></span> Selected</div>
+                    <div class="legend-item"><span class="legend-box seat-sample booked"></span> Occupied</div>
+                    <div class="legend-item"><span class="legend-box seat-sample first-class"></span> First Class</div>
+                    <div class="legend-item"><span class="legend-box seat-sample business"></span> Business</div>
+                </div>
+
+                <!-- Aircraft Fuselage Simulation -->
+                <div class="aircraft-fuselage">
+                    <div class="cockpit-nose">
+                        <i class="fa-solid fa-plane"></i> COCKPIT NOSE
+                    </div>
+
+                    <!-- First Class -->
+                    <div class="cabin-class-block">
+                        <div class="cabin-class-title">First Class</div>
+                        <div class="cabin-rows">
+                            <div v-for="r in [1, 2]" :key="'fc-' + r" class="cabin-row">
+                                <div class="row-number">[[ r ]]</div>
+                                <div class="seat-side left">
+                                    <button 
+                                        v-for="c in ['A', 'B']" :key="r + c" type="button"
+                                        :class="['seat-btn class-first', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
+                                        :disabled="isOccupied(r + c)"
+                                        @click="toggleSeat(r + c, 2.2)"
+                                    >
+                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
+                                        <span v-else>[[ c ]]</span>
+                                    </button>
+                                </div>
+                                <div class="aisle-walkway"></div>
+                                <div class="seat-side right">
+                                    <button 
+                                        v-for="c in ['E', 'F']" :key="r + c" type="button"
+                                        :class="['seat-btn class-first', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
+                                        :disabled="isOccupied(r + c)"
+                                        @click="toggleSeat(r + c, 2.2)"
+                                    >
+                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
+                                        <span v-else>[[ c ]]</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Class -->
+                    <div class="cabin-class-block">
+                        <div class="cabin-class-title">Business Class</div>
+                        <div class="cabin-rows">
+                            <div v-for="r in [3, 4, 5]" :key="'bc-' + r" class="cabin-row">
+                                <div class="row-number">[[ r ]]</div>
+                                <div class="seat-side left">
+                                    <button 
+                                        v-for="c in ['A', 'B', 'C']" :key="r + c" type="button"
+                                        :class="['seat-btn class-business', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
+                                        :disabled="isOccupied(r + c)"
+                                        @click="toggleSeat(r + c, 1.6)"
+                                    >
+                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
+                                        <span v-else>[[ c ]]</span>
+                                    </button>
+                                </div>
+                                <div class="aisle-walkway"></div>
+                                <div class="seat-side right">
+                                    <button 
+                                        v-for="c in ['D', 'E', 'F']" :key="r + c" type="button"
+                                        :class="['seat-btn class-business', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
+                                        :disabled="isOccupied(r + c)"
+                                        @click="toggleSeat(r + c, 1.6)"
+                                    >
+                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
+                                        <span v-else>[[ c ]]</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Economy Class -->
+                    <div class="cabin-class-block">
+                        <div class="cabin-class-title">Economy Class</div>
+                        <div class="cabin-rows">
+                            <div v-for="r in [7, 8, 9, 10, 11]" :key="'ec-' + r" class="cabin-row">
+                                <div class="row-number">[[ r ]]</div>
+                                <div class="seat-side left">
+                                    <button 
+                                        v-for="c in ['A', 'B', 'C']" :key="r + c" type="button"
+                                        :class="['seat-btn', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
+                                        :disabled="isOccupied(r + c)"
+                                        @click="toggleSeat(r + c, 1.0)"
+                                    >
+                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
+                                        <span v-else>[[ c ]]</span>
+                                    </button>
+                                </div>
+                                <div class="aisle-walkway"></div>
+                                <div class="seat-side right">
+                                    <button 
+                                        v-for="c in ['D', 'E', 'F']" :key="r + c" type="button"
+                                        :class="['seat-btn', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
+                                        :disabled="isOccupied(r + c)"
+                                        @click="toggleSeat(r + c, 1.0)"
+                                    >
+                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
+                                        <span v-else>[[ c ]]</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price & Booking Summary -->
+                <div style="margin-top: 2rem; background: var(--bg-surface-subtle); padding: 1.25rem 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-subtle);">Selected Seats: <strong>[[ selectedSeatsList.join(', ') || 'None' ]]</strong></div>
+                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary);">Total: $[[ totalPrice.toFixed(2) ]]</div>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="btn btn-secondary" @click="activeFlight = null">Cancel</button>
+                        <button class="btn btn-primary" :disabled="selectedSeatsList.length === 0" @click="showSuccessPass = true">
+                            <i class="fa-solid fa-lock"></i> Confirm Simulator Booking
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </section>
-</div>
-{% endblock %}
 
-{% block extra_scripts %}
-<script>
-    const { createApp, ref, onMounted } = Vue;
+        <!-- Realistic Boarding Pass Preview Modal -->
+        <div v-if="showSuccessPass" class="modal-backdrop">
+            <div class="boarding-pass-card" id="printable-boarding-pass">
+                <div class="bp-header">
+                    <div class="bp-airline">
+                        <i class="fa-solid fa-plane-departure"></i> CloudSky Airlines
+                    </div>
+                    <div class="bp-type">BOARDING PASS</div>
+                </div>
 
-    createApp({
-        setup() {
-            const selectedOrigin = ref("");
-            const selectedDestination = ref("");
-            const selectedDate = ref("");
+                <div class="bp-body">
+                    <div class="bp-main">
+                        <div class="bp-row">
+                            <div class="bp-field">
+                                <label>PASSENGER NAME</label>
+                                <div class="val">Captain James Kirk</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>BOOKING REFERENCE (PNR)</label>
+                                <div class="val pnr-code">CS-8X2F9K</div>
+                            </div>
+                        </div>
 
-            onMounted(() => {
-                const today = new Date().toISOString().split("T")[0];
-                selectedDate.value = today;
-            });
+                        <div class="bp-row">
+                            <div class="bp-field">
+                                <label>FLIGHT</label>
+                                <div class="val">[[ activeFlight ? activeFlight.flight_number : 'CS-101' ]]</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>AIRCRAFT</label>
+                                <div class="val">[[ activeFlight ? activeFlight.aircraft_model : 'Boeing 787-9 Dreamliner' ]]</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>ASSIGNED SEATS</label>
+                                <div class="val highlight">[[ selectedSeatsList.join(', ') ]]</div>
+                            </div>
+                        </div>
 
-            const swapAirports = () => {
-                const temp = selectedOrigin.value;
-                selectedOrigin.value = selectedDestination.value;
-                selectedDestination.value = temp;
-            };
+                        <div class="bp-row route-row">
+                            <div class="bp-field">
+                                <label>FROM</label>
+                                <div class="val airport">[[ activeFlight ? activeFlight.origin_city + ' (' + activeFlight.origin_code + ')' : 'New York (JFK)' ]]</div>
+                            </div>
+                            <div class="bp-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="bp-field">
+                                <label>TO</label>
+                                <div class="val airport">[[ activeFlight ? activeFlight.dest_city + ' (' + activeFlight.dest_code + ')' : 'London (LHR)' ]]</div>
+                            </div>
+                        </div>
 
-            return {
-                selectedOrigin,
-                selectedDestination,
-                selectedDate,
-                swapAirports
-            };
-        }
-    }).mount('#home-vue-app');
-</script>
-{% endblock %}
+                        <div class="bp-row">
+                            <div class="bp-field">
+                                <label>DEPARTURE TIME</label>
+                                <div class="val">[[ activeFlight ? activeFlight.departure_time : '11:00' ]]</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>TOTAL AMOUNT PAID</label>
+                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">$[[ totalPrice.toFixed(2) ]]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bp-stub">
+                        <div class="stub-barcode">
+                            <div class="barcode-lines"></div>
+                            <span class="barcode-text">*CS-8X2F9K*</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bp-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.print()">
+                        <i class="fa-solid fa-print"></i> Print Boarding Pass
+                    </button>
+                    <button type="button" class="btn btn-primary" @click="showSuccessPass = false; activeFlight = null; selectedSeats = {}">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Clean White Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo-text">
+                    <i class="fa-solid fa-plane"></i> CloudSky Airlines
+                </div>
+                <p>Engineered Commercial Flight Booking Simulator built with Vue 3 reactive components, Flask, and an atomic SQLite transaction lock preventing seat double-booking.</p>
+                <div class="tech-stack-tags">
+                    <span class="tech-pill"><i class="fa-brands fa-vuejs"></i> Vue 3</span>
+                    <span class="tech-pill"><i class="fa-brands fa-python"></i> Python 3.14</span>
+                    <span class="tech-pill"><i class="fa-solid fa-flask"></i> Flask 3.1</span>
+                    <span class="tech-pill"><i class="fa-solid fa-database"></i> SQLite 3 WAL</span>
+                    <span class="tech-pill"><i class="fa-solid fa-shield-halved"></i> ACID Transactions</span>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <h4>System Architecture</h4>
+                <ul>
+                    <li><i class="fa-solid fa-check"></i> Vue 3 Reactive Cabin Seat Selection</li>
+                    <li><i class="fa-solid fa-check"></i> Atomic Conditional Updates (WHERE is_booked = 0)</li>
+                    <li><i class="fa-solid fa-check"></i> SQLite BEGIN IMMEDIATE Write Locks</li>
+                    <li><i class="fa-solid fa-check"></i> Printable Boarding Pass Generator</li>
+                </ul>
+            </div>
+
+            <div class="footer-destinations">
+                <h4>International Hubs</h4>
+                <div class="hub-grid">
+                    <span>JFK (New York)</span>
+                    <span>LHR (London)</span>
+                    <span>DXB (Dubai)</span>
+                    <span>SIN (Singapore)</span>
+                    <span>HND (Tokyo)</span>
+                    <span>CDG (Paris)</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CloudSky Airlines Simulator. Clean White Aviation Architecture.</p>
+        </div>
+    </footer>
+
+    <!-- Vue 3 Interactive Script -->
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            delimiters: ['[[', ']]'],
+            setup() {
+                const airports = ref([
+                    { code: "JFK", city: "New York", name: "John F. Kennedy Intl" },
+                    { code: "LHR", city: "London", name: "Heathrow Airport" },
+                    { code: "DXB", city: "Dubai", name: "Dubai International" },
+                    { code: "SIN", city: "Singapore", name: "Changi Airport" },
+                    { code: "HND", city: "Tokyo", name: "Haneda Airport" },
+                    { code: "CDG", city: "Paris", name: "Charles de Gaulle" },
+                    { code: "SFO", city: "San Francisco", name: "San Francisco Intl" },
+                    { code: "DEL", city: "New Delhi", name: "Indira Gandhi Intl" }
+                ]);
+
+                const flights = ref([
+                    { id: 1, flight_number: "CS-101", origin_code: "JFK", origin_city: "New York", dest_code: "LHR", dest_city: "London", departure_time: "11:00", arrival_time: "18:00", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 450.00, status: "Scheduled", available_seats: 56 },
+                    { id: 2, flight_number: "CS-201", origin_code: "DXB", origin_city: "Dubai", dest_code: "LHR", dest_city: "London", departure_time: "14:00", arrival_time: "21:30", date: "2026-09-28", aircraft_model: "Airbus A350-900", base_price: 380.00, status: "Scheduled", available_seats: 48 },
+                    { id: 3, flight_number: "CS-301", origin_code: "SIN", origin_city: "Singapore", dest_code: "HND", dest_city: "Tokyo", departure_time: "07:00", arrival_time: "14:00", date: "2026-09-28", aircraft_model: "Boeing 777-300ER", base_price: 520.00, status: "Scheduled", available_seats: 62 },
+                    { id: 4, flight_number: "CS-401", origin_code: "JFK", origin_city: "New York", dest_code: "SFO", dest_city: "San Francisco", departure_time: "18:00", arrival_time: "23:00", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 280.00, status: "Scheduled", available_seats: 40 },
+                    { id: 5, flight_number: "CS-501", origin_code: "DEL", origin_city: "New Delhi", dest_code: "DXB", dest_city: "Dubai", departure_time: "09:00", arrival_time: "12:30", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 9", base_price: 240.00, status: "Scheduled", available_seats: 38 },
+                    { id: 6, flight_number: "CS-601", origin_code: "CDG", origin_city: "Paris", dest_code: "JFK", dest_city: "New York", departure_time: "15:00", arrival_time: "23:30", date: "2026-09-28", aircraft_model: "Airbus A350-900", base_price: 490.00, status: "Scheduled", available_seats: 52 }
+                ]);
+
+                const selectedOrigin = ref("");
+                const selectedDestination = ref("");
+                const selectedDate = ref("");
+                const activeFlight = ref(null);
+                const showSuccessPass = ref(false);
+                const selectedSeats = ref({});
+                const occupiedSeats = ref(new Set(["1B", "3A", "3F", "8C", "10A"]));
+
+                onMounted(async () => {
+                    const today = new Date().toISOString().split("T")[0];
+                    selectedDate.value = today;
+
+                    // If running inside Flask, dynamically fetch live airports & flights
+                    try {
+                        const res = await fetch('/api/airports');
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.length > 0) airports.value = data;
+                        }
+                    } catch (e) {
+                        // In Live Server mode, uses default airport list
+                    }
+                });
+
+                const swapAirports = () => {
+                    const temp = selectedOrigin.value;
+                    selectedOrigin.value = selectedDestination.value;
+                    selectedDestination.value = temp;
+                };
+
+                const resetFilters = () => {
+                    selectedOrigin.value = "";
+                    selectedDestination.value = "";
+                };
+
+                const filteredFlights = computed(() => {
+                    return flights.value.filter(f => {
+                        const matchOrig = !selectedOrigin.value || f.origin_code === selectedOrigin.value;
+                        const matchDest = !selectedDestination.value || f.dest_code === selectedDestination.value;
+                        return matchOrig && matchDest;
+                    });
+                });
+
+                const handleSearch = () => {
+                    if (window.location.port !== '5500' && window.location.protocol !== 'file:') {
+                        window.location.href = `/flights?origin=${selectedOrigin.value}&destination=${selectedDestination.value}&date=${selectedDate.value}`;
+                    }
+                };
+
+                const openSeatModal = (flight) => {
+                    if (window.location.port !== '5500' && window.location.protocol !== 'file:') {
+                        window.location.href = `/booking/${flight.id}`;
+                    } else {
+                        activeFlight.value = flight;
+                        selectedSeats.value = {};
+                    }
+                };
+
+                const isSeatSelected = (seatNum) => {
+                    return !!selectedSeats.value[seatNum];
+                };
+
+                const isOccupied = (seatNum) => {
+                    return occupiedSeats.value.has(seatNum);
+                };
+
+                const toggleSeat = (seatNum, multiplier) => {
+                    if (occupiedSeats.value.has(seatNum)) return;
+                    if (selectedSeats.value[seatNum]) {
+                        delete selectedSeats.value[seatNum];
+                    } else {
+                        selectedSeats.value[seatNum] = multiplier;
+                    }
+                };
+
+                const selectedSeatsList = computed(() => {
+                    return Object.keys(selectedSeats.value);
+                });
+
+                const totalPrice = computed(() => {
+                    if (!activeFlight.value) return 0;
+                    const base = activeFlight.value.base_price;
+                    return Object.values(selectedSeats.value).reduce((sum, mult) => sum + (base * mult), 0);
+                });
+
+                return {
+                    airports,
+                    flights,
+                    selectedOrigin,
+                    selectedDestination,
+                    selectedDate,
+                    filteredFlights,
+                    activeFlight,
+                    showSuccessPass,
+                    selectedSeats,
+                    selectedSeatsList,
+                    totalPrice,
+                    swapAirports,
+                    resetFilters,
+                    handleSearch,
+                    openSeatModal,
+                    isSeatSelected,
+                    isOccupied,
+                    toggleSeat
+                };
+            }
+        }).mount('#home-vue-app');
+    </script>
+</body>
+</html>
