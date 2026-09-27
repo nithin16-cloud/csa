@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}Select Seats & Book — {{ flight.flight_number }} | CloudSky Airlines{% endblock %}
+
+{% block content %}
+<div class="booking-page-header">
+    <div class="header-container">
+        <a href="{{ url_for('main.flights_search') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Flights</a>
+        <div class="flight-header-summary">
+            <div>
+                <span class="flight-tag">{{ flight.flight_number }} • {{ flight.aircraft_model }}</span>
+                <h1>{{ flight.origin_city }} ({{ flight.origin_code }}) → {{ flight.dest_city }} ({{ flight.destination_code }})</h1>
+            </div>
+            <div class="header-datetime">
+                <i class="fa-regular fa-clock"></i> Departure: {{ flight.departure_time }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section-container">
+    <div class="booking-layout-grid">
+        <!-- Left: Interactive Aircraft Cabin Seat Map -->
+        <div class="cabin-section">
+            <div class="cabin-card">
+                <div class="cabin-header">
+                    <h2><i class="fa-solid fa-plane"></i> Interactive Aircraft Cabin</h2>
+                    <p>Select your preferred seat. Click to select or deselect.</p>
+                </div>
+
+                <!-- Seat Legend -->
+                <div class="seat-legend">
+                    <div class="legend-item"><span class="legend-box seat-sample available"></span> Available</div>
+                    <div class="legend-item"><span class="legend-box seat-sample selected"></span> Selected</div>
+                    <div class="legend-item"><span class="legend-box seat-sample booked"></span> Occupied</div>
+                    <div class="legend-item"><span class="legend-box seat-sample first-class"></span> First Class</div>
+                    <div class="legend-item"><span class="legend-box seat-sample business"></span> Business</div>
+                </div>
+
+                <!-- Fuselage Simulation -->
+                <div class="aircraft-fuselage">
+                    <div class="cockpit-nose">
+                        <i class="fa-solid fa-plane"></i> COCKPIT
+                    </div>
+
+                    <div id="cabin-seats-container" class="cabin-seats-wrapper">
+                        <div class="loading-spinner">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading live cabin seat map...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Passenger Details & Summary Sidebar -->
+        <div class="summary-section">
+            <div class="summary-card">
+                <h3>Passenger Information</h3>
+                <form id="booking-form" class="booking-form">
+                    <div class="form-group">
+                        <label for="passenger-name"><i class="fa-solid fa-user"></i> Full Name</label>
+                        <input type="text" id="passenger-name" class="form-control" placeholder="e.g. Captain James Kirk" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passenger-email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                        <input type="email" id="passenger-email" class="form-control" placeholder="e.g. james.kirk@starfleet.org" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passenger-phone"><i class="fa-solid fa-phone"></i> Mobile Phone</label>
+                        <input type="tel" id="passenger-phone" class="form-control" placeholder="+1 (555) 019-2834" required>
+                    </div>
+
+                    <div class="order-divider"></div>
+
+                    <h3>Booking Summary</h3>
+                    <div class="selected-seats-container" id="selected-seats-list">
+                        <p class="empty-hint"><i class="fa-solid fa-hand-pointer"></i> Please select one or more seats on the cabin map.</p>
+                    </div>
+
+                    <div class="price-breakdown" id="price-breakdown" style="display: none;">
+                        <div class="price-row">
+                            <span>Base Fare</span>
+                            <span id="summary-base-fare">${{ "%.2f"|format(flight.base_price) }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Selected Seats</span>
+                            <span id="summary-seat-count">0</span>
+                        </div>
+                        <div class="price-row total-row">
+                            <span>Total Price</span>
+                            <span class="total-amount" id="summary-total-price">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Double-Booking Error Box -->
+                    <div id="booking-error-alert" class="alert-box alert-danger" style="display: none;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="booking-error-text"></span>
+                    </div>
+
+                    <button type="submit" id="btn-submit-booking" class="btn btn-primary btn-block btn-lg" disabled>
+                        <i class="fa-solid fa-lock"></i> Reserve Seats & Book
+                    </button>
+                    <p class="concurrency-note">
+                        <i class="fa-solid fa-shield-halved"></i> Protected by SQLite Atomic Locks. Double bookings are automatically rejected.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Booking Success & Boarding Pass -->
+<div id="boarding-pass-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog">
+        <div class="boarding-pass-card" id="printable-boarding-pass">
+            <div class="bp-header">
+                <div class="bp-airline">
+                    <i class="fa-solid fa-plane-departure"></i> CloudSky Airlines
+                </div>
+                <div class="bp-type">BOARDING PASS</div>
+            </div>
+
+            <div class="bp-body">
+                <div class="bp-main">
+                    <div class="bp-row">
+                        <div class="bp-field">
+                            <label>PASSENGER NAME</label>
+                            <div class="val" id="bp-passenger-name"></div>
+                        </div>
+                        <div class="bp-field">
+                            <label>BOOKING REFERENCE (PNR)</label>
+                            <div class="val pnr-code" id="bp-pnr"></div>
+                        </div>
+                    </div>
+
+                    <div class="bp-row">
+                        <div class="bp-field">
+                            <label>FLIGHT</label>
+                            <div class="val" id="bp-flight-num">{{ flight.flight_number }}</div>
+                        </div>
+                        <div class="bp-field">
+                            <label>AIRCRAFT</label>
+                            <div class="val">{{ flight.aircraft_model }}</div>
+                        </div>
+                        <div class="bp-field">
+                            <label>SEATS</label>
+                            <div class="val highlight" id="bp-seats"></div>
+                        </div>
+                    </div>
+
+                    <div class="bp-row route-row">
+                        <div class="bp-field">
+                            <label>FROM</label>
+                            <div class="val airport">{{ flight.origin_city }} ({{ flight.origin_code }})</div>
+                        </div>
+                        <div class="bp-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                        <div class="bp-field">
+                            <label>TO</label>
+                            <div class="val airport">{{ flight.dest_city }} ({{ flight.destination_code }})</div>
+                        </div>
+                    </div>
+
+                    <div class="bp-row">
+                        <div class="bp-field">
+                            <label>DEPARTURE TIME</label>
+                            <div class="val">{{ flight.departure_time }}</div>
+                        </div>
+                        <div class="bp-field">
+                            <label>STATUS</label>
+                            <div class="val text-success">CONFIRMED (PAID)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bp-stub">
+                    <div class="stub-barcode">
+                        <div class="barcode-lines"></div>
+                        <span class="barcode-text" id="bp-barcode-text"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bp-actions">
+                <button type="button" class="btn btn-secondary" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i> Print Boarding Pass
+                </button>
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const FLIGHT_ID = {{ flight.id }};
+    const BASE_PRICE = {{ flight.base_price }};
+    let allSeats = [];
+    let selectedSeatIds = new Set();
+
+    // Fetch and render seats
+    async function loadSeats() {
+        try {
+            const resp = await fetch(`/api/flights/${FLIGHT_ID}/seats`);
+            const data = await resp.json();
+            allSeats = data.seats || [];
+            renderSeats(allSeats);
+        } catch (err) {
+            document.getElementById("cabin-seats-container").innerHTML = `
+                <div class="alert-box alert-danger">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Error loading seat map. Please refresh.
+                </div>`;
+        }
+    }
+
+    function renderSeats(seats) {
+        const container = document.getElementById("cabin-seats-container");
+        container.innerHTML = "";
+
+        // Group by cabin class
+        const classes = [
+            { name: "First Class", filter: "First" },
+            { name: "Business Class", filter: "Business" },
+            { name: "Economy Class", filter: "Economy" }
+        ];
+
+        classes.forEach(c => {
+            const classSeats = seats.filter(s => s.cabin_class === c.filter);
+            if (classSeats.length === 0) return;
+
+            const sectionEl = document.createElement("div");
+            sectionEl.className = "cabin-class-block";
+            sectionEl.innerHTML = `<div class="cabin-class-title">${c.name}</div>`;
+
+            // Group seats by row number
+            const rowMap = {};
+            classSeats.forEach(seat => {
+                const rowNum = seat.seat_number.replace(/[A-Z]/g, '');
+                if (!rowMap[rowNum]) rowMap[rowNum] = [];
+                rowMap[rowNum].push(seat);
+            });
+
+            const rowsWrapper = document.createElement("div");
+            rowsWrapper.className = "cabin-rows";
+
+            Object.keys(rowMap).forEach(rowNum => {
+                const rowEl = document.createElement("div");
+                rowEl.className = "cabin-row";
+
+                const rowLabel = document.createElement("div");
+                rowLabel.className = "row-number";
+                rowLabel.textContent = rowNum;
+                rowEl.appendChild(rowLabel);
+
+                const leftCol = document.createElement("div");
+                leftCol.className = "seat-side left";
+                const rightCol = document.createElement("div");
+                rightCol.className = "seat-side right";
+
+                rowMap[rowNum].forEach(seat => {
+                    const colLetter = seat.seat_number.slice(-1);
+                    const seatBtn = document.createElement("button");
+                    seatBtn.type = "button";
+                    seatBtn.className = `seat-btn class-${seat.cabin_class.toLowerCase()} ${seat.is_booked ? 'booked' : 'available'}`;
+                    seatBtn.dataset.seatId = seat.id;
+                    seatBtn.dataset.seatNumber = seat.seat_number;
+                    seatBtn.dataset.price = (BASE_PRICE * seat.price_multiplier).toFixed(2);
+                    seatBtn.title = `${seat.seat_number} (${seat.cabin_class}, ${seat.seat_type}) - $${seatBtn.dataset.price}`;
+
+                    if (seat.is_booked) {
+                        seatBtn.disabled = true;
+                        seatBtn.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+                    } else {
+                        seatBtn.textContent = colLetter;
+                        if (selectedSeatIds.has(seat.id)) {
+                            seatBtn.classList.add("selected");
+                        }
+                        seatBtn.addEventListener("click", () => toggleSeat(seat, seatBtn));
+                    }
+
+                    if (["A", "B", "C"].includes(colLetter)) {
+                        leftCol.appendChild(seatBtn);
+                    } else {
+                        rightCol.appendChild(seatBtn);
+                    }
+                });
+
+                rowEl.appendChild(leftCol);
+                const aisle = document.createElement("div");
+                aisle.className = "aisle-walkway";
+                rowEl.appendChild(aisle);
+                rowEl.appendChild(rightCol);
+
+                rowsWrapper.appendChild(rowEl);
+            });
+
+            sectionEl.appendChild(rowsWrapper);
+            container.appendChild(sectionEl);
+        });
+    }
+
+    function toggleSeat(seat, element) {
+        if (selectedSeatIds.has(seat.id)) {
+            selectedSeatIds.delete(seat.id);
+            element.classList.remove("selected");
+        } else {
+            selectedSeatIds.add(seat.id);
+            element.classList.add("selected");
+        }
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const listContainer = document.getElementById("selected-seats-list");
+        const breakdown = document.getElementById("price-breakdown");
+        const countSpan = document.getElementById("summary-seat-count");
+        const totalSpan = document.getElementById("summary-total-price");
+        const submitBtn = document.getElementById("btn-submit-booking");
+
+        if (selectedSeatIds.size === 0) {
+            listContainer.innerHTML = `<p class="empty-hint"><i class="fa-solid fa-hand-pointer"></i> Please select one or more seats on the cabin map.</p>`;
+            breakdown.style.display = "none";
+            submitBtn.disabled = true;
+            return;
+        }
+
+        breakdown.style.display = "block";
+        submitBtn.disabled = false;
+
+        let total = 0;
+        let badgesHtml = '<div class="selected-tags">';
+        
+        selectedSeatIds.forEach(id => {
+            const seat = allSeats.find(s => s.id === id);
+            if (seat) {
+                const price = BASE_PRICE * seat.price_multiplier;
+                total += price;
+                badgesHtml += `
+                    <span class="seat-tag">
+                        <strong>${seat.seat_number}</strong> (${seat.cabin_class}) - $${price.toFixed(2)}
+                    </span>
+                `;
+            }
+        });
+        badgesHtml += '</div>';
+
+        listContainer.innerHTML = badgesHtml;
+        countSpan.textContent = selectedSeatIds.size;
+        totalSpan.textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Handle Form Submit
+    document.getElementById("booking-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errorAlert = document.getElementById("booking-error-alert");
+        const errorText = document.getElementById("booking-error-text");
+        const submitBtn = document.getElementById("btn-submit-booking");
+
+        errorAlert.style.display = "none";
+
+        const passengerName = document.getElementById("passenger-name").value.trim();
+        const passengerEmail = document.getElementById("passenger-email").value.trim();
+        const passengerPhone = document.getElementById("passenger-phone").value.trim();
+
+        if (selectedSeatIds.size === 0) {
+            alert("Please select at least one seat.");
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Securing Reservation...`;
+
+        try {
+            const resp = await fetch("/api/bookings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    flight_id: FLIGHT_ID,
+                    passenger_name: passengerName,
+                    passenger_email: passengerEmail,
+                    passenger_phone: passengerPhone,
+                    seat_ids: Array.from(selectedSeatIds)
+                })
+            });
+
+            const data = await resp.json();
+
+            if (resp.status === 201) {
+                // Success! Show Boarding Pass Modal
+                document.getElementById("bp-passenger-name").textContent = passengerName;
+                document.getElementById("bp-pnr").textContent = data.booking.pnr;
+                document.getElementById("bp-seats").textContent = data.booking.seats.join(", ");
+                document.getElementById("bp-barcode-text").textContent = `*${data.booking.pnr}*`;
+                document.getElementById("boarding-pass-modal").style.display = "flex";
+            } else if (resp.status === 409) {
+                // Double booking conflict caught!
+                errorText.textContent = data.error || "Conflict: One or more selected seats were just claimed by another passenger!";
+                errorAlert.style.display = "flex";
+                // Reload fresh seats
+                await loadSeats();
+                selectedSeatIds.clear();
+                updateSummary();
+            } else {
+                errorText.textContent = data.error || "An error occurred during booking.";
+                errorAlert.style.display = "flex";
+            }
+        } catch (err) {
+            errorText.textContent = "Network error. Please try again.";
+            errorAlert.style.display = "flex";
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Reserve Seats & Book`;
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", loadSeats);
+</script>
+{% endblock %}
