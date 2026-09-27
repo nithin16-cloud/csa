@@ -56,8 +56,8 @@
         </div>
     </header>
 
-    <!-- Flash Notifications Container -->
-    <div class="toast-container">
+    <!-- Flash Notifications Container (Clean luxury toast, hidden in static Live Server preview) -->
+    <div id="flash-toast-container" class="toast-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -69,6 +69,23 @@
             {% endif %}
         {% endwith %}
     </div>
+    <script>
+        (function() {
+            var tc = document.getElementById('flash-toast-container');
+            if (tc) {
+                if (tc.innerHTML.indexOf('{' + '%') !== -1 || tc.innerHTML.indexOf('{' + '{') !== -1) {
+                    tc.remove();
+                } else if (tc.querySelector('.toast-card')) {
+                    tc.style.display = 'flex';
+                    setTimeout(function() {
+                        tc.style.opacity = '0';
+                        tc.style.transition = 'opacity 0.4s ease';
+                        setTimeout(function() { tc.remove(); }, 400);
+                    }, 5000);
+                }
+            }
+        })();
+    </script>
 
     <!-- Main Content Area -->
     <main class="main-content" id="home-vue-app">

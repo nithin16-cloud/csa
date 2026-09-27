@@ -2108,3 +2108,75 @@ select.form-control {
     font-weight: 500;
 }
 
+/* ==========================================================================
+   Luxury Toast Notifications
+   ========================================================================== */
+.toast-container {
+    position: fixed;
+    top: 84px;
+    right: 28px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: auto;
+    max-width: 440px;
+    width: calc(100% - 56px);
+}
+
+.toast-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 1rem 1.4rem;
+    background: #FFFFFF;
+    border-radius: var(--radius-md);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-left: 4px solid var(--primary);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-main);
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-card i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.toast-card.toast-success {
+    border-left-color: #10B981;
+}
+
+.toast-card.toast-success i {
+    color: #10B981;
+}
+
+.toast-card.toast-error {
+    border-left-color: #EF4444;
+}
+
+.toast-card.toast-error i {
+    color: #EF4444;
+}
+
+.toast-card.toast-info {
+    border-left-color: var(--primary);
+}
+
+.toast-card.toast-info i {
+    color: var(--primary);
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
