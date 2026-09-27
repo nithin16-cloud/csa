@@ -43,12 +43,11 @@
             </nav>
 
             <div class="nav-right-actions">
-                <div class="currency-pill">
-                    <span class="currency-flag">🇮🇳</span>
-                    <span>INR (₹)</span>
-                </div>
-                <a href="tel:18002097755" class="nav-concierge-btn">
-                    <i class="fa-solid fa-headset"></i> 24x7 Concierge
+                <a href="{{ url_for('main.manage') }}" class="nav-action-link" id="nav-checkin">
+                    <i class="fa-solid fa-qrcode"></i> Web Check-in
+                </a>
+                <a href="#signin" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signin">
+                    <i class="fa-regular fa-circle-user"></i> Sign In
                 </a>
             </div>
         </div>

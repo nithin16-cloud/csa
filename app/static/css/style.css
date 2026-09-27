@@ -191,40 +191,35 @@ a:hover {
     gap: 1rem;
 }
 
-.currency-pill {
-    display: flex;
+.nav-action-link {
+    display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    background: #FFFFFF;
-    border: 1px solid var(--border-subtle);
-    padding: 0.4rem 0.9rem;
-    border-radius: var(--radius-full);
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     font-weight: 700;
-    color: var(--accent-navy);
+    color: var(--text-muted);
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--border-subtle);
+    background: #FFFFFF;
+    transition: all 0.2s ease;
     box-shadow: var(--shadow-xs);
 }
 
-.currency-flag {
-    font-size: 1.05rem;
+.nav-action-link:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-light);
 }
 
-.nav-concierge-btn {
-    display: flex;
+.nav-signin-btn {
+    display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--primary);
-    background: var(--primary-light);
-    padding: 0.45rem 1rem;
+    padding: 0.5rem 1.25rem;
     border-radius: var(--radius-full);
-    transition: all 0.2s ease;
-}
-
-.nav-concierge-btn:hover {
-    background: var(--primary);
-    color: #FFFFFF;
+    font-size: 0.88rem;
+    font-weight: 700;
 }
 
 /* Toast Messages */
