@@ -10,12 +10,12 @@ def test_home_page(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"CloudSky" in response.data
-    assert b"Zero Double-Booking Guarantee" in response.data
+    assert b"Fly in Comfort" in response.data
 
 def test_flights_search_page(client):
     response = client.get("/flights")
     assert response.status_code == 200
-    assert b"Available Flight Schedules" in response.data
+    assert b"Available Commercial Flights" in response.data
 
 def test_booking_page(client):
     response = client.get("/booking/1")

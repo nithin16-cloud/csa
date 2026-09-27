@@ -3,49 +3,53 @@ import random
 from app.db import get_db
 
 AIRPORTS_DATA = [
-    ("JFK", "John F. Kennedy International Airport", "New York", "United States"),
-    ("LHR", "Heathrow Airport", "London", "United Kingdom"),
+    ("DEL", "Indira Gandhi International Airport", "New Delhi", "India"),
+    ("BOM", "Chhatrapati Shivaji Maharaj Intl Airport", "Mumbai", "India"),
+    ("BLR", "Kempegowda International Airport", "Bengaluru", "India"),
+    ("HYD", "Rajiv Gandhi International Airport", "Hyderabad", "India"),
+    ("MAA", "Chennai International Airport", "Chennai", "India"),
+    ("CCU", "Netaji Subhash Chandra Bose Intl Airport", "Kolkata", "India"),
     ("DXB", "Dubai International Airport", "Dubai", "United Arab Emirates"),
     ("SIN", "Singapore Changi Airport", "Singapore", "Singapore"),
-    ("HND", "Tokyo Haneda Airport", "Tokyo", "Japan"),
-    ("CDG", "Charles de Gaulle Airport", "Paris", "France"),
-    ("SFO", "San Francisco International Airport", "San Francisco", "United States"),
-    ("DEL", "Indira Gandhi International Airport", "New Delhi", "India"),
+    ("LHR", "Heathrow Airport", "London", "United Kingdom"),
+    ("JFK", "John F. Kennedy International Airport", "New York", "United States"),
 ]
 
+# Flight routes with realistic Indian Rupee (INR ₹) base fares
 FLIGHT_TEMPLATES = [
-    ("CS-101", "JFK", "LHR", 7, 450.0, "Boeing 787-9 Dreamliner"),
-    ("CS-102", "LHR", "JFK", 8, 460.0, "Boeing 787-9 Dreamliner"),
-    ("CS-201", "DXB", "LHR", 7.5, 380.0, "Airbus A350-900"),
-    ("CS-202", "LHR", "DXB", 7, 390.0, "Airbus A350-900"),
-    ("CS-301", "SIN", "HND", 7, 520.0, "Boeing 777-300ER"),
-    ("CS-302", "HND", "SIN", 7.2, 510.0, "Boeing 777-300ER"),
-    ("CS-401", "JFK", "SFO", 6, 280.0, "Airbus A321neo"),
-    ("CS-402", "SFO", "JFK", 5.5, 290.0, "Airbus A321neo"),
-    ("CS-501", "DEL", "DXB", 3.5, 240.0, "Boeing 737 MAX 9"),
-    ("CS-502", "DXB", "DEL", 3.5, 240.0, "Boeing 737 MAX 9"),
-    ("CS-601", "CDG", "JFK", 8.5, 490.0, "Airbus A350-900"),
-    ("CS-602", "JFK", "CDG", 8, 480.0, "Airbus A350-900"),
-    ("CS-701", "LHR", "SIN", 13, 720.0, "Boeing 787-9 Dreamliner"),
-    ("CS-702", "SIN", "LHR", 13.5, 740.0, "Boeing 787-9 Dreamliner"),
+    ("CS-101", "DEL", "BOM", 2.2, 5499.0, "Boeing 737 MAX 8"),
+    ("CS-102", "BOM", "DEL", 2.1, 5699.0, "Boeing 737 MAX 8"),
+    ("CS-103", "DEL", "BLR", 2.8, 6899.0, "Airbus A321neo"),
+    ("CS-104", "BLR", "DEL", 2.7, 6799.0, "Airbus A321neo"),
+    ("CS-105", "BOM", "BLR", 1.8, 4899.0, "Airbus A320neo"),
+    ("CS-106", "BLR", "BOM", 1.7, 4999.0, "Airbus A320neo"),
+    ("CS-201", "BOM", "DXB", 3.5, 16999.0, "Boeing 787-9 Dreamliner"),
+    ("CS-202", "DXB", "BOM", 3.5, 17499.0, "Boeing 787-9 Dreamliner"),
+    ("CS-203", "DEL", "DXB", 3.8, 18499.0, "Boeing 787-9 Dreamliner"),
+    ("CS-204", "DXB", "DEL", 3.8, 18999.0, "Boeing 787-9 Dreamliner"),
+    ("CS-301", "BLR", "SIN", 4.5, 21500.0, "Airbus A350-900"),
+    ("CS-302", "SIN", "BLR", 4.5, 22000.0, "Airbus A350-900"),
+    ("CS-401", "DEL", "LHR", 9.0, 42500.0, "Boeing 777-300ER"),
+    ("CS-402", "LHR", "DEL", 8.5, 44000.0, "Boeing 777-300ER"),
+    ("CS-501", "BOM", "JFK", 15.5, 68000.0, "Boeing 787-9 Dreamliner"),
+    ("CS-502", "JFK", "BOM", 15.0, 71000.0, "Boeing 787-9 Dreamliner"),
+    ("CS-601", "HYD", "MAA", 1.2, 3899.0, "Airbus A320neo"),
+    ("CS-602", "MAA", "HYD", 1.2, 3899.0, "Airbus A320neo"),
+    ("CS-701", "CCU", "DEL", 2.3, 5899.0, "Boeing 737 MAX 8"),
+    ("CS-702", "DEL", "CCU", 2.2, 5999.0, "Boeing 737 MAX 8"),
 ]
 
 def generate_seats_for_flight(cursor, flight_id):
-    """
-    Generates a realistic commercial cabin seat layout:
-    - Rows 1-2: First Class (1A, 1B, 1E, 1F) (1.8x - 2.5x base price)
-    - Rows 3-6: Business Class (3A, 3B, 3C, 3D, 3E, 3F) (1.4x - 1.8x base price)
-    - Rows 7-18: Economy Class (Window A/F, Middle B/E, Aisle C/D) (1.0x - 1.1x base price)
-    """
+    """Generates commercial cabin layout with First, Business, and Economy."""
     seat_records = []
 
-    # First Class: Rows 1-2 (4 seats per row)
+    # First Class: Rows 1-2 (4 seats per row: A, B, E, F) (2.2x multiplier)
     for r in range(1, 3):
         for col in ["A", "B", "E", "F"]:
             stype = "Window" if col in ("A", "F") else "Aisle"
             seat_records.append((flight_id, f"{r}{col}", "First", stype, 2.2, 0))
 
-    # Business Class: Rows 3-6 (6 seats per row)
+    # Business Class: Rows 3-6 (6 seats per row: A-F) (1.6x multiplier)
     for r in range(3, 7):
         for col in ["A", "B", "C", "D", "E", "F"]:
             if col in ("A", "F"):
@@ -56,7 +60,7 @@ def generate_seats_for_flight(cursor, flight_id):
                 stype = "Middle"
             seat_records.append((flight_id, f"{r}{col}", "Business", stype, 1.6, 0))
 
-    # Economy Class: Rows 7-16
+    # Economy Class: Rows 7-16 (1.0x - 1.15x multiplier)
     for r in range(7, 17):
         for col in ["A", "B", "C", "D", "E", "F"]:
             if r == 10:
@@ -79,7 +83,7 @@ def generate_seats_for_flight(cursor, flight_id):
     """, seat_records)
 
 def seed_database():
-    """Populates airports, schedules for the next 14 days, and all seats."""
+    """Populates airports, flight schedules in Indian Rupees, and cabin seats."""
     db = get_db()
     cursor = db.cursor()
 
@@ -96,8 +100,7 @@ def seed_database():
     for day_offset in range(0, 14):
         date_curr = today + datetime.timedelta(days=day_offset)
         for num, orig, dest, duration, price, aircraft in FLIGHT_TEMPLATES:
-            # Create 1-2 departures per route per day
-            dep_hour = random.choice([7, 11, 14, 18, 22])
+            dep_hour = random.choice([6, 9, 13, 17, 21])
             dep_dt = datetime.datetime(date_curr.year, date_curr.month, date_curr.day, dep_hour, 0)
             arr_dt = dep_dt + datetime.timedelta(hours=int(duration), minutes=int((duration % 1) * 60))
 
@@ -122,4 +125,4 @@ def seed_database():
         generate_seats_for_flight(cursor, f_id)
 
     db.commit()
-    print(f"Successfully seeded {len(AIRPORTS_DATA)} airports, {len(flight_records)} flights, and cabin seats!")
+    print(f"Successfully seeded {len(AIRPORTS_DATA)} airports, {len(flight_records)} flights with INR fares, and cabin seats!")

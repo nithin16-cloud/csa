@@ -1,24 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Search Scheduled Flights — CloudSky Airlines{% endblock %}
+{% block title %}Flight Schedules & Fares — CloudSky Airways{% endblock %}
 
 {% block content %}
 <div id="flights-vue-app">
     <div class="search-page-header">
         <div class="header-container">
-            <h1>Available Flight Schedules</h1>
-            <p>Real-time commercial flight inventory backed by the CloudSky SQLite database.</p>
+            <span class="section-tag">PREMIUM FLIGHT SCHEDULES</span>
+            <h1 style="font-size: 2.2rem; margin-top: 0.35rem; color: var(--accent-navy);">Available Commercial Flights</h1>
+            <p style="color: var(--text-subtle);">Direct departures and connections across major Indian and global destinations.</p>
         </div>
     </div>
 
     <div class="section-container">
-        <!-- Search Bar Filter -->
+        <!-- Search Filter Card -->
         <div class="search-card search-card-compact">
             <form action="{{ url_for('main.flights_search') }}" method="GET" class="search-form">
                 <div class="form-group">
-                    <label><i class="fa-solid fa-plane-departure"></i> Origin</label>
+                    <label><i class="fa-solid fa-plane-departure"></i> Departure City</label>
                     <select name="origin" class="form-control">
-                        <option value="">All Origin Hubs</option>
+                        <option value="">All Departure Hubs</option>
                         {% for airport in airports %}
                             <option value="{{ airport.code }}" {% if search_origin == airport.code %}selected{% endif %}>
                                 {{ airport.city }} ({{ airport.code }})
@@ -28,9 +29,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fa-solid fa-plane-arrival"></i> Destination</label>
+                    <label><i class="fa-solid fa-plane-arrival"></i> Destination City</label>
                     <select name="destination" class="form-control">
-                        <option value="">All Destinations</option>
+                        <option value="">All Destination Hubs</option>
                         {% for airport in airports %}
                             <option value="{{ airport.code }}" {% if search_destination == airport.code %}selected{% endif %}>
                                 {{ airport.city }} ({{ airport.code }})
@@ -40,7 +41,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fa-regular fa-calendar"></i> Departure Date</label>
+                    <label><i class="fa-regular fa-calendar"></i> Travel Date</label>
                     <input type="date" name="date" class="form-control" value="{{ search_date }}">
                 </div>
 
@@ -52,20 +53,20 @@
             </form>
         </div>
 
-        <!-- Results Meta & Vue Client-Side Sorter -->
+        <!-- Sorter Controls -->
         <div class="section-header-row" style="margin-bottom: 1.5rem; align-items: center;">
             <div class="results-meta">
-                <span style="font-size: 1rem; color: var(--text-muted);">
-                    Showing <strong>{{ flights|length }}</strong> scheduled flight(s)
+                <span style="font-size: 0.95rem; color: var(--text-subtle); font-weight: 600;">
+                    Showing <strong>{{ flights|length }}</strong> available flight(s)
                 </span>
             </div>
 
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-subtle);">SORT BY:</label>
-                <select class="form-control" style="width: auto; padding: 0.45rem 2rem 0.45rem 0.85rem; font-size: 0.85rem;" v-model="sortBy">
+                <label style="font-size: 0.82rem; font-weight: 800; color: var(--text-subtle);">SORT BY:</label>
+                <select class="form-control" style="width: auto; padding: 0.45rem 2rem 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700;" v-model="sortBy">
                     <option value="departure">Earliest Departure</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
+                    <option value="price_asc">Fare: Low to High (₹)</option>
+                    <option value="price_desc">Fare: High to Low (₹)</option>
                 </select>
             </div>
         </div>
@@ -87,7 +88,7 @@
                         <div class="flight-row-timings">
                             <div class="timing-block">
                                 <span class="timing-hour">{{ flight.departure_time[11:16] }}</span>
-                                <span class="timing-airport">{{ flight.origin_code }} ({{ flight.origin_city }})</span>
+                                <span class="timing-airport">{{ flight.origin_city }} ({{ flight.origin_code }})</span>
                                 <span class="timing-date">{{ flight.departure_time[:10] }}</span>
                             </div>
 
@@ -103,16 +104,16 @@
 
                             <div class="timing-block right">
                                 <span class="timing-hour">{{ flight.arrival_time[11:16] }}</span>
-                                <span class="timing-airport">{{ flight.destination_code }} ({{ flight.dest_city }})</span>
+                                <span class="timing-airport">{{ flight.dest_city }} ({{ flight.destination_code }})</span>
                                 <span class="timing-date">{{ flight.arrival_time[:10] }}</span>
                             </div>
                         </div>
 
                         <div class="flight-row-pricing">
                             <div class="seat-badge-pill">
-                                <i class="fa-solid fa-chair"></i> {{ flight.available_seats }} of {{ flight.total_seats }} seats available
+                                <i class="fa-solid fa-chair"></i> {{ flight.available_seats }} seats left
                             </div>
-                            <div class="price-figure">${{ "%.2f"|format(flight.base_price) }}</div>
+                            <div class="price-figure">₹{{ "{:,.0f}".format(flight.base_price) }}</div>
                             <a href="{{ url_for('main.booking_view', flight_id=flight.id) }}" class="btn btn-primary" id="btn-select-{{ flight.id }}">
                                 Choose Seats <i class="fa-solid fa-arrow-right"></i>
                             </a>
@@ -123,9 +124,9 @@
         {% else %}
             <div class="empty-state-card">
                 <i class="fa-solid fa-plane-slash"></i>
-                <h3>No Flights Found</h3>
-                <p>No scheduled departures match your current filters. Try selecting another route or date.</p>
-                <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">Clear Filters</a>
+                <h3>No Flights Available</h3>
+                <p>No scheduled departures match your chosen criteria. Please explore other travel dates or hubs.</p>
+                <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">Clear All Filters</a>
             </div>
         {% endif %}
     </div>

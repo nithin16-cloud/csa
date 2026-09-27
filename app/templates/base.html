@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CloudSky Airlines — Flight Ticket Booking Simulator{% endblock %}</title>
+    <title>{% block title %}CloudSky Airways — Luxury Commercial Flight Simulator{% endblock %}</title>
     <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Vue.js 3 Production Bundle -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <!-- Custom Modern White Aviation Stylesheet -->
+    <!-- Luxury Airline Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Top Navigation Bar -->
+    <!-- Luxury Header Navigation -->
     <header class="navbar">
         <div class="nav-container">
             <a href="{{ url_for('main.index') }}" class="brand-logo" id="brand-logo">
@@ -26,25 +26,30 @@
                 </div>
                 <div class="brand-text">
                     <span class="brand-name">CloudSky</span>
-                    <span class="brand-sub">AIRLINES SIMULATOR</span>
+                    <span class="brand-sub">AIRWAYS</span>
                 </div>
             </a>
 
             <nav class="nav-links">
                 <a href="{{ url_for('main.index') }}" class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}" id="nav-home">
-                    <i class="fa-solid fa-house"></i> Home
+                    <i class="fa-solid fa-compass"></i> Book Flights
                 </a>
                 <a href="{{ url_for('main.flights_search') }}" class="nav-item {% if request.endpoint == 'main.flights_search' %}active{% endif %}" id="nav-flights">
-                    <i class="fa-solid fa-plane-up"></i> Search Flights
+                    <i class="fa-solid fa-plane-up"></i> Schedules
                 </a>
                 <a href="{{ url_for('main.manage') }}" class="nav-item {% if request.endpoint == 'main.manage' %}active{% endif %}" id="nav-manage">
                     <i class="fa-solid fa-ticket"></i> Manage Booking (PNR)
                 </a>
             </nav>
 
-            <div class="nav-badge">
-                <span class="badge-dot"></span>
-                <span class="badge-text">SQLite WAL Concurrency Engine Active</span>
+            <div class="nav-right-actions">
+                <div class="currency-pill">
+                    <span class="currency-flag">🇮🇳</span>
+                    <span>INR (₹)</span>
+                </div>
+                <a href="tel:18002097755" class="nav-concierge-btn">
+                    <i class="fa-solid fa-headset"></i> 24x7 Concierge
+                </a>
             </div>
         </div>
     </header>
@@ -68,47 +73,59 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Global Clean White Footer -->
+    <!-- Luxury Commercial Airline Footer -->
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-brand">
                 <div class="logo-text">
-                    <i class="fa-solid fa-plane"></i> CloudSky Airlines
+                    <i class="fa-solid fa-plane"></i> CloudSky Airways
                 </div>
-                <p>Engineered Commercial Flight Booking Simulator built with Vue 3 reactive components, Flask, and an atomic SQLite transaction lock preventing seat double-booking.</p>
-                <div class="tech-stack-tags">
-                    <span class="tech-pill"><i class="fa-brands fa-vuejs"></i> Vue 3</span>
-                    <span class="tech-pill"><i class="fa-brands fa-python"></i> Python 3.14</span>
-                    <span class="tech-pill"><i class="fa-solid fa-flask"></i> Flask 3.1</span>
-                    <span class="tech-pill"><i class="fa-solid fa-database"></i> SQLite 3 WAL</span>
-                    <span class="tech-pill"><i class="fa-solid fa-shield-halved"></i> ACID Transactions</span>
+                <p>India's premier commercial flight reservation simulator. Delivering extraordinary comfort, seamless connections, and zero double-booking reliability across domestic and international skies.</p>
+                <div class="footer-trust-badges">
+                    <span class="trust-pill"><i class="fa-solid fa-shield-halved"></i> 256-Bit SSL Encrypted</span>
+                    <span class="trust-pill"><i class="fa-solid fa-award"></i> IATA Accredited Simulator</span>
+                    <span class="trust-pill"><i class="fa-solid fa-circle-check"></i> Instant Verified PNR</span>
                 </div>
             </div>
 
-            <div class="footer-links">
-                <h4>System Architecture</h4>
+            <div class="footer-col">
+                <h4>Popular Routes</h4>
                 <ul>
-                    <li><i class="fa-solid fa-check"></i> Vue 3 Reactive Cabin Seat Selection</li>
-                    <li><i class="fa-solid fa-check"></i> Atomic Conditional Updates (WHERE is_booked = 0)</li>
-                    <li><i class="fa-solid fa-check"></i> SQLite BEGIN IMMEDIATE Write Locks</li>
-                    <li><i class="fa-solid fa-check"></i> Printable Boarding Pass Generator</li>
+                    <li><a href="{{ url_for('main.flights_search') }}?origin=DEL&destination=BOM">Delhi (DEL) ⇄ Mumbai (BOM)</a></li>
+                    <li><a href="{{ url_for('main.flights_search') }}?origin=BLR&destination=DXB">Bengaluru (BLR) ⇄ Dubai (DXB)</a></li>
+                    <li><a href="{{ url_for('main.flights_search') }}?origin=DEL&destination=LHR">Delhi (DEL) ⇄ London (LHR)</a></li>
+                    <li><a href="{{ url_for('main.flights_search') }}?origin=BOM&destination=JFK">Mumbai (BOM) ⇄ New York (JFK)</a></li>
                 </ul>
             </div>
 
-            <div class="footer-destinations">
-                <h4>International Hubs</h4>
-                <div class="hub-grid">
-                    <span>JFK (New York)</span>
-                    <span>LHR (London)</span>
-                    <span>DXB (Dubai)</span>
-                    <span>SIN (Singapore)</span>
-                    <span>HND (Tokyo)</span>
-                    <span>CDG (Paris)</span>
-                </div>
+            <div class="footer-col">
+                <h4>Travel Services</h4>
+                <ul>
+                    <li><a href="{{ url_for('main.manage') }}"><i class="fa-solid fa-ticket"></i> Web Check-in & Boarding Pass</a></li>
+                    <li><a href="{{ url_for('main.flights_search') }}"><i class="fa-solid fa-calendar-days"></i> Flight Schedule Tracker</a></li>
+                    <li><a href="#amenities"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
+                    <li><a href="#baggage"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Customer Support</h4>
+                <ul>
+                    <li><a href="tel:18002097755"><i class="fa-solid fa-phone"></i> 1800-209-7755 (Toll-Free)</a></li>
+                    <li><a href="mailto:concierge@cloudsky.in"><i class="fa-solid fa-envelope"></i> concierge@cloudsky.in</a></li>
+                    <li><a href="#faq"><i class="fa-solid fa-circle-question"></i> FAQs & Special Assistance</a></li>
+                    <li><a href="#refunds"><i class="fa-solid fa-rotate-left"></i> Cancellation & Refund Policy</a></li>
+                </ul>
             </div>
         </div>
+
         <div class="footer-bottom">
-            <p>© 2026 CloudSky Airlines Simulator. Clean White Aviation Architecture.</p>
+            <p>© 2026 CloudSky Airways Ltd. All rights reserved.</p>
+            <div class="footer-bottom-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms & Conditions</a>
+                <a href="#security">Passenger Rights</a>
+            </div>
         </div>
     </footer>
 

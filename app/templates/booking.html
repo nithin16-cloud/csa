@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Select Seats & Book — {{ flight.flight_number }} | CloudSky Airlines{% endblock %}
+{% block title %}Select Cabin Seats — {{ flight.flight_number }} | CloudSky Airways{% endblock %}
 
 {% block content %}
 <div id="booking-vue-app">
@@ -8,7 +8,7 @@
     <div class="booking-page-header">
         <div class="header-container">
             <a href="{{ url_for('main.flights_search') }}" class="back-link">
-                <i class="fa-solid fa-arrow-left"></i> Back to Flight Schedules
+                <i class="fa-solid fa-arrow-left"></i> Return to Flight Schedules
             </a>
             <div class="flight-header-summary">
                 <div>
@@ -24,20 +24,32 @@
 
     <!-- Booking Content Grid -->
     <div class="section-container">
+        <!-- Day 2: Real-Time Seat Reservation Hold Banner -->
+        <div v-if="selectedSeats.length > 0 && holdSecondsLeft > 0" class="seat-hold-banner">
+            <div>
+                <i class="fa-solid fa-lock"></i> 
+                Your selected seat(s) are held exclusively for your checkout.
+            </div>
+            <div class="hold-timer-clock">
+                [[ formattedHoldTime ]]
+            </div>
+        </div>
+
         <div class="booking-layout-grid">
             <!-- Left: Interactive Aircraft Cabin Seat Map -->
             <div class="cabin-section">
                 <div class="cabin-card">
                     <div class="cabin-header">
                         <h2><i class="fa-solid fa-plane"></i> Interactive Aircraft Cabin</h2>
-                        <p>Click on any available seat to select or deselect. Real-time availability refreshed from SQLite.</p>
+                        <p>Select your preferred seat. Click to select or deselect. Real-time availability refreshed from SQLite.</p>
                     </div>
 
                     <!-- Seat Legend -->
                     <div class="seat-legend">
                         <div class="legend-item"><span class="legend-box seat-sample available"></span> Available</div>
                         <div class="legend-item"><span class="legend-box seat-sample selected"></span> Selected</div>
-                        <div class="legend-item"><span class="legend-box seat-sample booked"></span> Occupied</div>
+                        <div class="legend-item"><span class="legend-box seat-sample booked"></span> Booked</div>
+                        <div class="legend-item"><span class="legend-box seat-sample held"></span> In Checkout</div>
                         <div class="legend-item"><span class="legend-box seat-sample first-class"></span> First Class</div>
                         <div class="legend-item"><span class="legend-box seat-sample business"></span> Business</div>
                     </div>
@@ -45,13 +57,13 @@
                     <!-- Aircraft Fuselage Simulation -->
                     <div class="aircraft-fuselage">
                         <div class="cockpit-nose">
-                            <i class="fa-solid fa-plane"></i> COCKPIT
+                            <i class="fa-solid fa-plane"></i> COCKPIT NOSE
                         </div>
 
                         <!-- Loading State -->
-                        <div v-if="loadingSeats" class="empty-hint" style="text-align: center; padding: 2rem 0;">
-                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.5rem; color: var(--primary);"></i>
-                            <p style="margin-top: 0.5rem;">Loading live aircraft cabin layout...</p>
+                        <div v-if="loadingSeats" class="empty-hint" style="text-align: center; padding: 2.5rem 0;">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.6rem; color: var(--primary);"></i>
+                            <p style="margin-top: 0.75rem; font-weight: 600;">Loading live aircraft cabin layout...</p>
                         </div>
 
                         <!-- Vue Reactive Seat Map -->
@@ -72,14 +84,15 @@
                                                 :class="[
                                                     'seat-btn', 
                                                     'class-' + seat.cabin_class.toLowerCase(),
-                                                    seat.is_booked ? 'booked' : 'available',
+                                                    seat.is_booked ? 'booked' : (seat.is_held ? 'held' : 'available'),
                                                     { 'selected': isSeatSelected(seat.id) }
                                                 ]"
-                                                :disabled="seat.is_booked"
-                                                :title="seat.seat_number + ' (' + seat.cabin_class + ') - $' + getSeatPrice(seat)"
+                                                :disabled="seat.is_booked || seat.is_held"
+                                                :title="seat.seat_number + ' (' + seat.cabin_class + ') - ₹' + formatINR(seat.price_inr)"
                                                 @click="toggleSeat(seat)"
                                             >
                                                 <i v-if="seat.is_booked" class="fa-solid fa-xmark"></i>
+                                                <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
                                                 <span v-else>[[ seat.seat_number.slice(-1) ]]</span>
                                             </button>
                                         </div>
@@ -96,14 +109,15 @@
                                                 :class="[
                                                     'seat-btn', 
                                                     'class-' + seat.cabin_class.toLowerCase(),
-                                                    seat.is_booked ? 'booked' : 'available',
+                                                    seat.is_booked ? 'booked' : (seat.is_held ? 'held' : 'available'),
                                                     { 'selected': isSeatSelected(seat.id) }
                                                 ]"
-                                                :disabled="seat.is_booked"
-                                                :title="seat.seat_number + ' (' + seat.cabin_class + ') - $' + getSeatPrice(seat)"
+                                                :disabled="seat.is_booked || seat.is_held"
+                                                :title="seat.seat_number + ' (' + seat.cabin_class + ') - ₹' + formatINR(seat.price_inr)"
                                                 @click="toggleSeat(seat)"
                                             >
                                                 <i v-if="seat.is_booked" class="fa-solid fa-xmark"></i>
+                                                <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
                                                 <span v-else>[[ seat.seat_number.slice(-1) ]]</span>
                                             </button>
                                         </div>
@@ -118,52 +132,52 @@
             <!-- Right: Passenger Details & Summary Form -->
             <div class="summary-section">
                 <div class="summary-card">
-                    <h3>Passenger Information</h3>
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1.25rem;">Passenger Details</h3>
                     <form @submit.prevent="submitBooking" class="booking-form">
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 1rem;">
                             <label for="passenger-name"><i class="fa-solid fa-user"></i> Full Passenger Name</label>
-                            <input type="text" id="passenger-name" v-model="passengerName" class="form-control" placeholder="e.g. Captain James Kirk" required>
+                            <input type="text" id="passenger-name" v-model="passengerName" class="form-control" placeholder="e.g. Rohan Sharma" required>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 1rem;">
                             <label for="passenger-email"><i class="fa-solid fa-envelope"></i> Email Address</label>
-                            <input type="email" id="passenger-email" v-model="passengerEmail" class="form-control" placeholder="e.g. james.kirk@example.com" required>
+                            <input type="email" id="passenger-email" v-model="passengerEmail" class="form-control" placeholder="e.g. rohan.sharma@example.in" required>
                         </div>
 
-                        <div class="form-group">
-                            <label for="passenger-phone"><i class="fa-solid fa-phone"></i> Mobile Phone</label>
-                            <input type="tel" id="passenger-phone" v-model="passengerPhone" class="form-control" placeholder="+1 (555) 019-2834" required>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="passenger-phone"><i class="fa-solid fa-phone"></i> Mobile Phone (India)</label>
+                            <input type="tel" id="passenger-phone" v-model="passengerPhone" class="form-control" placeholder="+91 98765 43210" required>
                         </div>
 
                         <div class="order-divider"></div>
 
-                        <h3>Booking Summary</h3>
+                        <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1rem;">Fare Breakdown</h3>
                         
                         <!-- Selected Seats Tags -->
                         <div class="selected-seats-container">
                             <div v-if="selectedSeats.length === 0" class="empty-hint">
-                                <i class="fa-solid fa-hand-pointer"></i> Select one or more seats on the cabin map.
+                                <i class="fa-solid fa-hand-pointer"></i> Please pick one or more seats on the cabin map.
                             </div>
                             <div v-else class="selected-tags">
                                 <span v-for="seat in selectedSeats" :key="seat.id" class="seat-tag">
-                                    <strong>[[ seat.seat_number ]]</strong> ([[ seat.cabin_class ]]) - $[[ getSeatPrice(seat) ]]
+                                    <strong>[[ seat.seat_number ]]</strong> ([[ seat.cabin_class ]]) - ₹[[ formatINR(seat.price_inr) ]]
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Reactive Price Breakdown -->
+                        <!-- Reactive Price Breakdown in INR -->
                         <div v-if="selectedSeats.length > 0" class="price-breakdown">
                             <div class="price-row">
                                 <span>Base Route Fare</span>
-                                <span>$[[ basePrice.toFixed(2) ]]</span>
+                                <span>₹[[ formatINR(basePrice) ]]</span>
                             </div>
                             <div class="price-row">
                                 <span>Seats Selected</span>
                                 <span>[[ selectedSeats.length ]]</span>
                             </div>
                             <div class="price-row total-row">
-                                <span>Total Amount</span>
-                                <span class="total-amount">$[[ totalPrice.toFixed(2) ]]</span>
+                                <span>Total Fare</span>
+                                <span class="total-amount">₹[[ formatINR(totalPrice) ]]</span>
                             </div>
                         </div>
 
@@ -182,11 +196,11 @@
                         >
                             <i v-if="isSubmitting" class="fa-solid fa-circle-notch fa-spin"></i>
                             <i v-else class="fa-solid fa-lock"></i>
-                            [[ isSubmitting ? 'Securing Seat Reservation...' : 'Reserve Seats & Confirm' ]]
+                            [[ isSubmitting ? 'Confirming Reservation...' : 'Complete Booking' ]]
                         </button>
 
                         <p class="concurrency-note">
-                            <i class="fa-solid fa-shield-halved"></i> Protected by SQLite Atomic Transactions. Double bookings are automatically rejected.
+                            <i class="fa-solid fa-shield-halved"></i> 100% Guaranteed Seat Lock. Double-bookings are prevented at database transaction level.
                         </p>
                     </form>
                 </div>
@@ -194,15 +208,15 @@
         </div>
     </div>
 
-    <!-- Boarding Pass Modal -->
+    <!-- Official Boarding Pass Modal in Indian Rupees -->
     <div v-if="confirmedBooking" class="modal-backdrop">
         <div class="modal-dialog">
             <div class="boarding-pass-card" id="printable-boarding-pass">
                 <div class="bp-header">
                     <div class="bp-airline">
-                        <i class="fa-solid fa-plane-departure"></i> CloudSky Airlines
+                        <i class="fa-solid fa-plane-departure"></i> CloudSky Airways
                     </div>
-                    <div class="bp-type">BOARDING PASS</div>
+                    <div class="bp-type">OFFICIAL BOARDING PASS</div>
                 </div>
 
                 <div class="bp-body">
@@ -251,8 +265,8 @@
                                 <div class="val">{{ flight.departure_time }}</div>
                             </div>
                             <div class="bp-field">
-                                <label>TOTAL AMOUNT PAID</label>
-                                <div class="val text-success" style="color: var(--accent-emerald);">$[[ confirmedBooking.total_amount.toFixed(2) ]]</div>
+                                <label>TOTAL FARE PAID</label>
+                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">₹[[ formatINR(confirmedBooking.total_amount_inr) ]]</div>
                             </div>
                         </div>
                     </div>
@@ -270,7 +284,7 @@
                         <i class="fa-solid fa-print"></i> Print Boarding Pass
                     </button>
                     <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                        Return to Home
+                        Return to Homepage
                     </a>
                 </div>
             </div>
@@ -281,7 +295,7 @@
 
 {% block extra_scripts %}
 <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
     createApp({
         delimiters: ['[[', ']]'],
@@ -296,14 +310,45 @@
             const conflictError = ref("");
             const confirmedBooking = ref(null);
 
+            // Day 2: Session lock token and hold timer
+            const lockToken = ref("token-" + Math.random().toString(36).substring(2, 12));
+            const holdSecondsLeft = ref(0);
+            let timerInterval = null;
+
             const passengerName = ref("");
             const passengerEmail = ref("");
             const passengerPhone = ref("");
 
+            const formatINR = (val) => {
+                if (!val) return "0";
+                return Number(val).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            };
+
+            const formattedHoldTime = computed(() => {
+                const mins = Math.floor(holdSecondsLeft.value / 60);
+                const secs = holdSecondsLeft.value % 60;
+                return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            });
+
+            const startHoldTimer = (seconds) => {
+                holdSecondsLeft.value = seconds;
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    if (holdSecondsLeft.value > 0) {
+                        holdSecondsLeft.value--;
+                    } else {
+                        clearInterval(timerInterval);
+                        conflictError.value = "Your 5-minute seat reservation has expired. Please re-select your seats.";
+                        selectedSeatIds.value.clear();
+                        loadSeats();
+                    }
+                }, 1000);
+            };
+
             const loadSeats = async () => {
                 loadingSeats.value = true;
                 try {
-                    const resp = await fetch(`/api/flights/${flightId}/seats`);
+                    const resp = await fetch(`/api/flights/${flightId}/seats?lock_token=${lockToken.value}`);
                     const data = await resp.json();
                     seats.value = data.seats || [];
                 } catch (err) {
@@ -315,7 +360,7 @@
 
             const cabinSections = computed(() => {
                 const classes = [
-                    { name: "First Class", filter: "First" },
+                    { name: "First Class Suites", filter: "First" },
                     { name: "Business Class", filter: "Business" },
                     { name: "Economy Class", filter: "Economy" }
                 ];
@@ -347,13 +392,48 @@
                 return selectedSeatIds.value.has(seatId);
             };
 
-            const toggleSeat = (seat) => {
-                if (seat.is_booked) return;
+            const toggleSeat = async (seat) => {
+                if (seat.is_booked || seat.is_held) return;
                 conflictError.value = "";
+                
                 if (selectedSeatIds.value.has(seat.id)) {
                     selectedSeatIds.value.delete(seat.id);
                 } else {
                     selectedSeatIds.value.add(seat.id);
+                }
+
+                // If seats are selected, apply 5-minute hold lock
+                if (selectedSeatIds.value.size > 0) {
+                    try {
+                        const holdResp = await fetch("/api/seats/hold", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                flight_id: flightId,
+                                seat_ids: Array.from(selectedSeatIds.value),
+                                lock_token: lockToken.value
+                            })
+                        });
+                        const holdData = await holdResp.json();
+                        if (holdResp.ok) {
+                            startHoldTimer(holdData.hold_seconds || 300);
+                        } else {
+                            conflictError.value = holdData.error || "Could not reserve seat.";
+                            selectedSeatIds.value.delete(seat.id);
+                            await loadSeats();
+                        }
+                    } catch (e) {
+                        // ignore network hiccup
+                    }
+                } else {
+                    // Released all seats
+                    if (timerInterval) clearInterval(timerInterval);
+                    holdSecondsLeft.value = 0;
+                    fetch("/api/seats/release", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ lock_token: lockToken.value })
+                    });
                 }
             };
 
@@ -361,13 +441,9 @@
                 return seats.value.filter(s => selectedSeatIds.value.has(s.id));
             });
 
-            const getSeatPrice = (seat) => {
-                return (basePrice * seat.price_multiplier).toFixed(2);
-            };
-
             const totalPrice = computed(() => {
                 return selectedSeats.value.reduce((sum, seat) => {
-                    return sum + (basePrice * seat.price_multiplier);
+                    return sum + seat.price_inr;
                 }, 0);
             });
 
@@ -385,18 +461,18 @@
                             passenger_name: passengerName.value,
                             passenger_email: passengerEmail.value,
                             passenger_phone: passengerPhone.value,
-                            seat_ids: Array.from(selectedSeatIds.value)
+                            seat_ids: Array.from(selectedSeatIds.value),
+                            lock_token: lockToken.value
                         })
                     });
 
                     const data = await resp.json();
 
                     if (resp.status === 201) {
-                        // Success!
+                        if (timerInterval) clearInterval(timerInterval);
                         confirmedBooking.value = data.booking;
                     } else if (resp.status === 409) {
-                        // Double-booking conflict caught!
-                        conflictError.value = data.error || "Conflict: One or more selected seats were just claimed by another passenger. Please select another seat.";
+                        conflictError.value = data.error || "Seat conflict detected. Please select another seat.";
                         selectedSeatIds.value.clear();
                         await loadSeats();
                     } else {
@@ -415,6 +491,17 @@
 
             onMounted(loadSeats);
 
+            onUnmounted(() => {
+                if (timerInterval) clearInterval(timerInterval);
+                if (selectedSeatIds.value.size > 0) {
+                    fetch("/api/seats/release", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ lock_token: lockToken.value })
+                    });
+                }
+            });
+
             return {
                 basePrice,
                 loadingSeats,
@@ -425,12 +512,14 @@
                 passengerName,
                 passengerEmail,
                 passengerPhone,
+                holdSecondsLeft,
+                formattedHoldTime,
+                formatINR,
                 getLeftSeats,
                 getRightSeats,
                 isSeatSelected,
                 toggleSeat,
                 selectedSeats,
-                getSeatPrice,
                 totalPrice,
                 submitBooking,
                 printPass

@@ -1,5 +1,7 @@
 import string
 import random
+import uuid
+import datetime
 import sqlite3
 from flask import Blueprint, jsonify, request
 from app.db import get_db
@@ -11,6 +13,16 @@ def generate_pnr():
     chars = string.ascii_uppercase + string.digits
     return "CS-" + "".join(random.choices(chars, k=6))
 
+def clean_expired_holds(db):
+    """Releases seats whose temporary reservation holds have passed."""
+    now_iso = datetime.datetime.now().isoformat()
+    db.execute("""
+        UPDATE seats 
+        SET locked_until = NULL, lock_token = NULL 
+        WHERE is_booked = 0 AND locked_until IS NOT NULL AND locked_until < ?
+    """, (now_iso,))
+    db.commit()
+
 @api_bp.route("/airports", methods=["GET"])
 def get_airports():
     db = get_db()
@@ -20,12 +32,17 @@ def get_airports():
 @api_bp.route("/flights/<int:flight_id>/seats", methods=["GET"])
 def get_flight_seats(flight_id):
     db = get_db()
+    clean_expired_holds(db)
+
     flight = db.execute("SELECT * FROM flights WHERE id = ?", (flight_id,)).fetchone()
     if not flight:
         return jsonify({"error": "Flight not found"}), 404
 
+    client_token = request.args.get("lock_token", "")
+    now_iso = datetime.datetime.now().isoformat()
+
     seats = db.execute("""
-        SELECT id, flight_id, seat_number, cabin_class, seat_type, price_multiplier, is_booked
+        SELECT id, flight_id, seat_number, cabin_class, seat_type, price_multiplier, is_booked, locked_until, lock_token
         FROM seats 
         WHERE flight_id = ?
         ORDER BY 
@@ -38,25 +55,108 @@ def get_flight_seats(flight_id):
             SUBSTR(seat_number, -1)
     """, (flight_id,)).fetchall()
 
+    seat_list = []
+    for s in seats:
+        seat_dict = dict(s)
+        # Check if held by someone else
+        is_held = False
+        if not seat_dict["is_booked"] and seat_dict["locked_until"]:
+            if seat_dict["locked_until"] > now_iso:
+                is_held = (seat_dict["lock_token"] != client_token)
+
+        seat_dict["is_held"] = is_held
+        seat_dict["price_inr"] = round(flight["base_price"] * seat_dict["price_multiplier"])
+        # Don't expose other people's lock tokens
+        seat_dict.pop("lock_token", None)
+        seat_list.append(seat_dict)
+
     return jsonify({
         "flight_id": flight_id,
         "flight_number": flight["flight_number"],
-        "base_price": flight["base_price"],
-        "seats": [dict(s) for s in seats]
+        "base_price_inr": flight["base_price"],
+        "seats": seat_list
     })
+
+@api_bp.route("/seats/hold", methods=["POST"])
+def hold_seats():
+    """
+    Day 2 Feature: Holds seats for 5 minutes during passenger checkout.
+    Payload: { "flight_id": 1, "seat_ids": [12, 13], "lock_token": "uuid" }
+    """
+    data = request.get_json() or {}
+    flight_id = data.get("flight_id")
+    seat_ids = data.get("seat_ids", [])
+    lock_token = data.get("lock_token") or str(uuid.uuid4())
+
+    if not flight_id or not seat_ids or not isinstance(seat_ids, list):
+        return jsonify({"error": "flight_id and list of seat_ids required"}), 400
+
+    db = get_db()
+    clean_expired_holds(db)
+
+    now = datetime.datetime.now()
+    hold_expires = now + datetime.timedelta(minutes=5)
+    now_iso = now.isoformat()
+    expires_iso = hold_expires.isoformat()
+
+    try:
+        db.execute("BEGIN IMMEDIATE")
+
+        for seat_id in seat_ids:
+            seat = db.execute("SELECT * FROM seats WHERE id = ? AND flight_id = ?", (seat_id, flight_id)).fetchone()
+            if not seat:
+                db.rollback()
+                return jsonify({"error": f"Seat ID {seat_id} not found"}), 404
+
+            if seat["is_booked"]:
+                db.rollback()
+                return jsonify({"error": f"Seat {seat['seat_number']} is already booked", "code": "SEAT_BOOKED"}), 409
+
+            if seat["locked_until"] and seat["locked_until"] > now_iso and seat["lock_token"] != lock_token:
+                db.rollback()
+                return jsonify({"error": f"Seat {seat['seat_number']} is currently being held by another passenger", "code": "SEAT_HELD"}), 409
+
+            # Apply 5-minute hold
+            db.execute("""
+                UPDATE seats 
+                SET locked_until = ?, lock_token = ?, version = version + 1
+                WHERE id = ? AND is_booked = 0
+            """, (expires_iso, lock_token, seat_id))
+
+        db.commit()
+        return jsonify({
+            "success": True,
+            "lock_token": lock_token,
+            "expires_at": expires_iso,
+            "hold_seconds": 300,
+            "message": "Seats held for 5 minutes"
+        })
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": "Failed to hold seats", "details": str(e)}), 500
+
+@api_bp.route("/seats/release", methods=["POST"])
+def release_seats():
+    """Releases seats if passenger abandons checkout or deselects."""
+    data = request.get_json() or {}
+    lock_token = data.get("lock_token")
+    if not lock_token:
+        return jsonify({"error": "lock_token required"}), 400
+
+    db = get_db()
+    db.execute("""
+        UPDATE seats 
+        SET locked_until = NULL, lock_token = NULL 
+        WHERE lock_token = ? AND is_booked = 0
+    """, (lock_token,))
+    db.commit()
+    return jsonify({"success": True, "message": "Seats released"})
 
 @api_bp.route("/bookings", methods=["POST"])
 def create_booking():
     """
-    Creates a new booking with ACID transaction and double-booking prevention.
-    Accepts JSON:
-    {
-        "flight_id": 1,
-        "passenger_name": "Jane Doe",
-        "passenger_email": "jane@example.com",
-        "passenger_phone": "+1 234 567 890",
-        "seat_ids": [10, 11]
-    }
+    Creates a confirmed booking with atomic seat reservation in Indian Rupees (₹).
     """
     data = request.get_json() or {}
     flight_id = data.get("flight_id")
@@ -64,20 +164,20 @@ def create_booking():
     passenger_email = data.get("passenger_email", "").strip()
     passenger_phone = data.get("passenger_phone", "").strip()
     seat_ids = data.get("seat_ids", [])
+    lock_token = data.get("lock_token", "")
 
     if not flight_id or not passenger_name or not passenger_email or not seat_ids:
-        return jsonify({"error": "Missing required fields (flight_id, passenger_name, passenger_email, seat_ids)"}), 400
+        return jsonify({"error": "Missing required fields"}), 400
 
     if not isinstance(seat_ids, list) or len(seat_ids) == 0:
         return jsonify({"error": "At least one seat must be selected"}), 400
 
     db = get_db()
+    now_iso = datetime.datetime.now().isoformat()
 
     try:
-        # Start an IMMEDIATE transaction to prevent concurrent race conditions
         db.execute("BEGIN IMMEDIATE")
 
-        # 1. Verify flight exists
         flight = db.execute("SELECT * FROM flights WHERE id = ?", (flight_id,)).fetchone()
         if not flight:
             db.rollback()
@@ -87,35 +187,42 @@ def create_booking():
         booked_seats_info = []
         total_amount = 0.0
 
-        # 2. Prevent Double Booking:
-        # Check and atomically claim each requested seat
         for seat_id in seat_ids:
-            seat = db.execute(
-                "SELECT * FROM seats WHERE id = ? AND flight_id = ?", 
-                (seat_id, flight_id)
-            ).fetchone()
-
+            seat = db.execute("SELECT * FROM seats WHERE id = ? AND flight_id = ?", (seat_id, flight_id)).fetchone()
             if not seat:
                 db.rollback()
-                return jsonify({"error": f"Seat ID {seat_id} not found on this flight"}), 404
+                return jsonify({"error": f"Seat ID {seat_id} not found"}), 404
 
-            # Attempt atomic update using optimistic concurrency condition (is_booked = 0)
+            # Check if occupied or locked by someone else
+            if seat["is_booked"]:
+                db.rollback()
+                return jsonify({
+                    "error": f"Seat {seat['seat_number']} is already booked by another passenger.",
+                    "code": "SEAT_ALREADY_BOOKED"
+                }), 409
+
+            if seat["locked_until"] and seat["locked_until"] > now_iso and seat["lock_token"] and seat["lock_token"] != lock_token:
+                db.rollback()
+                return jsonify({
+                    "error": f"Seat {seat['seat_number']} is currently held in another checkout.",
+                    "code": "SEAT_HELD"
+                }), 409
+
+            # Atomic claim and transition to booked
             cursor = db.execute("""
                 UPDATE seats 
-                SET is_booked = 1, version = version + 1
+                SET is_booked = 1, locked_until = NULL, lock_token = NULL, version = version + 1
                 WHERE id = ? AND is_booked = 0
             """, (seat_id,))
 
-            # If rowcount is 0, another concurrent transaction has already booked this seat!
             if cursor.rowcount == 0:
                 db.rollback()
                 return jsonify({
-                    "error": f"Seat {seat['seat_number']} was just booked by another passenger. Please select another seat.",
-                    "code": "SEAT_ALREADY_BOOKED",
-                    "conflict_seat": seat["seat_number"]
+                    "error": f"Seat {seat['seat_number']} was just claimed by another passenger.",
+                    "code": "SEAT_ALREADY_BOOKED"
                 }), 409
 
-            seat_price = round(base_price * seat["price_multiplier"], 2)
+            seat_price = round(base_price * seat["price_multiplier"])
             total_amount += seat_price
             booked_seats_info.append({
                 "seat_id": seat_id,
@@ -124,7 +231,6 @@ def create_booking():
                 "cabin_class": seat["cabin_class"]
             })
 
-        # 3. Generate unique PNR and insert Booking record
         pnr = generate_pnr()
         cursor = db.execute("""
             INSERT INTO bookings (booking_reference, flight_id, passenger_name, passenger_email, passenger_phone, total_amount, payment_status)
@@ -133,14 +239,12 @@ def create_booking():
         
         booking_id = cursor.lastrowid
 
-        # 4. Insert junction records with UNIQUE constraint enforcement
         for s_info in booked_seats_info:
             db.execute("""
                 INSERT INTO booking_seats (booking_id, seat_id, flight_id, seat_number, price_paid)
                 VALUES (?, ?, ?, ?, ?)
             """, (booking_id, s_info["seat_id"], flight_id, s_info["seat_number"], s_info["price"]))
 
-        # Commit transaction
         db.commit()
 
         return jsonify({
@@ -152,17 +256,14 @@ def create_booking():
                 "flight_number": flight["flight_number"],
                 "passenger_name": passenger_name,
                 "passenger_email": passenger_email,
-                "total_amount": total_amount,
+                "total_amount_inr": total_amount,
                 "seats": [s["seat_number"] for s in booked_seats_info]
             }
         }), 201
 
     except sqlite3.IntegrityError as e:
         db.rollback()
-        return jsonify({
-            "error": "A conflict occurred while booking your selected seats. Please re-check seat availability.",
-            "details": str(e)
-        }), 409
+        return jsonify({"error": "Database constraint prevented duplicate seat booking.", "details": str(e)}), 409
     except Exception as e:
         db.rollback()
         return jsonify({"error": "Internal booking failure", "details": str(e)}), 500
