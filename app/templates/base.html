@@ -68,8 +68,11 @@
                         </div>
                     </div>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signin">
+                    <a href="{{ url_for('auth.login') }}" class="nav-action-link" id="nav-signin">
                         <i class="fa-regular fa-circle-user"></i> Sign In
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signup">
+                        <i class="fa-solid fa-user-plus"></i> Sign Up
                     </a>
                 {% endif %}
             </div>
