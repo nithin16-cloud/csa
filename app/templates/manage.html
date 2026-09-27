@@ -5,41 +5,41 @@
 {% block content %}
 <div class="search-page-header">
     <div class="header-container">
-        <h1>Retrieve & Manage Your Trip</h1>
+        <h1>Retrieve & Manage Your Reservation</h1>
         <p>Enter your 6-character PNR reference code and passenger email to view your itinerary.</p>
     </div>
 </div>
 
 <div class="section-container">
     <div class="manage-lookup-wrapper">
-        <div class="search-card" style="max-width: 600px; margin: 0 auto 3rem auto;">
+        <div class="search-card" style="max-width: 580px; margin: 0 auto 3rem auto;">
             <form action="{{ url_for('main.manage') }}" method="POST" class="manage-form">
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label for="pnr-input"><i class="fa-solid fa-ticket"></i> Booking Reference (PNR)</label>
-                    <input type="text" name="pnr" id="pnr-input" class="form-control" placeholder="e.g. CS-9X4A8K" required uppercase>
+                    <input type="text" name="pnr" id="pnr-input" class="form-control" placeholder="e.g. CS-9X4A8K" required style="text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">
                 </div>
 
-                <div class="form-group">
-                    <label for="email-input"><i class="fa-solid fa-envelope"></i> Passenger Email</label>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="email-input"><i class="fa-solid fa-envelope"></i> Passenger Email Address</label>
                     <input type="email" name="email" id="email-input" class="form-control" placeholder="e.g. passenger@domain.com" required>
                 </div>
 
                 <div class="form-submit">
                     <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fa-solid fa-magnifying-glass"></i> Find Reservation
+                        <i class="fa-solid fa-magnifying-glass"></i> Retrieve Booking Details
                     </button>
                 </div>
             </form>
         </div>
 
         {% if error %}
-            <div class="alert-box alert-danger" style="max-width: 600px; margin: 0 auto 2rem auto;">
+            <div class="alert-box alert-danger" style="max-width: 580px; margin: 0 auto 2rem auto;">
                 <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
             </div>
         {% endif %}
 
         {% if booking %}
-            <div class="booking-detail-card" style="max-width: 750px; margin: 0 auto;">
+            <div class="booking-detail-card" style="max-width: 780px; margin: 0 auto;">
                 <div class="bd-header">
                     <div class="bd-pnr-box">
                         <span class="pnr-lbl">BOOKING REFERENCE (PNR)</span>
@@ -71,7 +71,7 @@
 
                     <div class="bd-meta-grid">
                         <div class="bd-meta-item">
-                            <label>PASSENGER</label>
+                            <label>PASSENGER NAME</label>
                             <strong>{{ booking.passenger_name }}</strong>
                         </div>
                         <div class="bd-meta-item">
@@ -83,13 +83,13 @@
                             <strong>{{ booking.aircraft_model }}</strong>
                         </div>
                         <div class="bd-meta-item">
-                            <label>TOTAL FARE</label>
-                            <strong class="text-success">${{ "%.2f"|format(booking.total_amount) }}</strong>
+                            <label>TOTAL FARE PAID</label>
+                            <strong style="color: var(--accent-emerald); font-size: 1.15rem;">${{ "%.2f"|format(booking.total_amount) }}</strong>
                         </div>
                     </div>
 
                     <div class="seats-reserved-box">
-                        <label>ASSIGNED SEATS</label>
+                        <label>ASSIGNED CABIN SEATS</label>
                         <div class="seats-badge-row">
                             {% for s in seats %}
                                 <span class="seat-pill-tag">
@@ -102,7 +102,7 @@
 
                 <div class="bd-footer">
                     <button type="button" class="btn btn-secondary" onclick="window.print()">
-                        <i class="fa-solid fa-print"></i> Print Itinerary / Pass
+                        <i class="fa-solid fa-print"></i> Print Itinerary Pass
                     </button>
                     <a href="{{ url_for('main.index') }}" class="btn btn-outline">
                         Back to Search

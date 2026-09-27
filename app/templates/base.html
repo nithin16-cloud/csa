@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CloudSky Airlines — Flight Ticket Booking Simulator{% endblock %}</title>
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Custom CSS -->
+    <!-- Vue.js 3 Production Bundle -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Custom Modern White Aviation Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
@@ -33,7 +35,7 @@
                     <i class="fa-solid fa-house"></i> Home
                 </a>
                 <a href="{{ url_for('main.flights_search') }}" class="nav-item {% if request.endpoint == 'main.flights_search' %}active{% endif %}" id="nav-flights">
-                    <i class="fa-solid fa-plane-up"></i> Flights
+                    <i class="fa-solid fa-plane-up"></i> Search Flights
                 </a>
                 <a href="{{ url_for('main.manage') }}" class="nav-item {% if request.endpoint == 'main.manage' %}active{% endif %}" id="nav-manage">
                     <i class="fa-solid fa-ticket"></i> Manage Booking (PNR)
@@ -42,7 +44,7 @@
 
             <div class="nav-badge">
                 <span class="badge-dot"></span>
-                <span class="badge-text">SQLite WAL Concurrency Active</span>
+                <span class="badge-text">SQLite WAL Concurrency Engine Active</span>
             </div>
         </div>
     </header>
@@ -66,18 +68,19 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Global Footer -->
+    <!-- Global Clean White Footer -->
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-brand">
                 <div class="logo-text">
                     <i class="fa-solid fa-plane"></i> CloudSky Airlines
                 </div>
-                <p>Engineered Flight Ticket Booking Simulator featuring database-backed atomic seat reservation and real-time concurrency lock protection.</p>
+                <p>Engineered Commercial Flight Booking Simulator built with Vue 3 reactive components, Flask, and an atomic SQLite transaction lock preventing seat double-booking.</p>
                 <div class="tech-stack-tags">
+                    <span class="tech-pill"><i class="fa-brands fa-vuejs"></i> Vue 3</span>
                     <span class="tech-pill"><i class="fa-brands fa-python"></i> Python 3.14</span>
                     <span class="tech-pill"><i class="fa-solid fa-flask"></i> Flask 3.1</span>
-                    <span class="tech-pill"><i class="fa-solid fa-database"></i> SQLite 3 (WAL)</span>
+                    <span class="tech-pill"><i class="fa-solid fa-database"></i> SQLite 3 WAL</span>
                     <span class="tech-pill"><i class="fa-solid fa-shield-halved"></i> ACID Transactions</span>
                 </div>
             </div>
@@ -85,15 +88,15 @@
             <div class="footer-links">
                 <h4>System Architecture</h4>
                 <ul>
-                    <li><i class="fa-solid fa-check"></i> Optimistic Concurrency Control</li>
-                    <li><i class="fa-solid fa-check"></i> Unique DB Constraint Gate</li>
-                    <li><i class="fa-solid fa-check"></i> 2D Aircraft Cabin Seat Map</li>
-                    <li><i class="fa-solid fa-check"></i> Realistic Boarding Pass Engine</li>
+                    <li><i class="fa-solid fa-check"></i> Vue 3 Reactive Cabin Seat Selection</li>
+                    <li><i class="fa-solid fa-check"></i> Atomic Conditional Updates (WHERE is_booked = 0)</li>
+                    <li><i class="fa-solid fa-check"></i> SQLite BEGIN IMMEDIATE Write Locks</li>
+                    <li><i class="fa-solid fa-check"></i> Printable Boarding Pass Generator</li>
                 </ul>
             </div>
 
             <div class="footer-destinations">
-                <h4>Hub Destinations</h4>
+                <h4>International Hubs</h4>
                 <div class="hub-grid">
                     <span>JFK (New York)</span>
                     <span>LHR (London)</span>
@@ -105,7 +108,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>© 2026 CloudSky Airlines Simulator. Built with Python, Flask & SQLite.</p>
+            <p>© 2026 CloudSky Airlines Simulator. Clean White Aviation Architecture.</p>
         </div>
     </footer>
 

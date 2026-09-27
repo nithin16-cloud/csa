@@ -1,186 +1,195 @@
 {% extends "base.html" %}
 
-{% block title %}CloudSky Airlines — Flight Booking Simulator{% endblock %}
+{% block title %}CloudSky Airlines — Precision Flight Ticket Booking Simulator{% endblock %}
 
 {% block content %}
-<section class="hero-section">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-        <div class="hero-badge">
-            <i class="fa-solid fa-bolt"></i> High-Performance Flight Simulator
-        </div>
-        <h1 class="hero-title">Experience Flawless Aviation Booking</h1>
-        <p class="hero-subtitle">
-            Search scheduled flights worldwide, pick your seat on an interactive 2D aircraft cabin map, and experience zero double-booking powered by atomic SQLite transactions.
-        </p>
-
-        <!-- Search Flight Widget -->
-        <div class="search-card">
-            <form action="{{ url_for('main.flights_search') }}" method="GET" class="search-form" id="flight-search-form">
-                <div class="form-group">
-                    <label for="origin-select"><i class="fa-solid fa-plane-departure"></i> Origin</label>
-                    <select name="origin" id="origin-select" class="form-control" required>
-                        <option value="" disabled selected>Select Departure Hub</option>
-                        {% for airport in airports %}
-                            <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-swap-btn" type="button" title="Swap cities" id="swap-cities-btn">
-                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                </div>
-
-                <div class="form-group">
-                    <label for="destination-select"><i class="fa-solid fa-plane-arrival"></i> Destination</label>
-                    <select name="destination" id="destination-select" class="form-control" required>
-                        <option value="" disabled selected>Select Arrival Hub</option>
-                        {% for airport in airports %}
-                            <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="flight-date"><i class="fa-regular fa-calendar"></i> Departure Date</label>
-                    <input type="date" name="date" id="flight-date" class="form-control" required>
-                </div>
-
-                <div class="form-submit">
-                    <button type="submit" class="btn btn-primary btn-search" id="btn-search-flights">
-                        <i class="fa-solid fa-magnifying-glass"></i> Find Flights
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</section>
-
-<!-- Concurrency Architecture Section -->
-<section class="section-container">
-    <div class="section-header">
-        <span class="section-tag">ENGINEERING HIGHLIGHT</span>
-        <h2 class="section-title">Zero Double-Booking Guarantee</h2>
-        <p class="section-desc">How our database-backed concurrency engine ensures multiple users can never book the exact same seat.</p>
-    </div>
-
-    <div class="architecture-grid">
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-atom"></i></div>
-            <h3>1. Atomic Conditional Updates</h3>
-            <p>Every seat update executes with <code>WHERE is_booked = 0</code> condition. If another transaction books it first, <code>rowcount = 0</code> and the reservation safely fails with HTTP 409.</p>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
-            <h3>2. SQLite Immediate Locks</h3>
-            <p>Writes use <code>BEGIN IMMEDIATE</code> with SQLite Write-Ahead-Logging (WAL) mode to reserve write locks upfront, completely preventing race windows between reading and booking.</p>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-shield-virus"></i></div>
-            <h3>3. Hard Database Constraints</h3>
-            <p>Enforced <code>UNIQUE(flight_id, seat_number)</code> and <code>UNIQUE(flight_id, seat_id)</code> table constraints guarantee that no physical duplication can ever enter the database.</p>
-        </div>
-    </div>
-</section>
-
-<!-- Featured Scheduled Flights -->
-<section class="section-container">
-    <div class="section-header-row">
-        <div>
-            <span class="section-tag">POPULAR ROUTES</span>
-            <h2 class="section-title">Featured Upcoming Flights</h2>
-        </div>
-        <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">
-            View All Flights <i class="fa-solid fa-arrow-right"></i>
-        </a>
-    </div>
-
-    <div class="flights-grid">
-        {% for flight in featured_flights %}
-            <div class="flight-card" id="flight-card-{{ flight.id }}">
-                <div class="flight-card-header">
-                    <div class="airline-meta">
-                        <i class="fa-solid fa-paper-plane flight-logo"></i>
-                        <div>
-                            <span class="flight-num">{{ flight.flight_number }}</span>
-                            <span class="aircraft-name">{{ flight.aircraft_model }}</span>
-                        </div>
-                    </div>
-                    <span class="status-badge status-{{ flight.status.lower() }}">{{ flight.status }}</span>
-                </div>
-
-                <div class="route-display">
-                    <div class="route-point">
-                        <div class="route-code">{{ flight.origin_code }}</div>
-                        <div class="route-city">{{ flight.origin_city }}</div>
-                        <div class="route-time">{{ flight.departure_time[11:16] }}</div>
-                    </div>
-
-                    <div class="route-flight-path">
-                        <span class="path-line"></span>
-                        <i class="fa-solid fa-plane path-plane"></i>
-                        <span class="path-nonstop">Non-stop</span>
-                    </div>
-
-                    <div class="route-point right">
-                        <div class="route-code">{{ flight.destination_code }}</div>
-                        <div class="route-city">{{ flight.dest_city }}</div>
-                        <div class="route-time">{{ flight.arrival_time[11:16] }}</div>
-                    </div>
-                </div>
-
-                <div class="flight-card-footer">
-                    <div class="flight-meta-col">
-                        <div class="flight-date-tag">
-                            <i class="fa-regular fa-calendar-days"></i> {{ flight.departure_time[:10] }}
-                        </div>
-                        <div class="seat-availability">
-                            <span class="seats-dot"></span>
-                            <span class="seats-count">{{ flight.available_seats }} seats left</span>
-                        </div>
-                    </div>
-
-                    <div class="price-action">
-                        <div class="price-box">
-                            <span class="price-from">From</span>
-                            <span class="price-value">${{ "%.2f"|format(flight.base_price) }}</span>
-                        </div>
-                        <a href="{{ url_for('main.booking_view', flight_id=flight.id) }}" class="btn btn-primary btn-sm" id="book-btn-{{ flight.id }}">
-                            Select Seat <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    </div>
-                </div>
+<div id="home-vue-app">
+    <!-- Hero Section with Clean White & Royal Blue Accents -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fa-solid fa-plane-up"></i> Next-Gen Flight Booking Simulator
             </div>
-        {% endfor %}
-    </div>
-</section>
+            <h1 class="hero-title">
+                Precision Flight Booking with <span>Zero Double-Booking</span>
+            </h1>
+            <p class="hero-subtitle">
+                Explore scheduled international flights, reserve real-time seats across an interactive 2D aircraft cabin, and experience ACID concurrency safety powered by Vue 3 and SQLite.
+            </p>
+
+            <!-- Vue 3 Interactive Search Widget -->
+            <div class="search-card">
+                <form action="{{ url_for('main.flights_search') }}" method="GET" class="search-form" id="flight-search-form">
+                    <div class="form-group">
+                        <label for="origin-select"><i class="fa-solid fa-plane-departure"></i> Origin</label>
+                        <select name="origin" id="origin-select" class="form-control" v-model="selectedOrigin" required>
+                            <option value="" disabled>Select Departure Airport</option>
+                            {% for airport in airports %}
+                                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-swap-btn" type="button" title="Swap origin & destination" @click="swapAirports">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destination-select"><i class="fa-solid fa-plane-arrival"></i> Destination</label>
+                        <select name="destination" id="destination-select" class="form-control" v-model="selectedDestination" required>
+                            <option value="" disabled>Select Arrival Airport</option>
+                            {% for airport in airports %}
+                                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="flight-date"><i class="fa-regular fa-calendar"></i> Departure Date</label>
+                        <input type="date" name="date" id="flight-date" class="form-control" v-model="selectedDate" required>
+                    </div>
+
+                    <div class="form-submit">
+                        <button type="submit" class="btn btn-primary btn-search" id="btn-search-flights">
+                            <i class="fa-solid fa-magnifying-glass"></i> Find Flights
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Concurrency Architecture Section -->
+    <section class="section-container">
+        <div class="section-header">
+            <span class="section-tag">ENGINEERED FOR RELIABILITY</span>
+            <h2 class="section-title">Zero Double-Booking Guarantee</h2>
+            <p class="section-desc">A multi-layer database transaction engine ensuring duplicate seat reservations are physically impossible.</p>
+        </div>
+
+        <div class="architecture-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-atom"></i></div>
+                <h3>1. Atomic Conditional Updates</h3>
+                <p>Seat reservation executes an atomic <code>UPDATE seats SET is_booked = 1 WHERE is_booked = 0</code>. If two users click book at the same millisecond, the second transaction gets <code>rowcount = 0</code> and rolls back safely with HTTP 409.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+                <h3>2. SQLite Immediate Locks</h3>
+                <p>Transactions reserve immediate write locks using <code>BEGIN IMMEDIATE</code> combined with Write-Ahead Logging (WAL) to prevent race intervals between seat availability checks and insertion.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>3. Hard Database Constraints</h3>
+                <p>Relational <code>UNIQUE(flight_id, seat_number)</code> and <code>UNIQUE(flight_id, seat_id)</code> table constraints eliminate any possibility of duplicate seat rows at the database engine level.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Scheduled Flights -->
+    <section class="section-container">
+        <div class="section-header-row">
+            <div>
+                <span class="section-tag">GLOBAL SCHEDULES</span>
+                <h2 class="section-title">Featured Upcoming Flights</h2>
+            </div>
+            <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">
+                View All Flights <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="flights-grid">
+            {% for flight in featured_flights %}
+                <div class="flight-card" id="flight-card-{{ flight.id }}">
+                    <div class="flight-card-header">
+                        <div class="airline-meta">
+                            <i class="fa-solid fa-paper-plane flight-logo"></i>
+                            <div>
+                                <span class="flight-num">{{ flight.flight_number }}</span>
+                                <span class="aircraft-name">{{ flight.aircraft_model }}</span>
+                            </div>
+                        </div>
+                        <span class="status-badge status-scheduled">{{ flight.status }}</span>
+                    </div>
+
+                    <div class="route-display">
+                        <div class="route-point">
+                            <div class="route-code">{{ flight.origin_code }}</div>
+                            <div class="route-city">{{ flight.origin_city }}</div>
+                            <div class="route-time">{{ flight.departure_time[11:16] }}</div>
+                        </div>
+
+                        <div class="route-flight-path">
+                            <span class="path-line"></span>
+                            <i class="fa-solid fa-plane path-plane"></i>
+                            <span class="path-nonstop">Non-stop</span>
+                        </div>
+
+                        <div class="route-point right">
+                            <div class="route-code">{{ flight.destination_code }}</div>
+                            <div class="route-city">{{ flight.dest_city }}</div>
+                            <div class="route-time">{{ flight.arrival_time[11:16] }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flight-card-footer">
+                        <div class="flight-meta-col">
+                            <div class="flight-date-tag">
+                                <i class="fa-regular fa-calendar-days"></i> {{ flight.departure_time[:10] }}
+                            </div>
+                            <div class="seat-availability">
+                                <span class="seats-dot"></span>
+                                <span class="seats-count">{{ flight.available_seats }} seats available</span>
+                            </div>
+                        </div>
+
+                        <div class="price-action">
+                            <div class="price-box">
+                                <span class="price-from">From</span>
+                                <span class="price-value">${{ "%.2f"|format(flight.base_price) }}</span>
+                            </div>
+                            <a href="{{ url_for('main.booking_view', flight_id=flight.id) }}" class="btn btn-primary btn-sm" id="book-btn-{{ flight.id }}">
+                                Select Seat <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    // Set default departure date to today
-    document.addEventListener("DOMContentLoaded", () => {
-        const dateInput = document.getElementById("flight-date");
-        if (dateInput && !dateInput.value) {
-            const today = new Date().toISOString().split("T")[0];
-            dateInput.value = today;
-            dateInput.min = today;
-        }
+    const { createApp, ref, onMounted } = Vue;
 
-        // Swap cities button
-        const swapBtn = document.getElementById("swap-cities-btn");
-        const originSelect = document.getElementById("origin-select");
-        const destSelect = document.getElementById("destination-select");
+    createApp({
+        setup() {
+            const selectedOrigin = ref("");
+            const selectedDestination = ref("");
+            const selectedDate = ref("");
 
-        if (swapBtn && originSelect && destSelect) {
-            swapBtn.addEventListener("click", () => {
-                const temp = originSelect.value;
-                originSelect.value = destSelect.value;
-                destSelect.value = temp;
+            onMounted(() => {
+                const today = new Date().toISOString().split("T")[0];
+                selectedDate.value = today;
             });
+
+            const swapAirports = () => {
+                const temp = selectedOrigin.value;
+                selectedOrigin.value = selectedDestination.value;
+                selectedDestination.value = temp;
+            };
+
+            return {
+                selectedOrigin,
+                selectedDestination,
+                selectedDate,
+                swapAirports
+            };
         }
-    });
+    }).mount('#home-vue-app');
 </script>
 {% endblock %}

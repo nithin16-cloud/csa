@@ -1,36 +1,54 @@
-/* CloudSky Airlines - Modern Aviation Design System */
+/* CloudSky Airlines - Modern White Aviation Design System */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
 :root {
-    --bg-primary: #070B19;
-    --bg-secondary: #0F172A;
-    --bg-surface: #1E293B;
-    --bg-surface-glass: rgba(30, 41, 59, 0.7);
-    --border-glass: rgba(255, 255, 255, 0.1);
+    /* Pure & Light Surfaces */
+    --bg-page: #F8FAFC;
+    --bg-surface: #FFFFFF;
+    --bg-surface-subtle: #F1F5F9;
+    --bg-surface-elevated: #FFFFFF;
     
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
-    
+    /* Aviation Royal Blue & Sky Accents */
     --primary: #2563EB;
     --primary-hover: #1D4ED8;
-    --primary-glow: rgba(37, 99, 235, 0.35);
+    --primary-light: #EFF6FF;
+    --primary-glow: rgba(37, 99, 235, 0.18);
     
-    --accent-cyan: #00F0FF;
-    --accent-cyan-glow: rgba(0, 240, 255, 0.25);
-    --accent-gold: #F59E0B;
-    --accent-purple: #8B5CF6;
-    --accent-emerald: #10B981;
-    --danger: #EF4444;
+    --accent-sky: #0EA5E9;
+    --accent-sky-light: #F0F9FF;
+    --accent-navy: #0F172A;
+    --accent-gold: #D97706;
+    --accent-emerald: #059669;
+    --accent-emerald-light: #ECFDF5;
+    --danger: #DC2626;
+    --danger-light: #FEF2F2;
 
-    --font-heading: 'Outfit', sans-serif;
-    --font-body: 'Plus Jakarta Sans', sans-serif;
+    /* High-Legibility Typography */
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --text-subtle: #64748B;
+    --text-inverse: #FFFFFF;
 
+    /* Borders & Dividers */
+    --border-subtle: #E2E8F0;
+    --border-card: #CBD5E1;
+    --border-focus: #2563EB;
+
+    /* Radii */
     --radius-sm: 8px;
-    --radius-md: 14px;
-    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
     --radius-full: 9999px;
-    
-    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-    --shadow-glow: 0 0 25px var(--accent-cyan-glow);
+
+    /* Subtle Modern Soft Shadows */
+    --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+    --shadow-lg: 0 20px 35px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 *, *::before, *::after {
@@ -40,48 +58,51 @@
 }
 
 body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--bg-page);
+    color: var(--text-main);
     font-family: var(--font-body);
     line-height: 1.6;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    color: var(--text-main);
     letter-spacing: -0.02em;
     font-weight: 700;
 }
 
 a {
-    color: var(--accent-cyan);
+    color: var(--primary);
     text-decoration: none;
     transition: all 0.2s ease;
 }
 
 a:hover {
-    color: #fff;
+    color: var(--primary-hover);
 }
 
-/* Top Navbar */
+/* Navbar */
 .navbar {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-glass);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: var(--shadow-xs);
 }
 
 .nav-container {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
-    padding: 0.85rem 1.5rem;
+    padding: 0.9rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -94,68 +115,71 @@ a:hover {
 }
 
 .logo-icon {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, #00F0FF 0%, #2563EB 100%);
+    background: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 1.3rem;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-}
-
-.brand-text {
-    display: flex;
-    flex-direction: column;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .brand-name {
     font-family: var(--font-heading);
     font-size: 1.35rem;
     font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.01em;
+    color: var(--accent-navy);
+    line-height: 1.1;
+    display: block;
 }
 
 .brand-sub {
     font-size: 0.65rem;
     font-weight: 700;
-    color: var(--accent-cyan);
-    letter-spacing: 0.15em;
+    color: var(--primary);
+    letter-spacing: 0.12em;
+    display: block;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0.75rem;
 }
 
 .nav-item {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: var(--text-secondary);
-    padding: 0.5rem 0.9rem;
-    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
     transition: all 0.2s ease;
 }
 
-.nav-item:hover, .nav-item.active {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
+.nav-item:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.nav-item.active {
+    color: var(--primary);
+    background: var(--primary-light);
+    font-weight: 700;
 }
 
 .nav-badge {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    padding: 0.4rem 0.85rem;
+    gap: 0.45rem;
+    background: var(--accent-emerald-light);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    padding: 0.35rem 0.85rem;
     border-radius: var(--radius-full);
 }
 
@@ -164,7 +188,7 @@ a:hover {
     height: 8px;
     border-radius: 50%;
     background-color: var(--accent-emerald);
-    box-shadow: 0 0 8px var(--accent-emerald);
+    box-shadow: 0 0 6px var(--accent-emerald);
     animation: pulse-dot 2s infinite ease-in-out;
 }
 
@@ -176,18 +200,23 @@ a:hover {
 
 @keyframes pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.85); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
 }
 
 /* Toast Messages */
 .toast-container {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 1rem auto 0 auto;
     padding: 0 1.5rem;
 }
 
 .toast-card {
-    padding: 0.9rem 1.2rem;
+    padding: 0.85rem 1.25rem;
     border-radius: var(--radius-md);
     margin-bottom: 0.5rem;
     display: flex;
@@ -198,42 +227,30 @@ a:hover {
 }
 
 .toast-error {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid var(--danger);
-    color: #FCA5A5;
+    background: var(--danger-light);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    color: var(--danger);
 }
 
 .toast-success {
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid var(--accent-emerald);
-    color: #6EE7B7;
+    background: var(--accent-emerald-light);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    color: var(--accent-emerald);
 }
 
-/* Hero Section */
+/* Hero Section with Clean White & Subtle Gradient Horizon */
 .hero-section {
     position: relative;
-    padding: 5rem 1.5rem 6rem;
+    padding: 4.5rem 1.5rem 5.5rem;
     text-align: center;
-    background: radial-gradient(circle at 50% 20%, #162447 0%, #070B19 80%);
-    overflow: hidden;
-}
-
-.hero-overlay {
-    position: absolute;
-    inset: 0;
-    background-image: 
-        radial-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
-        radial-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-position: 0 0, 20px 20px;
-    pointer-events: none;
+    background: radial-gradient(circle at 50% -10%, #EFF6FF 0%, #FFFFFF 70%, #F8FAFC 100%);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .hero-content {
     position: relative;
     max-width: 900px;
     margin: 0 auto;
-    z-index: 2;
 }
 
 .hero-badge {
@@ -242,114 +259,121 @@ a:hover {
     gap: 0.5rem;
     padding: 0.35rem 1rem;
     border-radius: var(--radius-full);
-    background: rgba(0, 240, 255, 0.1);
-    border: 1px solid rgba(0, 240, 255, 0.25);
-    color: var(--accent-cyan);
+    background: var(--primary-light);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    color: var(--primary);
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .hero-title {
-    font-size: 3.5rem;
+    font-size: 3.4rem;
     font-weight: 800;
     line-height: 1.15;
-    background: linear-gradient(180deg, #FFFFFF 30%, #94A3B8 100%);
+    color: var(--accent-navy);
+    margin-bottom: 1.25rem;
+}
+
+.hero-title span {
+    background: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 1.25rem;
 }
 
 .hero-subtitle {
     font-size: 1.15rem;
-    color: var(--text-secondary);
-    max-width: 650px;
-    margin: 0 auto 3rem auto;
+    color: var(--text-muted);
+    max-width: 680px;
+    margin: 0 auto 2.75rem auto;
 }
 
-/* Flight Search Widget */
+/* White-Card Search Widget */
 .search-card {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-lg);
-    padding: 1.75rem;
-    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
     text-align: left;
-}
-
-.search-card-compact {
-    margin-bottom: 2.5rem;
 }
 
 .search-form {
     display: grid;
     grid-template-columns: 1.2fr auto 1.2fr 1fr auto;
-    gap: 1rem;
+    gap: 1.25rem;
     align-items: flex-end;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.45rem;
 }
 
 .form-group label {
     font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-weight: 700;
+    color: var(--text-muted);
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.form-group label i {
+    color: var(--primary);
 }
 
 .form-control {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #FFFFFF;
+    border: 1.5px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
-    color: #fff;
+    padding: 0.8rem 1rem;
+    color: var(--text-main);
     font-family: var(--font-body);
     font-size: 0.95rem;
+    font-weight: 500;
     outline: none;
     transition: all 0.2s ease;
     width: 100%;
 }
 
 .form-control:focus {
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 12px var(--accent-cyan-glow);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
 select.form-control {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23475569' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
     padding-right: 2.5rem;
+    cursor: pointer;
 }
 
 .form-swap-btn {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-glass);
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: var(--accent-cyan);
-    transition: all 0.2s ease;
+    color: var(--primary);
+    transition: all 0.25s ease;
     margin-bottom: 2px;
 }
 
 .form-swap-btn:hover {
-    background: rgba(0, 240, 255, 0.15);
+    background: var(--primary-light);
+    border-color: var(--primary);
     transform: rotate(180deg);
 }
 
@@ -359,26 +383,27 @@ select.form-control {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.8rem 1.4rem;
+    padding: 0.85rem 1.5rem;
     border-radius: var(--radius-md);
     font-family: var(--font-heading);
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     border: none;
     transition: all 0.2s ease;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #00F0FF 0%, #2563EB 100%);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 240, 255, 0.5);
-    color: #fff;
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+    transform: translateY(-1px);
+    color: #FFFFFF;
 }
 
 .btn-primary:disabled {
@@ -388,14 +413,27 @@ select.form-control {
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--border-glass);
-    color: #fff;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    background: var(--bg-surface-subtle);
+    border-color: var(--border-card);
+    color: var(--primary);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border-subtle);
+    color: var(--text-muted);
+}
+
+.btn-outline:hover {
+    background: var(--bg-surface-subtle);
+    color: var(--text-main);
 }
 
 .btn-block {
@@ -414,7 +452,7 @@ select.form-control {
 
 /* Sections */
 .section-container {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
     padding: 4rem 1.5rem;
 }
@@ -434,24 +472,25 @@ select.form-control {
 
 .section-tag {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.1em;
-    color: var(--accent-cyan);
+    color: var(--primary);
     text-transform: uppercase;
 }
 
 .section-title {
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     margin-top: 0.35rem;
+    color: var(--accent-navy);
 }
 
 .section-desc {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-top: 0.5rem;
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
-/* Architecture Highlight Cards */
+/* Architecture Cards */
 .architecture-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -459,25 +498,26 @@ select.form-control {
 }
 
 .feature-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glass);
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: 2rem;
-    position: relative;
-    transition: transform 0.25s ease, border-color 0.25s ease;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .feature-card:hover {
     transform: translateY(-4px);
-    border-color: var(--accent-cyan);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-card);
 }
 
 .feature-icon {
     width: 52px;
     height: 52px;
     border-radius: var(--radius-md);
-    background: rgba(0, 240, 255, 0.1);
-    color: var(--accent-cyan);
+    background: var(--primary-light);
+    color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -487,21 +527,23 @@ select.form-control {
 
 .feature-card h3 {
     font-size: 1.2rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.65rem;
+    color: var(--accent-navy);
 }
 
 .feature-card p {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.55;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.6;
 }
 
 .feature-card code {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg-surface-subtle);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
-    color: var(--accent-cyan);
+    color: var(--primary);
     font-size: 0.85em;
+    font-weight: 600;
 }
 
 /* Flight Cards Grid */
@@ -512,20 +554,21 @@ select.form-control {
 }
 
 .flight-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glass);
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .flight-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(37, 99, 235, 0.4);
 }
 
 .flight-card-header {
@@ -542,34 +585,36 @@ select.form-control {
 }
 
 .flight-logo {
-    color: var(--accent-cyan);
-    font-size: 1.2rem;
+    color: var(--primary);
+    font-size: 1.25rem;
 }
 
 .flight-num {
     font-size: 1.05rem;
-    font-weight: 700;
+    font-weight: 800;
+    color: var(--accent-navy);
     display: block;
 }
 
 .aircraft-name {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     display: block;
 }
 
 .status-badge {
-    padding: 0.25rem 0.65rem;
+    padding: 0.25rem 0.75rem;
     border-radius: var(--radius-full);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .status-scheduled {
-    background: rgba(16, 185, 129, 0.15);
+    background: var(--accent-emerald-light);
     color: var(--accent-emerald);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    border: 1px solid rgba(5, 150, 105, 0.2);
 }
 
 /* Route Display Component */
@@ -579,8 +624,8 @@ select.form-control {
     justify-content: space-between;
     margin-bottom: 1.5rem;
     padding: 1rem 0;
-    border-top: 1px dashed var(--border-glass);
-    border-bottom: 1px dashed var(--border-glass);
+    border-top: 1px dashed var(--border-subtle);
+    border-bottom: 1px dashed var(--border-subtle);
 }
 
 .route-point {
@@ -592,23 +637,24 @@ select.form-control {
 }
 
 .route-code {
-    font-size: 1.7rem;
+    font-size: 1.8rem;
     font-weight: 800;
     font-family: var(--font-heading);
-    color: #fff;
+    color: var(--accent-navy);
     line-height: 1;
 }
 
 .route-city {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-size: 0.85rem;
+    color: var(--text-muted);
     margin-top: 0.2rem;
+    font-weight: 500;
 }
 
 .route-time {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--accent-cyan);
+    color: var(--primary);
     margin-top: 0.25rem;
 }
 
@@ -624,7 +670,7 @@ select.form-control {
 .path-line {
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, transparent 0%, var(--accent-cyan) 50%, transparent 100%);
+    background: linear-gradient(90deg, #E2E8F0 0%, #2563EB 50%, #E2E8F0 100%);
     position: relative;
 }
 
@@ -632,15 +678,18 @@ select.form-control {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--accent-cyan);
-    font-size: 0.9rem;
+    color: var(--primary);
+    font-size: 0.95rem;
+    background: #FFFFFF;
+    padding: 0 4px;
 }
 
 .path-nonstop {
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     margin-top: 0.5rem;
     text-transform: uppercase;
+    font-weight: 600;
 }
 
 .flight-card-footer {
@@ -648,26 +697,27 @@ select.form-control {
     align-items: flex-end;
     justify-content: space-between;
     margin-top: auto;
+    padding-top: 0.75rem;
 }
 
 .flight-date-tag {
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: var(--text-subtle);
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
 }
 
 .seat-availability {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    margin-top: 0.25rem;
+    margin-top: 0.35rem;
 }
 
 .seats-dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--accent-emerald);
 }
@@ -675,7 +725,7 @@ select.form-control {
 .seats-count {
     font-size: 0.75rem;
     color: var(--accent-emerald);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .price-box {
@@ -685,15 +735,15 @@ select.form-control {
 
 .price-from {
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     display: block;
 }
 
 .price-value {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     font-weight: 800;
     font-family: var(--font-heading);
-    color: #fff;
+    color: var(--accent-navy);
 }
 
 /* Flight List Row (Flights Search Page) */
@@ -704,20 +754,22 @@ select.form-control {
 }
 
 .flight-list-row {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glass);
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: 1.5rem 2rem;
     display: grid;
     grid-template-columns: 1.2fr 2fr 1.2fr;
     align-items: center;
     gap: 2rem;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .flight-list-row:hover {
     transform: translateY(-2px);
-    border-color: var(--accent-cyan);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(37, 99, 235, 0.4);
 }
 
 .flight-row-identity {
@@ -730,8 +782,8 @@ select.form-control {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: rgba(0, 240, 255, 0.1);
-    color: var(--accent-cyan);
+    background: var(--primary-light);
+    color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -741,12 +793,13 @@ select.form-control {
 .flight-code {
     font-size: 1.2rem;
     font-weight: 800;
+    color: var(--accent-navy);
     display: block;
 }
 
 .flight-model {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
 }
 
 .flight-row-timings {
@@ -767,17 +820,17 @@ select.form-control {
 .timing-hour {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--accent-navy);
 }
 
 .timing-airport {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .timing-date {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
 }
 
 .flight-duration-block {
@@ -790,8 +843,9 @@ select.form-control {
 
 .duration-tag {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     margin-bottom: 0.35rem;
+    font-weight: 600;
 }
 
 .duration-line {
@@ -805,17 +859,17 @@ select.form-control {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--text-muted);
+    background: var(--border-card);
 }
 
 .duration-line .line {
     flex: 1;
     height: 2px;
-    background: var(--border-glass);
+    background: var(--border-subtle);
 }
 
 .duration-line i {
-    color: var(--accent-cyan);
+    color: var(--primary);
     font-size: 0.85rem;
     margin: 0 0.5rem;
 }
@@ -829,30 +883,30 @@ select.form-control {
 }
 
 .seat-badge-pill {
-    background: rgba(16, 185, 129, 0.12);
+    background: var(--accent-emerald-light);
     color: var(--accent-emerald);
-    padding: 0.25rem 0.65rem;
+    padding: 0.25rem 0.75rem;
     border-radius: var(--radius-full);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .price-figure {
     font-size: 1.8rem;
     font-weight: 800;
     font-family: var(--font-heading);
-    color: #fff;
+    color: var(--accent-navy);
 }
 
 /* Interactive Cabin Seat Selection View */
 .booking-page-header, .search-page-header {
-    background: radial-gradient(circle at 50% 10%, #162447 0%, #070B19 100%);
-    padding: 2.5rem 1.5rem;
-    border-bottom: 1px solid var(--border-glass);
+    background: #FFFFFF;
+    padding: 2.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .header-container {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
 }
 
@@ -861,12 +915,13 @@ select.form-control {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-muted);
     margin-bottom: 0.75rem;
 }
 
 .back-link:hover {
-    color: var(--accent-cyan);
+    color: var(--primary);
 }
 
 .flight-header-summary {
@@ -878,13 +933,19 @@ select.form-control {
 .flight-tag {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--accent-cyan);
+    color: var(--primary);
     text-transform: uppercase;
+}
+
+.flight-header-summary h1 {
+    font-size: 2rem;
+    color: var(--accent-navy);
 }
 
 .header-datetime {
     font-size: 0.95rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .booking-layout-grid {
@@ -895,10 +956,11 @@ select.form-control {
 }
 
 .cabin-card, .summary-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2.25rem;
+    box-shadow: var(--shadow-md);
 }
 
 .cabin-header {
@@ -910,18 +972,19 @@ select.form-control {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    color: var(--accent-navy);
 }
 
 .cabin-header p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-size: 0.9rem;
+    color: var(--text-muted);
 }
 
 .seat-legend {
     display: flex;
     flex-wrap: wrap;
     gap: 1.25rem;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-surface-subtle);
     padding: 0.85rem 1.25rem;
     border-radius: var(--radius-md);
     margin-bottom: 2rem;
@@ -932,7 +995,8 @@ select.form-control {
     align-items: center;
     gap: 0.45rem;
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 .legend-box {
@@ -941,22 +1005,22 @@ select.form-control {
     border-radius: 4px;
 }
 
-.seat-sample.available { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); }
-.seat-sample.selected { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
-.seat-sample.booked { background: #334155; opacity: 0.4; }
+.seat-sample.available { background: #FFFFFF; border: 1.5px solid var(--border-card); }
+.seat-sample.selected { background: var(--primary); border: 1.5px solid var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+.seat-sample.booked { background: #E2E8F0; border: 1px solid #CBD5E1; }
 .seat-sample.first-class { border: 2px solid var(--accent-gold); }
-.seat-sample.business { border: 2px solid var(--accent-purple); }
+.seat-sample.business { border: 2px solid #8B5CF6; }
 
-/* Fuselage Styling */
+/* Light Architectural Aircraft Fuselage */
 .aircraft-fuselage {
-    background: #090E1F;
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    border-radius: 80px 80px 30px 30px;
-    padding: 2rem 2.5rem 3rem;
+    background: #F8FAFC;
+    border: 2px solid var(--border-subtle);
+    border-radius: 90px 90px 35px 35px;
+    padding: 2.5rem 2.5rem 3rem;
     max-width: 520px;
     margin: 0 auto;
     position: relative;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
 .cockpit-nose {
@@ -964,9 +1028,9 @@ select.form-control {
     font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.2em;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     padding-bottom: 1.5rem;
-    border-bottom: 2px dashed rgba(255, 255, 255, 0.1);
+    border-bottom: 2px dashed var(--border-subtle);
     margin-bottom: 2rem;
 }
 
@@ -976,10 +1040,10 @@ select.form-control {
 
 .cabin-class-title {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--accent-cyan);
+    color: var(--primary);
     text-align: center;
     margin-bottom: 1rem;
     position: relative;
@@ -991,7 +1055,7 @@ select.form-control {
     top: 50%;
     width: 25%;
     height: 1px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-subtle);
 }
 .cabin-class-title::before { left: 0; }
 .cabin-class-title::after { right: 0; }
@@ -1012,8 +1076,8 @@ select.form-control {
 .row-number {
     width: 24px;
     font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 600;
+    color: var(--text-subtle);
+    font-weight: 700;
     text-align: center;
 }
 
@@ -1024,13 +1088,13 @@ select.form-control {
 
 .aisle-walkway {
     width: 28px;
-    border-left: 1px dashed rgba(255, 255, 255, 0.08);
-    border-right: 1px dashed rgba(255, 255, 255, 0.08);
+    border-left: 1px dashed var(--border-subtle);
+    border-right: 1px dashed var(--border-subtle);
     height: 36px;
     margin: 0 0.25rem;
 }
 
-/* Seat Buttons */
+/* Light & Vibrant Seat Buttons */
 .seat-btn {
     width: 36px;
     height: 36px;
@@ -1038,37 +1102,40 @@ select.form-control {
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.07);
-    color: #fff;
+    border: 1.5px solid var(--border-card);
+    background: #FFFFFF;
+    color: var(--text-main);
     transition: all 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: var(--shadow-xs);
 }
 
 .seat-btn:hover:not(:disabled) {
-    transform: scale(1.15);
-    background: rgba(0, 240, 255, 0.3);
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 10px var(--accent-cyan-glow);
+    transform: scale(1.12);
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 4px 10px var(--primary-glow);
 }
 
 .seat-btn.selected {
-    background: var(--accent-cyan) !important;
-    color: #070B19 !important;
-    border-color: #fff !important;
-    box-shadow: 0 0 12px var(--accent-cyan);
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 12px var(--primary-glow);
     font-weight: 800;
     transform: scale(1.08);
 }
 
 .seat-btn.booked {
-    background: #1E293B !important;
-    color: #475569 !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    background: #E2E8F0 !important;
+    color: #94A3B8 !important;
+    border-color: #CBD5E1 !important;
     cursor: not-allowed;
-    opacity: 0.35;
+    opacity: 0.6;
+    box-shadow: none;
 }
 
 .seat-btn.class-first {
@@ -1077,13 +1144,13 @@ select.form-control {
 }
 
 .seat-btn.class-business {
-    border-color: var(--accent-purple);
+    border-color: #8B5CF6;
 }
 
 /* Summary Card */
 .order-divider {
     height: 1px;
-    background: var(--border-glass);
+    background: var(--border-subtle);
     margin: 1.75rem 0;
 }
 
@@ -1099,69 +1166,73 @@ select.form-control {
 }
 
 .seat-tag {
-    background: rgba(0, 240, 255, 0.12);
-    border: 1px solid rgba(0, 240, 255, 0.3);
-    color: #fff;
+    background: var(--primary-light);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    color: var(--primary);
     padding: 0.35rem 0.75rem;
     border-radius: var(--radius-sm);
     font-size: 0.8rem;
+    font-weight: 600;
 }
 
 .empty-hint {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
 }
 
 .price-breakdown {
-    background: rgba(0, 0, 0, 0.25);
-    padding: 1rem 1.25rem;
+    background: var(--bg-surface-subtle);
+    padding: 1.25rem;
     border-radius: var(--radius-md);
     margin-bottom: 1.5rem;
+    border: 1px solid var(--border-subtle);
 }
 
 .price-row {
     display: flex;
     justify-content: space-between;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 .total-row {
-    border-top: 1px solid var(--border-glass);
+    border-top: 1px solid var(--border-subtle);
     padding-top: 0.75rem;
     margin-top: 0.5rem;
     margin-bottom: 0;
     font-weight: 700;
-    color: #fff;
+    color: var(--accent-navy);
     font-size: 1.1rem;
 }
 
 .total-amount {
-    color: var(--accent-cyan);
-    font-size: 1.3rem;
+    color: var(--primary);
+    font-size: 1.35rem;
     font-family: var(--font-heading);
 }
 
 .alert-box {
-    padding: 0.9rem 1.2rem;
+    padding: 0.9rem 1.25rem;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    font-weight: 500;
 }
 
 .alert-danger {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid var(--danger);
-    color: #FCA5A5;
+    background: var(--danger-light);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: var(--danger);
 }
 
 .concurrency-note {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     text-align: center;
     margin-top: 1rem;
     display: flex;
@@ -1174,9 +1245,9 @@ select.form-control {
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(7, 11, 25, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1186,18 +1257,19 @@ select.form-control {
 
 .boarding-pass-card {
     background: #FFFFFF;
-    color: #0F172A;
-    border-radius: var(--radius-lg);
-    max-width: 720px;
+    color: var(--text-main);
+    border-radius: var(--radius-xl);
+    max-width: 740px;
     width: 100%;
     overflow: hidden;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-subtle);
 }
 
 .bp-header {
-    background: linear-gradient(135deg, #070B19 0%, #1E293B 100%);
-    color: #fff;
-    padding: 1.25rem 2rem;
+    background: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 100%);
+    color: #FFFFFF;
+    padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1205,32 +1277,33 @@ select.form-control {
 
 .bp-airline {
     font-family: var(--font-heading);
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 800;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    color: #00F0FF;
+    color: #FFFFFF;
 }
 
 .bp-type {
     font-size: 0.85rem;
     font-weight: 800;
     letter-spacing: 0.15em;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 0.3rem 0.8rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.85rem;
     border-radius: var(--radius-full);
 }
 
 .bp-body {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
-    border-bottom: 2px dashed #CBD5E1;
+    border-bottom: 2px dashed var(--border-card);
     position: relative;
+    background: #FFFFFF;
 }
 
 .bp-main {
-    padding: 1.75rem 2rem;
+    padding: 2rem;
 }
 
 .bp-row {
@@ -1240,22 +1313,22 @@ select.form-control {
 }
 
 .route-row {
-    background: #F8FAFC;
-    padding: 0.85rem 1rem;
+    background: var(--bg-surface-subtle);
+    padding: 1rem 1.25rem;
     border-radius: var(--radius-md);
     align-items: center;
     gap: 1.5rem;
 }
 
 .bp-arrow {
-    color: #2563EB;
+    color: var(--primary);
     font-size: 1.2rem;
 }
 
 .bp-field label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #64748B;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-subtle);
     display: block;
     letter-spacing: 0.05em;
     margin-bottom: 0.2rem;
@@ -1264,28 +1337,24 @@ select.form-control {
 .bp-field .val {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--accent-navy);
 }
 
 .bp-field .pnr-code {
-    font-size: 1.2rem;
-    color: #2563EB;
+    font-size: 1.25rem;
+    color: var(--primary);
     letter-spacing: 0.08em;
 }
 
 .bp-field .highlight {
-    color: #D97706;
+    color: var(--accent-gold);
     font-size: 1.2rem;
 }
 
-.bp-field .airport {
-    font-size: 1.1rem;
-}
-
 .bp-stub {
-    border-left: 2px dashed #CBD5E1;
-    padding: 1.75rem 1.5rem;
-    background: #F8FAFC;
+    border-left: 2px dashed var(--border-card);
+    padding: 2rem 1.5rem;
+    background: #FAFAFA;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1297,16 +1366,16 @@ select.form-control {
 }
 
 .barcode-lines {
-    width: 120px;
-    height: 70px;
+    width: 130px;
+    height: 75px;
     background: repeating-linear-gradient(
         90deg,
-        #000,
-        #000 2px,
+        #0F172A,
+        #0F172A 2px,
         transparent 2px,
         transparent 5px,
-        #000 5px,
-        #000 9px,
+        #0F172A 5px,
+        #0F172A 9px,
         transparent 9px,
         transparent 11px
     );
@@ -1317,11 +1386,11 @@ select.form-control {
     font-family: monospace;
     font-size: 0.85rem;
     letter-spacing: 0.2em;
-    color: #475569;
+    color: var(--text-subtle);
 }
 
 .bp-actions {
-    background: #F1F5F9;
+    background: var(--bg-surface-subtle);
     padding: 1.25rem 2rem;
     display: flex;
     justify-content: flex-end;
@@ -1334,33 +1403,34 @@ select.form-control {
 }
 
 .booking-detail-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-lg);
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
     overflow: hidden;
+    box-shadow: var(--shadow-md);
 }
 
 .bd-header {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 1.25rem 2rem;
+    background: var(--bg-surface-subtle);
+    padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-glass);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .pnr-lbl {
     font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--text-muted);
+    font-weight: 800;
+    color: var(--text-subtle);
     letter-spacing: 0.08em;
     display: block;
 }
 
 .pnr-val {
-    font-size: 1.4rem;
+    font-size: 1.45rem;
     font-weight: 800;
-    color: var(--accent-cyan);
+    color: var(--primary);
     letter-spacing: 0.05em;
 }
 
@@ -1378,25 +1448,25 @@ select.form-control {
 .bd-meta-item label {
     font-size: 0.7rem;
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     display: block;
 }
 
 .bd-meta-item strong {
     font-size: 1rem;
-    color: #fff;
+    color: var(--accent-navy);
 }
 
 .seats-reserved-box {
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg-surface-subtle);
     padding: 1.25rem;
     border-radius: var(--radius-md);
 }
 
 .seats-reserved-box label {
     font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--text-muted);
+    font-weight: 800;
+    color: var(--text-subtle);
     display: block;
     margin-bottom: 0.5rem;
 }
@@ -1408,59 +1478,60 @@ select.form-control {
 }
 
 .seat-pill-tag {
-    background: rgba(37, 99, 235, 0.2);
-    border: 1px solid var(--primary);
-    color: #fff;
+    background: var(--primary-light);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    color: var(--primary);
     padding: 0.4rem 0.85rem;
     border-radius: var(--radius-full);
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .bd-footer {
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--bg-surface-subtle);
     padding: 1.25rem 2rem;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    border-top: 1px solid var(--border-glass);
+    border-top: 1px solid var(--border-subtle);
 }
 
 /* Empty State */
 .empty-state-card {
     text-align: center;
     padding: 4rem 2rem;
-    background: var(--bg-surface);
+    background: #FFFFFF;
     border-radius: var(--radius-lg);
-    border: 1px dashed var(--border-glass);
+    border: 1.5px dashed var(--border-card);
 }
 
 .empty-state-card i {
     font-size: 3.5rem;
-    color: var(--text-muted);
+    color: var(--text-subtle);
     margin-bottom: 1rem;
 }
 
 .empty-state-card h3 {
     font-size: 1.4rem;
     margin-bottom: 0.5rem;
+    color: var(--accent-navy);
 }
 
 .empty-state-card p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 1.5rem;
 }
 
-/* Footer */
+/* Footer (Clean White/Light Theme) */
 .site-footer {
-    background: #030712;
-    border-top: 1px solid var(--border-glass);
+    background: #FFFFFF;
+    border-top: 1px solid var(--border-subtle);
     margin-top: auto;
     padding: 4rem 1.5rem 2rem;
 }
 
 .footer-container {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr;
@@ -1471,16 +1542,20 @@ select.form-control {
 .footer-brand .logo-text {
     font-size: 1.35rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--accent-navy);
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
+.footer-brand .logo-text i {
+    color: var(--primary);
+}
+
 .footer-brand p {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
     margin-bottom: 1.25rem;
     line-height: 1.6;
 }
@@ -1492,30 +1567,32 @@ select.form-control {
 }
 
 .tech-pill {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border-glass);
-    color: var(--text-secondary);
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
     font-size: 0.75rem;
-    padding: 0.25rem 0.6rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
     border-radius: var(--radius-sm);
 }
 
 .footer-links h4, .footer-destinations h4 {
     font-size: 1rem;
     margin-bottom: 1rem;
-    color: #fff;
+    color: var(--accent-navy);
+    font-weight: 700;
 }
 
 .footer-links ul {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.65rem;
 }
 
 .footer-links li {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-size: 0.88rem;
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -1523,28 +1600,28 @@ select.form-control {
 
 .footer-links li i {
     color: var(--accent-emerald);
-    font-size: 0.75rem;
+    font-size: 0.8rem;
 }
 
 .hub-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+    gap: 0.6rem;
 }
 
 .hub-grid span {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-size: 0.85rem;
+    color: var(--text-muted);
 }
 
 .footer-bottom {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--border-glass);
+    border-top: 1px solid var(--border-subtle);
     text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-size: 0.85rem;
+    color: var(--text-subtle);
 }
 
 /* Responsive */
@@ -1587,7 +1664,7 @@ select.form-control {
     }
     .bp-stub {
         border-left: none;
-        border-top: 2px dashed #CBD5E1;
+        border-top: 2px dashed var(--border-card);
     }
 }
 
@@ -1603,6 +1680,8 @@ select.form-control {
         left: 0;
         top: 0;
         width: 100%;
+        box-shadow: none !important;
+        border: 1px solid #CBD5E1 !important;
     }
     .bp-actions {
         display: none !important;
