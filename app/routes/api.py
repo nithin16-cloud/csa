@@ -3,7 +3,7 @@ import random
 import uuid
 import datetime
 import sqlite3
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from app.db import get_db
 
 api_bp = Blueprint("api", __name__)
@@ -156,7 +156,8 @@ def release_seats():
 @api_bp.route("/bookings", methods=["POST"])
 def create_booking():
     """
-    Creates a confirmed booking with atomic seat reservation in Indian Rupees (₹).
+    Day 3: Creates a confirmed booking with atomic seat reservation in Indian Rupees (₹).
+    Supports multi-passenger ticket engine, mapping individual passenger names/ages/genders to each seat.
     """
     data = request.get_json() or {}
     flight_id = data.get("flight_id")
@@ -165,12 +166,29 @@ def create_booking():
     passenger_phone = data.get("passenger_phone", "").strip()
     seat_ids = data.get("seat_ids", [])
     lock_token = data.get("lock_token", "")
+    passengers = data.get("passengers", [])  # Array: [{ seat_id, name, age, gender }]
+
+    # Fallback: if top-level passenger_name is empty but passengers array has a name
+    if not passenger_name and isinstance(passengers, list) and len(passengers) > 0:
+        first_p = passengers[0] if isinstance(passengers[0], dict) else {}
+        passenger_name = first_p.get("name", "").strip()
 
     if not flight_id or not passenger_name or not passenger_email or not seat_ids:
         return jsonify({"error": "Missing required fields"}), 400
 
     if not isinstance(seat_ids, list) or len(seat_ids) == 0:
         return jsonify({"error": "At least one seat must be selected"}), 400
+
+    # Build passenger lookup map by seat_id or index
+    passenger_map = {}
+    if isinstance(passengers, list):
+        for idx, p in enumerate(passengers):
+            if isinstance(p, dict):
+                sid = p.get("seat_id")
+                if sid is not None:
+                    passenger_map[sid] = p
+                elif idx < len(seat_ids):
+                    passenger_map[seat_ids[idx]] = p
 
     db = get_db()
     now_iso = datetime.datetime.now().isoformat()
@@ -187,7 +205,7 @@ def create_booking():
         booked_seats_info = []
         total_amount = 0.0
 
-        for seat_id in seat_ids:
+        for idx, seat_id in enumerate(seat_ids):
             seat = db.execute("SELECT * FROM seats WHERE id = ? AND flight_id = ?", (seat_id, flight_id)).fetchone()
             if not seat:
                 db.rollback()
@@ -224,26 +242,50 @@ def create_booking():
 
             seat_price = round(base_price * seat["price_multiplier"])
             total_amount += seat_price
+
+            p_data = passenger_map.get(seat_id, {})
+            p_name = p_data.get("name", "").strip() or (passenger_name if idx == 0 else f"Passenger {idx + 1}")
+            p_age_raw = p_data.get("age")
+            try:
+                p_age = int(p_age_raw) if p_age_raw is not None and str(p_age_raw).strip() != "" else None
+            except (ValueError, TypeError):
+                p_age = None
+            p_gender = p_data.get("gender", "").strip() or ""
+
             booked_seats_info.append({
                 "seat_id": seat_id,
                 "seat_number": seat["seat_number"],
                 "price": seat_price,
-                "cabin_class": seat["cabin_class"]
+                "cabin_class": seat["cabin_class"],
+                "seat_type": seat["seat_type"],
+                "passenger_name": p_name,
+                "passenger_age": p_age,
+                "passenger_gender": p_gender
             })
 
+        user_id = session.get("user_id") or data.get("user_id")
         pnr = generate_pnr()
         cursor = db.execute("""
-            INSERT INTO bookings (booking_reference, flight_id, passenger_name, passenger_email, passenger_phone, total_amount, payment_status)
-            VALUES (?, ?, ?, ?, ?, ?, 'Confirmed')
-        """, (pnr, flight_id, passenger_name, passenger_email, passenger_phone, total_amount))
+            INSERT INTO bookings (user_id, booking_reference, flight_id, passenger_name, passenger_email, passenger_phone, total_amount, payment_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Confirmed')
+        """, (user_id, pnr, flight_id, passenger_name, passenger_email, passenger_phone, total_amount))
         
         booking_id = cursor.lastrowid
 
         for s_info in booked_seats_info:
             db.execute("""
-                INSERT INTO booking_seats (booking_id, seat_id, flight_id, seat_number, price_paid)
-                VALUES (?, ?, ?, ?, ?)
-            """, (booking_id, s_info["seat_id"], flight_id, s_info["seat_number"], s_info["price"]))
+                INSERT INTO booking_seats (booking_id, seat_id, flight_id, seat_number, price_paid, passenger_name, passenger_age, passenger_gender)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                booking_id,
+                s_info["seat_id"],
+                flight_id,
+                s_info["seat_number"],
+                s_info["price"],
+                s_info["passenger_name"],
+                s_info["passenger_age"],
+                s_info["passenger_gender"]
+            ))
 
         db.commit()
 
@@ -256,8 +298,21 @@ def create_booking():
                 "flight_number": flight["flight_number"],
                 "passenger_name": passenger_name,
                 "passenger_email": passenger_email,
+                "passenger_phone": passenger_phone,
                 "total_amount_inr": total_amount,
-                "seats": [s["seat_number"] for s in booked_seats_info]
+                "seats": [s["seat_number"] for s in booked_seats_info],
+                "passengers": [
+                    {
+                        "seat_id": s["seat_id"],
+                        "seat_number": s["seat_number"],
+                        "passenger_name": s["passenger_name"],
+                        "passenger_age": s["passenger_age"],
+                        "passenger_gender": s["passenger_gender"],
+                        "cabin_class": s["cabin_class"],
+                        "price_inr": s["price"]
+                    }
+                    for s in booked_seats_info
+                ]
             }
         }), 201
 

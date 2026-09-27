@@ -90,12 +90,23 @@
                     </div>
 
                     <div class="seats-reserved-box">
-                        <label>CONFIRMED CABIN SEATS</label>
-                        <div class="seats-badge-row">
+                        <label>CONFIRMED PASSENGER MANIFEST & SEATS</label>
+                        <div class="passenger-manifest-list">
                             {% for s in seats %}
-                                <span class="seat-pill-tag">
-                                    <i class="fa-solid fa-chair"></i> Seat {{ s.seat_number }} ({{ s.cabin_class }})
-                                </span>
+                                <div class="passenger-manifest-item">
+                                    <div class="manifest-passenger">
+                                        <i class="fa-solid fa-user"></i>
+                                        <div>
+                                            <strong style="color: var(--accent-navy); font-size: 0.95rem;">{{ s.passenger_name or booking.passenger_name }}</strong>
+                                            {% if s.passenger_age or s.passenger_gender %}
+                                                <span class="manifest-meta">({{ s.passenger_gender }}{% if s.passenger_gender and s.passenger_age %}, {% endif %}{% if s.passenger_age %}{{ s.passenger_age }} yrs{% endif %})</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="seat-pill-tag">
+                                        <i class="fa-solid fa-chair"></i> Seat {{ s.seat_number }} ({{ s.cabin_class }})
+                                    </span>
+                                </div>
                             {% endfor %}
                         </div>
                     </div>

@@ -74,6 +74,9 @@ CREATE TABLE booking_seats (
     flight_id INTEGER NOT NULL,
     seat_number VARCHAR(5) NOT NULL,
     price_paid REAL NOT NULL,                           -- Paid price in Indian Rupees (₹)
+    passenger_name VARCHAR(100) DEFAULT '',
+    passenger_age INTEGER DEFAULT NULL,
+    passenger_gender VARCHAR(20) DEFAULT '',
     FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE,
     FOREIGN KEY (seat_id) REFERENCES seats (id) ON DELETE CASCADE,
     FOREIGN KEY (flight_id) REFERENCES flights (id),

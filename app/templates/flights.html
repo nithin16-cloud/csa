@@ -13,7 +13,7 @@
     </div>
 
     <div class="section-container">
-        <!-- Search Filter Card -->
+        <!-- Search Filter Card on Top -->
         <div class="search-card search-card-compact">
             <form action="{{ url_for('main.flights_search') }}" method="GET" class="search-form">
                 <div class="form-group">
@@ -47,49 +47,162 @@
 
                 <div class="form-submit">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-filter"></i> Filter Schedules
+                        <i class="fa-solid fa-filter"></i> Search Flights
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Sorter Controls -->
-        <div class="section-header-row" style="margin-bottom: 1.5rem; align-items: center;">
-            <div class="results-meta">
-                <span style="font-size: 0.95rem; color: var(--text-subtle); font-weight: 600;">
-                    Showing <strong>{{ flights|length }}</strong> available flight(s)
-                </span>
-            </div>
+        <!-- 2-Column Results Layout: Sidebar Filters + Flight Cards -->
+        <div class="flight-results-layout">
+            <!-- Left: Smart Filter Sidebar -->
+            <aside class="flight-filters-sidebar">
+                <div class="filter-sidebar-header">
+                    <h3><i class="fa-solid fa-sliders"></i> Filter Flights</h3>
+                    <button type="button" class="btn-reset-filters" @click="resetFilters" v-if="hasActiveFilters">
+                        Reset All
+                    </button>
+                </div>
 
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <label style="font-size: 0.82rem; font-weight: 800; color: var(--text-subtle);">SORT BY:</label>
-                <select class="form-control" style="width: auto; padding: 0.45rem 2rem 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700;" v-model="sortBy">
-                    <option value="departure">Earliest Departure</option>
-                    <option value="price_asc">Fare: Low to High (₹)</option>
-                    <option value="price_desc">Fare: High to Low (₹)</option>
-                </select>
-            </div>
-        </div>
+                <!-- 1. Departure Time Slots -->
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <span>Departure Time</span>
+                        <span class="filter-badge-val" v-if="timeSlot !== 'all'">[[ timeSlotLabel ]]</span>
+                    </div>
+                    <div class="time-slot-grid">
+                        <button 
+                            type="button" 
+                            :class="['time-slot-btn', { active: timeSlot === 'all' }]" 
+                            @click="timeSlot = 'all'"
+                        >
+                            <i class="fa-solid fa-clock"></i>
+                            All Times
+                        </button>
+                        <button 
+                            type="button" 
+                            :class="['time-slot-btn', { active: timeSlot === 'morning' }]" 
+                            @click="timeSlot = 'morning'"
+                        >
+                            <i class="fa-solid fa-sun"></i>
+                            Morning (06-12)
+                        </button>
+                        <button 
+                            type="button" 
+                            :class="['time-slot-btn', { active: timeSlot === 'afternoon' }]" 
+                            @click="timeSlot = 'afternoon'"
+                        >
+                            <i class="fa-solid fa-cloud-sun"></i>
+                            Afternoon (12-18)
+                        </button>
+                        <button 
+                            type="button" 
+                            :class="['time-slot-btn', { active: timeSlot === 'night' }]" 
+                            @click="timeSlot = 'night'"
+                        >
+                            <i class="fa-solid fa-moon"></i>
+                            Night (18-24)
+                        </button>
+                    </div>
+                </div>
 
-        {% if flights %}
-            <div class="flights-list">
-                {% for flight in flights %}
-                    <div class="flight-list-row" id="flight-row-{{ flight.id }}" data-price="{{ flight.base_price }}" data-time="{{ flight.departure_time }}">
+                <!-- 2. Price Range Slider -->
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <span>Maximum Fare</span>
+                        <span class="filter-badge-val">₹[[ formatINR(maxPrice) ]]</span>
+                    </div>
+                    <div class="slider-container">
+                        <input 
+                            type="range" 
+                            class="range-slider" 
+                            :min="priceBounds.min" 
+                            :max="priceBounds.max" 
+                            step="500" 
+                            v-model.number="maxPrice"
+                        >
+                        <div class="slider-labels">
+                            <span>₹[[ formatINR(priceBounds.min) ]]</span>
+                            <span>₹[[ formatINR(priceBounds.max) ]]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Aircraft Model Fleet -->
+                <div class="filter-group" v-if="availableAircraft.length > 0">
+                    <div class="filter-group-title">
+                        <span>Aircraft Fleet</span>
+                        <span class="filter-badge-val" v-if="selectedAircraft.length > 0">[[ selectedAircraft.length ]] selected</span>
+                    </div>
+                    <div class="filter-checkbox-list">
+                        <label v-for="aircraft in availableAircraft" :key="aircraft" class="filter-checkbox-item">
+                            <input 
+                                type="checkbox" 
+                                :value="aircraft" 
+                                v-model="selectedAircraft"
+                            >
+                            <span>[[ aircraft ]]</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 4. Seat Availability Filter -->
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <span>Seat Availability</span>
+                    </div>
+                    <label class="filter-checkbox-item">
+                        <input 
+                            type="checkbox" 
+                            v-model="minSeatsAvailable"
+                        >
+                        <span>5+ seats available only</span>
+                    </label>
+                </div>
+            </aside>
+
+            <!-- Right: Flight Results List -->
+            <div class="flights-results-main">
+                <!-- Top Results Meta & Sorter -->
+                <div class="results-top-bar">
+                    <div style="font-size: 0.95rem; color: var(--text-subtle); font-weight: 600;">
+                        Showing <strong style="color: var(--accent-navy);">[[ filteredFlights.length ]]</strong> of <strong>[[ allFlights.length ]]</strong> scheduled flight(s)
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle);">SORT BY:</label>
+                        <select class="form-control" style="width: auto; padding: 0.45rem 2rem 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 700;" v-model="sortBy">
+                            <option value="departure">Earliest Departure</option>
+                            <option value="price_asc">Fare: Low to High (₹)</option>
+                            <option value="price_desc">Fare: High to Low (₹)</option>
+                            <option value="available">Most Seats Available</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Flight Rows (Vue Reactive List) -->
+                <div v-if="filteredFlights.length > 0" class="flights-list">
+                    <div 
+                        v-for="flight in filteredFlights" 
+                        :key="flight.id" 
+                        class="flight-list-row" 
+                        :id="'flight-row-' + flight.id"
+                    >
                         <div class="flight-row-identity">
                             <div class="airline-icon-circle">
                                 <i class="fa-solid fa-plane"></i>
                             </div>
                             <div class="flight-number-group">
-                                <span class="flight-code">{{ flight.flight_number }}</span>
-                                <span class="flight-model">{{ flight.aircraft_model }}</span>
+                                <span class="flight-code">[[ flight.flight_number ]]</span>
+                                <span class="flight-model">[[ flight.aircraft_model ]]</span>
                             </div>
                         </div>
 
                         <div class="flight-row-timings">
                             <div class="timing-block">
-                                <span class="timing-hour">{{ flight.departure_time[11:16] }}</span>
-                                <span class="timing-airport">{{ flight.origin_city }} ({{ flight.origin_code }})</span>
-                                <span class="timing-date">{{ flight.departure_time[:10] }}</span>
+                                <span class="timing-hour">[[ flight.departure_time.slice(11, 16) ]]</span>
+                                <span class="timing-airport">[[ flight.origin_city ]] ([[ flight.origin_code ]])</span>
+                                <span class="timing-date">[[ flight.departure_time.slice(0, 10) ]]</span>
                             </div>
 
                             <div class="flight-duration-block">
@@ -103,64 +216,175 @@
                             </div>
 
                             <div class="timing-block right">
-                                <span class="timing-hour">{{ flight.arrival_time[11:16] }}</span>
-                                <span class="timing-airport">{{ flight.dest_city }} ({{ flight.destination_code }})</span>
-                                <span class="timing-date">{{ flight.arrival_time[:10] }}</span>
+                                <span class="timing-hour">[[ flight.arrival_time.slice(11, 16) ]]</span>
+                                <span class="timing-airport">[[ flight.dest_city ]] ([[ flight.destination_code ]])</span>
+                                <span class="timing-date">[[ flight.arrival_time.slice(0, 10) ]]</span>
                             </div>
                         </div>
 
                         <div class="flight-row-pricing">
-                            <div class="seat-badge-pill">
-                                <i class="fa-solid fa-chair"></i> {{ flight.available_seats }} seats left
+                            <div :class="['seat-badge-pill', { 'low-seats': flight.available_seats <= 5 }]">
+                                <i class="fa-solid fa-chair"></i> [[ flight.available_seats ]] seats left
                             </div>
-                            <div class="price-figure">₹{{ "{:,.0f}".format(flight.base_price) }}</div>
-                            <a href="{{ url_for('main.booking_view', flight_id=flight.id) }}" class="btn btn-primary" id="btn-select-{{ flight.id }}">
+                            <div class="price-figure">₹[[ formatINR(flight.base_price) ]]</div>
+                            <a :href="'/booking/' + flight.id" class="btn btn-primary" :id="'btn-select-' + flight.id">
                                 Choose Seats <i class="fa-solid fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>
-                {% endfor %}
+                </div>
+
+                <!-- Empty State When Filters Exclude Everything -->
+                <div v-else-if="allFlights.length > 0" class="empty-state-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 3.5rem 2rem; text-align: center;">
+                    <i class="fa-solid fa-filter-circle-xmark" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.5rem;">No Flights Match Your Filters</h3>
+                    <p style="color: var(--text-subtle); max-width: 440px; margin: 0 auto 1.5rem auto;">
+                        Try adjusting your price range, departure time slot, or aircraft selection to view more available flights.
+                    </p>
+                    <button type="button" class="btn btn-secondary" @click="resetFilters">
+                        <i class="fa-solid fa-rotate-left"></i> Reset All Filters
+                    </button>
+                </div>
+
+                <!-- Empty State When Initial Search Has 0 Flights -->
+                <div v-else class="empty-state-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 3.5rem 2rem; text-align: center;">
+                    <i class="fa-solid fa-plane-slash" style="font-size: 2.5rem; color: var(--text-subtle); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.5rem;">No Scheduled Flights</h3>
+                    <p style="color: var(--text-subtle); max-width: 440px; margin: 0 auto 1.5rem auto;">
+                        No scheduled departures match your chosen criteria. Please explore other travel dates or hubs.
+                    </p>
+                    <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">Clear Search Criteria</a>
+                </div>
             </div>
-        {% else %}
-            <div class="empty-state-card">
-                <i class="fa-solid fa-plane-slash"></i>
-                <h3>No Flights Available</h3>
-                <p>No scheduled departures match your chosen criteria. Please explore other travel dates or hubs.</p>
-                <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary">Clear All Filters</a>
-            </div>
-        {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    const { createApp, ref, watch } = Vue;
+    const { createApp, ref, computed } = Vue;
+
+    const rawFlights = {{ flights_json | tojson | safe if flights_json else '[]' }};
 
     createApp({
+        delimiters: ['[[', ']]'],
         setup() {
+            const allFlights = ref(rawFlights || []);
             const sortBy = ref("departure");
+            const timeSlot = ref("all");
+            const minSeatsAvailable = ref(false);
+            const selectedAircraft = ref([]);
 
-            watch(sortBy, (newVal) => {
-                const list = document.querySelector(".flights-list");
-                if (!list) return;
-                const rows = Array.from(list.children);
+            const formatINR = (val) => {
+                if (!val) return "0";
+                return Number(val).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            };
 
-                rows.sort((a, b) => {
-                    if (newVal === "price_asc") {
-                        return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
-                    } else if (newVal === "price_desc") {
-                        return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+            // Compute price bounds from loaded flights
+            const priceBounds = computed(() => {
+                if (allFlights.value.length === 0) return { min: 3500, max: 75000 };
+                const prices = allFlights.value.map(f => f.base_price);
+                return {
+                    min: Math.floor(Math.min(...prices) / 500) * 500,
+                    max: Math.ceil(Math.max(...prices) / 500) * 500
+                };
+            });
+
+            const maxPrice = ref(priceBounds.value.max);
+
+            // Extract unique aircraft models available
+            const availableAircraft = computed(() => {
+                const set = new Set();
+                allFlights.value.forEach(f => {
+                    if (f.aircraft_model) set.add(f.aircraft_model);
+                });
+                return Array.from(set).sort();
+            });
+
+            const timeSlotLabel = computed(() => {
+                switch(timeSlot.value) {
+                    case 'morning': return '06:00 - 12:00';
+                    case 'afternoon': return '12:00 - 18:00';
+                    case 'night': return '18:00 - 24:00';
+                    default: return 'All Times';
+                }
+            });
+
+            const hasActiveFilters = computed(() => {
+                return (
+                    timeSlot.value !== 'all' ||
+                    maxPrice.value < priceBounds.value.max ||
+                    selectedAircraft.value.length > 0 ||
+                    minSeatsAvailable.value
+                );
+            });
+
+            const resetFilters = () => {
+                timeSlot.value = 'all';
+                maxPrice.value = priceBounds.value.max;
+                selectedAircraft.value = [];
+                minSeatsAvailable.value = false;
+                sortBy.value = 'departure';
+            };
+
+            const filteredFlights = computed(() => {
+                let list = allFlights.value.filter(flight => {
+                    // 1. Price Filter
+                    if (flight.base_price > maxPrice.value) return false;
+
+                    // 2. Minimum seats filter
+                    if (minSeatsAvailable.value && flight.available_seats < 5) return false;
+
+                    // 3. Aircraft Model filter
+                    if (selectedAircraft.value.length > 0 && !selectedAircraft.value.includes(flight.aircraft_model)) {
+                        return false;
+                    }
+
+                    // 4. Departure Time slot filter
+                    if (timeSlot.value !== 'all') {
+                        const hour = parseInt(flight.departure_time.slice(11, 13), 10);
+                        if (timeSlot.value === 'morning' && (hour < 6 || hour >= 12)) return false;
+                        if (timeSlot.value === 'afternoon' && (hour < 12 || hour >= 18)) return false;
+                        if (timeSlot.value === 'night' && (hour < 18 && hour >= 6)) return false;
+                    }
+
+                    return true;
+                });
+
+                // Sorting
+                list = [...list].sort((a, b) => {
+                    if (sortBy.value === 'price_asc') {
+                        return a.base_price - b.base_price;
+                    } else if (sortBy.value === 'price_desc') {
+                        return b.base_price - a.base_price;
+                    } else if (sortBy.value === 'available') {
+                        return b.available_seats - a.available_seats;
                     } else {
-                        return a.dataset.time.localeCompare(b.dataset.time);
+                        return a.departure_time.localeCompare(b.departure_time);
                     }
                 });
 
-                rows.forEach(r => list.appendChild(r));
+                return list;
             });
 
-            return { sortBy };
+            return {
+                allFlights,
+                sortBy,
+                timeSlot,
+                timeSlotLabel,
+                priceBounds,
+                maxPrice,
+                availableAircraft,
+                selectedAircraft,
+                minSeatsAvailable,
+                hasActiveFilters,
+                resetFilters,
+                filteredFlights,
+                formatINR
+            };
         }
     }).mount('#flights-vue-app');
 </script>
 {% endblock %}
+

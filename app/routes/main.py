@@ -54,10 +54,12 @@ def flights_search():
 
     flights = db.execute(query, params).fetchall()
     airports = db.execute("SELECT * FROM airports ORDER BY city ASC").fetchall()
+    flights_data = [dict(f) for f in flights]
 
     return render_template(
         "flights.html",
-        flights=flights,
+        flights=flights_data,
+        flights_json=flights_data,
         airports=airports,
         search_origin=origin,
         search_destination=destination,

@@ -129,55 +129,124 @@
                 </div>
             </div>
 
-            <!-- Right: Passenger Details & Summary Form -->
+            <!-- Right: Passenger Details & Itemized Summary Form -->
             <div class="summary-section">
                 <div class="summary-card">
-                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1.25rem;">Passenger Details</h3>
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1.25rem;">
+                        <i class="fa-solid fa-users"></i> Passenger & Contact Details
+                    </h3>
                     <form @submit.prevent="submitBooking" class="booking-form">
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label for="passenger-name"><i class="fa-solid fa-user"></i> Full Passenger Name</label>
-                            <input type="text" id="passenger-name" v-model="passengerName" class="form-control" placeholder="e.g. Rohan Sharma" required>
+                        <!-- Primary Contact Section -->
+                        <div style="background: var(--bg-surface-subtle); padding: 1.15rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; border: 1px solid var(--border-subtle);">
+                            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem;">
+                                Primary Booking Contact
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0.85rem;">
+                                <label for="passenger-email"><i class="fa-solid fa-envelope"></i> Email (for e-ticket & boarding pass)</label>
+                                <input type="email" id="passenger-email" v-model="passengerEmail" class="form-control" placeholder="e.g. rohan.sharma@example.in" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="passenger-phone"><i class="fa-solid fa-phone"></i> Mobile Phone (India)</label>
+                                <input type="tel" id="passenger-phone" v-model="passengerPhone" class="form-control" placeholder="+91 98765 43210" required>
+                            </div>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label for="passenger-email"><i class="fa-solid fa-envelope"></i> Email Address</label>
-                            <input type="email" id="passenger-email" v-model="passengerEmail" class="form-control" placeholder="e.g. rohan.sharma@example.in" required>
+                        <!-- Dynamic Passenger Form Cards (One per selected seat) -->
+                        <div v-if="selectedSeats.length > 0">
+                            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem;">
+                                Passenger Information ([[ passengers.length ]] Passenger[[ passengers.length > 1 ? 's' : '' ]])
+                            </div>
+
+                            <div v-for="(p, pIdx) in passengers" :key="p.seat_id" class="passenger-card">
+                                <div class="passenger-card-header">
+                                    <div class="passenger-card-title">
+                                        <i class="fa-solid fa-user-check"></i>
+                                        <span>Passenger [[ pIdx + 1 ]]</span>
+                                        <span class="seat-badge-indicator">Seat [[ p.seat_number ]] • [[ p.cabin_class ]]</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0.75rem;">
+                                    <label :for="'p-name-' + p.seat_id">Full Name (as per Govt ID)</label>
+                                    <input 
+                                        type="text" 
+                                        :id="'p-name-' + p.seat_id" 
+                                        v-model="p.name" 
+                                        class="form-control" 
+                                        :placeholder="pIdx === 0 ? 'e.g. Rohan Sharma' : 'e.g. Priya Sharma'" 
+                                        required
+                                    >
+                                </div>
+
+                                <div class="passenger-grid">
+                                    <div class="form-group">
+                                        <label :for="'p-gender-' + p.seat_id">Gender</label>
+                                        <select :id="'p-gender-' + p.seat_id" v-model="p.gender" class="form-control">
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label :for="'p-age-' + p.seat_id">Age</label>
+                                        <input 
+                                            type="number" 
+                                            :id="'p-age-' + p.seat_id" 
+                                            v-model.number="p.age" 
+                                            class="form-control" 
+                                            placeholder="Age" 
+                                            min="1" 
+                                            max="120"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label for="passenger-phone"><i class="fa-solid fa-phone"></i> Mobile Phone (India)</label>
-                            <input type="tel" id="passenger-phone" v-model="passengerPhone" class="form-control" placeholder="+91 98765 43210" required>
+                        <div v-else class="empty-hint" style="padding: 1.5rem 1rem; text-align: center; border: 1.5px dashed var(--border-card); border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                            <i class="fa-solid fa-chair" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                            Pick your seats on the cabin map to enter passenger details.
                         </div>
 
                         <div class="order-divider"></div>
 
-                        <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1rem;">Fare Breakdown</h3>
-                        
-                        <!-- Selected Seats Tags -->
-                        <div class="selected-seats-container">
-                            <div v-if="selectedSeats.length === 0" class="empty-hint">
-                                <i class="fa-solid fa-hand-pointer"></i> Please pick one or more seats on the cabin map.
+                        <!-- Itemized Luxury Fare Breakdown -->
+                        <div v-if="selectedSeats.length > 0" class="itemized-fare-box">
+                            <div class="itemized-fare-title">
+                                <i class="fa-solid fa-receipt"></i> Itemized Fare Summary (INR ₹)
                             </div>
-                            <div v-else class="selected-tags">
-                                <span v-for="seat in selectedSeats" :key="seat.id" class="seat-tag">
-                                    <strong>[[ seat.seat_number ]]</strong> ([[ seat.cabin_class ]]) - ₹[[ formatINR(seat.price_inr) ]]
-                                </span>
-                            </div>
-                        </div>
 
-                        <!-- Reactive Price Breakdown in INR -->
-                        <div v-if="selectedSeats.length > 0" class="price-breakdown">
-                            <div class="price-row">
-                                <span>Base Route Fare</span>
-                                <span>₹[[ formatINR(basePrice) ]]</span>
+                            <div class="itemized-line">
+                                <span>Base Route Airfare ([[ selectedSeats.length ]] pax)</span>
+                                <span>₹[[ formatINR(itemizedFare.baseFare) ]]</span>
                             </div>
-                            <div class="price-row">
-                                <span>Seats Selected</span>
-                                <span>[[ selectedSeats.length ]]</span>
+
+                            <div class="itemized-line" v-if="itemizedFare.cabinUpgrade > 0">
+                                <span>Cabin Class Suite Upgrade</span>
+                                <span style="color: var(--primary); font-weight: 700;">+ ₹[[ formatINR(itemizedFare.cabinUpgrade) ]]</span>
                             </div>
-                            <div class="price-row total-row">
-                                <span>Total Fare</span>
-                                <span class="total-amount">₹[[ formatINR(totalPrice) ]]</span>
+
+                            <div class="itemized-line sub">
+                                <span>User Development Fee (UDF)</span>
+                                <span>₹[[ formatINR(itemizedFare.udfFee) ]]</span>
+                            </div>
+
+                            <div class="itemized-line sub">
+                                <span>Passenger Aviation Security Fee</span>
+                                <span>₹[[ formatINR(itemizedFare.securityFee) ]]</span>
+                            </div>
+
+                            <div class="itemized-line sub">
+                                <span>Aviation GST & Service Taxes</span>
+                                <span>₹[[ formatINR(itemizedFare.gst) ]]</span>
+                            </div>
+
+                            <div class="itemized-divider"></div>
+
+                            <div class="itemized-total">
+                                <span>Total Fare Payable</span>
+                                <span class="itemized-total-amount">₹[[ formatINR(itemizedFare.total) ]]</span>
                             </div>
                         </div>
 
@@ -208,7 +277,7 @@
         </div>
     </div>
 
-    <!-- Official Boarding Pass Modal in Indian Rupees -->
+    <!-- Official Multi-Passenger Boarding Pass Modal in Indian Rupees -->
     <div v-if="confirmedBooking" class="modal-backdrop">
         <div class="modal-dialog">
             <div class="boarding-pass-card" id="printable-boarding-pass">
@@ -219,12 +288,29 @@
                     <div class="bp-type">OFFICIAL BOARDING PASS</div>
                 </div>
 
-                <div class="bp-body">
+                <!-- Multi-passenger Passenger Switcher Tabs -->
+                <div v-if="confirmedBooking.passengers && confirmedBooking.passengers.length > 1" style="display: flex; gap: 0.5rem; background: var(--bg-surface-subtle); padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border-subtle); overflow-x: auto;">
+                    <button 
+                        v-for="(p, pIdx) in confirmedBooking.passengers" 
+                        :key="p.seat_id" 
+                        type="button" 
+                        :class="['btn btn-sm', activeBpIndex === pIdx ? 'btn-primary' : 'btn-outline']"
+                        @click="activeBpIndex = pIdx"
+                        style="padding: 0.35rem 0.85rem; font-size: 0.8rem;"
+                    >
+                        <i class="fa-solid fa-user"></i> [[ p.passenger_name ]] ([[ p.seat_number ]])
+                    </button>
+                </div>
+
+                <div class="bp-body" v-if="currentBpPassenger">
                     <div class="bp-main">
                         <div class="bp-row">
                             <div class="bp-field">
                                 <label>PASSENGER NAME</label>
-                                <div class="val">[[ confirmedBooking.passenger_name ]]</div>
+                                <div class="val">[[ currentBpPassenger.passenger_name ]]</div>
+                                <div v-if="currentBpPassenger.passenger_age" style="font-size: 0.75rem; color: var(--text-subtle);">
+                                    [[ currentBpPassenger.passenger_gender ]], [[ currentBpPassenger.passenger_age ]] yrs
+                                </div>
                             </div>
                             <div class="bp-field">
                                 <label>BOOKING REFERENCE (PNR)</label>
@@ -242,8 +328,8 @@
                                 <div class="val">{{ flight.aircraft_model }}</div>
                             </div>
                             <div class="bp-field">
-                                <label>ASSIGNED SEATS</label>
-                                <div class="val highlight">[[ confirmedBooking.seats.join(', ') ]]</div>
+                                <label>ASSIGNED SEAT</label>
+                                <div class="val highlight">[[ currentBpPassenger.seat_number ]] ([[ currentBpPassenger.cabin_class ]])</div>
                             </div>
                         </div>
 
@@ -265,8 +351,8 @@
                                 <div class="val">{{ flight.departure_time }}</div>
                             </div>
                             <div class="bp-field">
-                                <label>TOTAL FARE PAID</label>
-                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">₹[[ formatINR(confirmedBooking.total_amount_inr) ]]</div>
+                                <label>SEAT FARE PAID</label>
+                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">₹[[ formatINR(currentBpPassenger.price_inr) ]]</div>
                             </div>
                         </div>
                     </div>
@@ -274,7 +360,7 @@
                     <div class="bp-stub">
                         <div class="stub-barcode">
                             <div class="barcode-lines"></div>
-                            <span class="barcode-text">*[[ confirmedBooking.pnr ]]*</span>
+                            <span class="barcode-text">*[[ confirmedBooking.pnr ]]-[[ currentBpPassenger.seat_number ]]*</span>
                         </div>
                     </div>
                 </div>
@@ -297,6 +383,8 @@
 <script>
     const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
+    const loggedInUser = {{ session.get('user') | tojson | safe if session.get('user') else 'null' }};
+
     createApp({
         delimiters: ['[[', ']]'],
         setup() {
@@ -309,15 +397,17 @@
             const isSubmitting = ref(false);
             const conflictError = ref("");
             const confirmedBooking = ref(null);
+            const activeBpIndex = ref(0);
 
             // Day 2: Session lock token and hold timer
             const lockToken = ref("token-" + Math.random().toString(36).substring(2, 12));
             const holdSecondsLeft = ref(0);
             let timerInterval = null;
 
-            const passengerName = ref("");
-            const passengerEmail = ref("");
-            const passengerPhone = ref("");
+            // Day 3: Multi-Passenger and primary contact details
+            const passengerEmail = ref(loggedInUser ? (loggedInUser.email || "") : "");
+            const passengerPhone = ref(loggedInUser ? (loggedInUser.phone || "") : "");
+            const passengers = ref([]);
 
             const formatINR = (val) => {
                 if (!val) return "0";
@@ -340,6 +430,7 @@
                         clearInterval(timerInterval);
                         conflictError.value = "Your 5-minute seat reservation has expired. Please re-select your seats.";
                         selectedSeatIds.value.clear();
+                        syncPassengers();
                         loadSeats();
                     }
                 }, 1000);
@@ -392,6 +483,36 @@
                 return selectedSeatIds.value.has(seatId);
             };
 
+            // Synchronize passenger form objects with selected seats
+            const syncPassengers = () => {
+                const currentList = [...passengers.value];
+                const newList = [];
+                const selectedList = seats.value.filter(s => selectedSeatIds.value.has(s.id));
+
+                selectedList.forEach((seat, idx) => {
+                    const existing = currentList.find(p => p.seat_id === seat.id);
+                    if (existing) {
+                        newList.push({
+                            ...existing,
+                            seat_number: seat.seat_number,
+                            cabin_class: seat.cabin_class,
+                            price_inr: seat.price_inr
+                        });
+                    } else {
+                        newList.push({
+                            seat_id: seat.id,
+                            seat_number: seat.seat_number,
+                            cabin_class: seat.cabin_class,
+                            price_inr: seat.price_inr,
+                            name: (idx === 0 && loggedInUser && loggedInUser.name) ? loggedInUser.name : "",
+                            age: "",
+                            gender: "Male"
+                        });
+                    }
+                });
+                passengers.value = newList;
+            };
+
             const toggleSeat = async (seat) => {
                 if (seat.is_booked || seat.is_held) return;
                 conflictError.value = "";
@@ -401,6 +522,8 @@
                 } else {
                     selectedSeatIds.value.add(seat.id);
                 }
+
+                syncPassengers();
 
                 // If seats are selected, apply 5-minute hold lock
                 if (selectedSeatIds.value.size > 0) {
@@ -420,6 +543,7 @@
                         } else {
                             conflictError.value = holdData.error || "Could not reserve seat.";
                             selectedSeatIds.value.delete(seat.id);
+                            syncPassengers();
                             await loadSeats();
                         }
                     } catch (e) {
@@ -441,15 +565,65 @@
                 return seats.value.filter(s => selectedSeatIds.value.has(s.id));
             });
 
-            const totalPrice = computed(() => {
-                return selectedSeats.value.reduce((sum, seat) => {
-                    return sum + seat.price_inr;
-                }, 0);
+            // Itemized Fare Calculator
+            const itemizedFare = computed(() => {
+                const count = selectedSeats.value.length;
+                if (count === 0) {
+                    return { baseFare: 0, cabinUpgrade: 0, udfFee: 0, securityFee: 0, gst: 0, total: 0 };
+                }
+
+                const baseFare = basePrice * count;
+                const rawTotal = selectedSeats.value.reduce((sum, s) => sum + s.price_inr, 0);
+                const cabinUpgrade = Math.max(0, rawTotal - baseFare);
+
+                // Transparent breakdown of included airport & statutory charges
+                const udfFee = 280 * count;
+                const securityFee = 350 * count;
+                let gst = 0;
+                selectedSeats.value.forEach(s => {
+                    const rate = (s.cabin_class === 'First' || s.cabin_class === 'Business') ? 0.12 : 0.05;
+                    gst += Math.round(s.price_inr * rate);
+                });
+
+                return {
+                    baseFare,
+                    cabinUpgrade,
+                    udfFee,
+                    securityFee,
+                    gst,
+                    total: rawTotal
+                };
+            });
+
+            // Currently active passenger boarding pass
+            const currentBpPassenger = computed(() => {
+                if (!confirmedBooking.value) return null;
+                const paxList = confirmedBooking.value.passengers || [];
+                if (paxList.length === 0) {
+                    return {
+                        passenger_name: confirmedBooking.value.passenger_name,
+                        passenger_age: null,
+                        passenger_gender: '',
+                        seat_number: (confirmedBooking.value.seats || []).join(', '),
+                        cabin_class: 'Economy',
+                        price_inr: confirmedBooking.value.total_amount_inr
+                    };
+                }
+                return paxList[activeBpIndex.value] || paxList[0];
             });
 
             const submitBooking = async () => {
                 if (selectedSeats.value.length === 0) return;
                 conflictError.value = "";
+
+                // Validate passenger names
+                for (let i = 0; i < passengers.value.length; i++) {
+                    if (!passengers.value[i].name || !passengers.value[i].name.trim()) {
+                        conflictError.value = `Please enter the full name for Passenger ${i + 1} (Seat ${passengers.value[i].seat_number}).`;
+                        return;
+                    }
+                }
+
                 isSubmitting.value = true;
 
                 try {
@@ -458,11 +632,17 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             flight_id: flightId,
-                            passenger_name: passengerName.value,
+                            passenger_name: passengers.value[0]?.name || "Passenger",
                             passenger_email: passengerEmail.value,
                             passenger_phone: passengerPhone.value,
                             seat_ids: Array.from(selectedSeatIds.value),
-                            lock_token: lockToken.value
+                            lock_token: lockToken.value,
+                            passengers: passengers.value.map(p => ({
+                                seat_id: p.seat_id,
+                                name: p.name.trim(),
+                                age: p.age ? parseInt(p.age) : null,
+                                gender: p.gender || "Male"
+                            }))
                         })
                     });
 
@@ -471,9 +651,11 @@
                     if (resp.status === 201) {
                         if (timerInterval) clearInterval(timerInterval);
                         confirmedBooking.value = data.booking;
+                        activeBpIndex.value = 0;
                     } else if (resp.status === 409) {
                         conflictError.value = data.error || "Seat conflict detected. Please select another seat.";
                         selectedSeatIds.value.clear();
+                        syncPassengers();
                         await loadSeats();
                     } else {
                         conflictError.value = data.error || "Failed to complete reservation. Please try again.";
@@ -509,9 +691,11 @@
                 conflictError,
                 cabinSections,
                 confirmedBooking,
-                passengerName,
+                activeBpIndex,
+                currentBpPassenger,
                 passengerEmail,
                 passengerPhone,
+                passengers,
                 holdSecondsLeft,
                 formattedHoldTime,
                 formatINR,
@@ -520,7 +704,7 @@
                 isSeatSelected,
                 toggleSeat,
                 selectedSeats,
-                totalPrice,
+                itemizedFare,
                 submitBooking,
                 printPass
             };
