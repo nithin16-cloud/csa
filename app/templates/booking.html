@@ -858,14 +858,22 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- Use Vue dev build temporarily to show errors -->
+<!-- Use Vue dev build to expose errors -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script>
+    // Error display helper - shows error directly on page without needing DevTools
+    function showVueError(msg) {
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;top:70px;left:0;right:0;background:#b91c1c;color:#fff;padding:16px 24px;font-size:13px;font-family:monospace;z-index:99999;word-break:break-all;white-space:pre-wrap;max-height:50vh;overflow-y:auto;';
+        d.textContent = 'VUE ERROR: ' + msg;
+        document.body.appendChild(d);
+    }
+
     const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
     const loggedInUser = {{ user_json | tojson | safe if user_json else 'null' }};
 
-    createApp({
+    const app = createApp({
         delimiters: ['[[', ']]'],
         setup() {
             const flightId = {{ flight.id }};
@@ -1366,6 +1374,18 @@
                 getSeatStatusClass
             };
         }
-    }).mount('#booking-vue-app');
+    });
+
+    try {
+        app.config.errorHandler = (err, vm, info) => {
+            showVueError(err.message + ' | info: ' + info + '\nStack: ' + (err.stack || ''));
+        };
+        app.config.warnHandler = (msg) => {
+            console.warn('[Vue warn]', msg);
+        };
+        app.mount('#booking-vue-app');
+    } catch(e) {
+        showVueError('Mount failed: ' + e.message + '\n' + (e.stack || ''));
+    }
 </script>
 {% endblock %}
