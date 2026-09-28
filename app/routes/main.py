@@ -18,7 +18,25 @@ def index():
         ORDER BY f.departure_time ASC
         LIMIT 6
     """).fetchall()
-    return render_template("index.html", airports=airports, featured_flights=featured_flights)
+
+    featured_flights_data = []
+    for f in featured_flights:
+        d = dict(f)
+        d["dest_code"] = d.get("destination_code", "")
+        dep = str(d.get("departure_time", ""))
+        arr = str(d.get("arrival_time", ""))
+        d["departure_date"] = dep[:10] if len(dep) >= 10 else dep
+        d["date"] = d["departure_date"]
+        d["departure_hour"] = dep[11:16] if len(dep) >= 16 else dep
+        d["arrival_hour"] = arr[11:16] if len(arr) >= 16 else arr
+        featured_flights_data.append(d)
+
+    return render_template(
+        "index.html",
+        airports=airports,
+        featured_flights=featured_flights,
+        featured_flights_json=featured_flights_data
+    )
 
 @main_bp.route("/flights")
 def flights_search():
@@ -27,7 +45,7 @@ def flights_search():
     departure_date = request.args.get("date", "").strip()
 
     db = get_db()
-    query = """
+    base_query = """
         SELECT f.*, 
                orig.city AS origin_city, orig.name AS origin_name,
                dest.city AS dest_city, dest.name AS dest_name,
@@ -39,6 +57,7 @@ def flights_search():
         WHERE 1=1
     """
     params = []
+    query = base_query
 
     if origin:
         query += " AND f.origin_code = ?"
@@ -53,8 +72,32 @@ def flights_search():
     query += " ORDER BY f.departure_time ASC"
 
     flights = db.execute(query, params).fetchall()
+
+    # Fallback 1: If specific departure_date yielded 0 results, check other dates on this route
+    if len(flights) == 0 and departure_date and (origin or destination):
+        fallback_query = base_query
+        fallback_params = []
+        if origin:
+            fallback_query += " AND f.origin_code = ?"
+            fallback_params.append(origin)
+        if destination:
+            fallback_query += " AND f.destination_code = ?"
+            fallback_params.append(destination)
+        fallback_query += " ORDER BY f.departure_time ASC LIMIT 20"
+        fallback_flights = db.execute(fallback_query, fallback_params).fetchall()
+        if len(fallback_flights) > 0:
+            flights = fallback_flights
+
+    # Fallback 2: If completely 0 flights (e.g. route has no direct flights), show all scheduled flights
+    if len(flights) == 0 and (origin or destination):
+        all_flights = db.execute(base_query + " ORDER BY f.departure_time ASC LIMIT 20").fetchall()
+        if len(all_flights) > 0:
+            flights = all_flights
+
     airports = db.execute("SELECT * FROM airports ORDER BY city ASC").fetchall()
     flights_data = [dict(f) for f in flights]
+    for d in flights_data:
+        d["dest_code"] = d.get("destination_code", "")
 
     return render_template(
         "flights.html",

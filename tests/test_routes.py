@@ -447,3 +447,31 @@ def test_manage_portal_views(client):
     assert post_manage.status_code == 200
     assert pnr.encode() in post_manage.data
 
+def test_api_flights_endpoint(client):
+    """Test /api/flights returns list of real flights with seat counts."""
+    res = client.get("/api/flights?limit=10")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    first = data[0]
+    assert "id" in first
+    assert "flight_number" in first
+    assert "origin_code" in first
+    assert "dest_code" in first
+    assert "available_seats" in first
+    assert "base_price" in first
+
+def test_main_page_featured_flights_json(client):
+    """Test index.html embeds serialized featured flights for Vue."""
+    res = client.get("/")
+    assert res.status_code == 200
+    assert b"featured-flights-data" in res.data
+    assert b"application/json" in res.data
+
+def test_flights_search_fallback(client):
+    """Test flights search fallback when searching route without strict date."""
+    res = client.get("/flights?origin=DEL&destination=BOM")
+    assert res.status_code == 200
+    assert b"flight-list-row" in res.data
+

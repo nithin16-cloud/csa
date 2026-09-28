@@ -164,10 +164,10 @@
                     <form @submit.prevent="handleSearch" class="search-form" id="flight-search-form">
                         <div class="form-group">
                             <label for="origin-select"><i class="fa-solid fa-plane-departure"></i> Departure City</label>
-                            <select id="origin-select" class="form-control" v-model="selectedOrigin" required>
-                                <option value="" disabled>Select Departure Airport</option>
+                            <select id="origin-select" class="form-control" v-model="selectedOrigin">
+                                <option value="">All Departure Hubs</option>
                                 <option v-for="airport in airports" :key="airport.code" :value="airport.code">
-                                    [[ airport.city ]] ([[ airport.code ]])
+                                    [[ airport.city ]] ([[ airport.code ]]) - [[ airport.name ]]
                                 </option>
                             </select>
                         </div>
@@ -178,17 +178,17 @@
 
                         <div class="form-group">
                             <label for="destination-select"><i class="fa-solid fa-plane-arrival"></i> Destination City</label>
-                            <select id="destination-select" class="form-control" v-model="selectedDestination" required>
-                                <option value="" disabled>Select Arrival Airport</option>
+                            <select id="destination-select" class="form-control" v-model="selectedDestination">
+                                <option value="">All Destination Hubs</option>
                                 <option v-for="airport in airports" :key="airport.code" :value="airport.code">
-                                    [[ airport.city ]] ([[ airport.code ]])
+                                    [[ airport.city ]] ([[ airport.code ]]) - [[ airport.name ]]
                                 </option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="flight-date"><i class="fa-regular fa-calendar"></i> Travel Date</label>
-                            <input type="date" id="flight-date" class="form-control" v-model="selectedDate" required>
+                            <input type="date" id="flight-date" class="form-control" v-model="selectedDate">
                         </div>
 
                         <div class="form-submit">
@@ -245,7 +245,7 @@
             </div>
 
             <div class="flights-grid">
-                <div v-for="flight in filteredFlights" :key="flight.id" class="flight-card" :id="'flight-card-' + flight.id">
+                <div v-for="flight in filteredFlights" :key="flight.id" class="flight-card" :id="'flight-card-' + flight.id" @click="openSeatModal(flight)" style="cursor: pointer;">
                     <div class="flight-card-header">
                         <div class="airline-meta">
                             <i class="fa-solid fa-paper-plane flight-logo"></i>
@@ -254,14 +254,14 @@
                                 <span class="aircraft-name">[[ flight.aircraft_model ]]</span>
                             </div>
                         </div>
-                        <span class="status-badge status-scheduled">[[ flight.status ]]</span>
+                        <span class="status-badge status-scheduled">[[ flight.status || 'Scheduled' ]]</span>
                     </div>
 
                     <div class="route-display">
                         <div class="route-point">
                             <div class="route-code">[[ flight.origin_code ]]</div>
                             <div class="route-city">[[ flight.origin_city ]]</div>
-                            <div class="route-time">[[ flight.departure_time ]]</div>
+                            <div class="route-time">[[ flight.departure_hour || (flight.departure_time && flight.departure_time.length >= 16 ? flight.departure_time.slice(11, 16) : flight.departure_time) ]]</div>
                         </div>
 
                         <div class="route-flight-path">
@@ -271,16 +271,16 @@
                         </div>
 
                         <div class="route-point right">
-                            <div class="route-code">[[ flight.dest_code ]]</div>
+                            <div class="route-code">[[ flight.dest_code || flight.destination_code ]]</div>
                             <div class="route-city">[[ flight.dest_city ]]</div>
-                            <div class="route-time">[[ flight.arrival_time ]]</div>
+                            <div class="route-time">[[ flight.arrival_hour || (flight.arrival_time && flight.arrival_time.length >= 16 ? flight.arrival_time.slice(11, 16) : flight.arrival_time) ]]</div>
                         </div>
                     </div>
 
                     <div class="flight-card-footer">
                         <div class="flight-meta-col">
                             <div class="flight-date-tag">
-                                <i class="fa-regular fa-calendar-days"></i> [[ flight.date || flight.departure_date ]]
+                                <i class="fa-regular fa-calendar-days"></i> [[ flight.departure_date || flight.date || (flight.departure_time && flight.departure_time.slice(0, 10)) ]]
                             </div>
                             <div class="seat-availability">
                                 <span class="seats-dot"></span>
@@ -293,10 +293,27 @@
                                 <span class="price-from">Fares from</span>
                                 <span class="price-value">₹[[ formatINR(flight.base_price) ]]</span>
                             </div>
-                            <a :href="'/booking/' + flight.id" class="btn btn-primary btn-sm" :id="'book-btn-' + flight.id" @click.prevent="openSeatModal(flight)">
+                            <a :href="'/booking/' + flight.id" class="btn btn-primary btn-sm" :id="'book-btn-' + flight.id" @click.stop="openSeatModal(flight)">
                                 Select Seat <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Empty state if local filters exclude all featured flights -->
+                <div v-if="filteredFlights.length === 0" class="empty-state-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 3rem 2rem; text-align: center; grid-column: 1 / -1;">
+                    <i class="fa-solid fa-plane-circle-exclamation" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 0.75rem;"></i>
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.5rem;">No Featured Flights for this Route</h3>
+                    <p style="color: var(--text-subtle); max-width: 460px; margin: 0 auto 1.25rem auto;">
+                        We operate scheduled flights across our full commercial network. Explore our complete schedule tracker or reset filters.
+                    </p>
+                    <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-secondary btn-sm" @click="resetFilters">
+                            <i class="fa-solid fa-rotate-left"></i> Show All Featured Flights
+                        </button>
+                        <button class="btn btn-primary btn-sm" @click="handleSearch">
+                            <i class="fa-solid fa-magnifying-glass"></i> Search All Schedules
+                        </button>
                     </div>
                 </div>
             </div>
@@ -602,9 +619,26 @@
         </div>
     </footer>
 
+    <!-- Embedded JSON Data for Flask Server-Rendered Featured Flights -->
+    <script id="featured-flights-data" type="application/json">
+        {{ featured_flights_json | tojson | safe if featured_flights_json else '[]' }}
+    </script>
+
     <!-- Vue 3 Interactive Script with Indian Rupee Formatting -->
     <script>
         const { createApp, ref, computed, onMounted } = Vue;
+
+        // Parse server-rendered featured flights if available
+        let initialFeaturedFlights = null;
+        try {
+            const dataEl = document.getElementById("featured-flights-data");
+            if (dataEl && dataEl.textContent.trim()) {
+                const parsed = JSON.parse(dataEl.textContent);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    initialFeaturedFlights = parsed;
+                }
+            }
+        } catch (e) {}
 
         createApp({
             delimiters: ['[[', ']]'],
@@ -622,7 +656,7 @@
                     { code: "JFK", city: "New York", name: "John F. Kennedy Intl" }
                 ]);
 
-                const flights = ref([
+                const flights = ref(initialFeaturedFlights || [
                     { id: 1, flight_number: "CS-101", origin_code: "DEL", origin_city: "New Delhi", dest_code: "BOM", dest_city: "Mumbai", departure_time: "09:00", arrival_time: "11:15", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 8", base_price: 5499.00, status: "Scheduled", available_seats: 64 },
                     { id: 2, flight_number: "CS-103", origin_code: "DEL", origin_city: "New Delhi", dest_code: "BLR", dest_city: "Bengaluru", departure_time: "13:00", arrival_time: "15:45", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 6899.00, status: "Scheduled", available_seats: 58 },
                     { id: 3, flight_number: "CS-201", origin_code: "BOM", origin_city: "Mumbai", dest_code: "DXB", dest_city: "Dubai", departure_time: "17:00", arrival_time: "20:30", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 16999.00, status: "Scheduled", available_seats: 48 },
@@ -657,6 +691,17 @@
                     } catch (e) {
                         // Live Server fallback
                     }
+
+                    // Fetch latest live flights from backend if available
+                    try {
+                        const fRes = await fetch('/api/flights?limit=6');
+                        if (fRes.ok) {
+                            const fData = await fRes.json();
+                            if (fData && fData.length > 0) flights.value = fData;
+                        }
+                    } catch (e) {
+                        // Live Server fallback
+                    }
                 });
 
                 const swapAirports = () => {
@@ -671,26 +716,25 @@
                 };
 
                 const filteredFlights = computed(() => {
+                    const orig = selectedOrigin.value;
+                    const dest = selectedDestination.value;
                     return flights.value.filter(f => {
-                        const matchOrig = !selectedOrigin.value || f.origin_code === selectedOrigin.value;
-                        const matchDest = !selectedDestination.value || f.dest_code === selectedDestination.value;
+                        const matchOrig = !orig || f.origin_code === orig;
+                        const matchDest = !dest || (f.dest_code === dest || f.destination_code === dest);
                         return matchOrig && matchDest;
                     });
                 });
 
                 const handleSearch = () => {
-                    if (window.location.port !== '5500' && window.location.protocol !== 'file:') {
-                        window.location.href = `/flights?origin=${selectedOrigin.value}&destination=${selectedDestination.value}&date=${selectedDate.value}`;
-                    }
+                    const orig = encodeURIComponent(selectedOrigin.value || '');
+                    const dest = encodeURIComponent(selectedDestination.value || '');
+                    const dt = encodeURIComponent(selectedDate.value || '');
+                    window.location.href = `/flights?origin=${orig}&destination=${dest}&date=${dt}`;
                 };
 
                 const openSeatModal = (flight) => {
-                    if (window.location.port !== '5500' && window.location.protocol !== 'file:') {
-                        window.location.href = `/booking/${flight.id}`;
-                    } else {
-                        activeFlight.value = flight;
-                        selectedSeats.value = {};
-                    }
+                    if (!flight || !flight.id) return;
+                    window.location.href = `/booking/${flight.id}`;
                 };
 
                 const isSeatSelected = (seatNum) => {

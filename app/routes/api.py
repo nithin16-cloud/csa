@@ -30,6 +30,95 @@ def get_airports():
     airports = db.execute("SELECT * FROM airports ORDER BY city ASC").fetchall()
     return jsonify([dict(a) for a in airports])
 
+@api_bp.route("/flights", methods=["GET"])
+def get_flights():
+    """Returns available scheduled flights with real-time seat counts."""
+    db = get_db()
+    origin = request.args.get("origin", "").strip().upper()
+    destination = request.args.get("destination", "").strip().upper()
+    date_param = request.args.get("date", "").strip()
+    try:
+        limit = int(request.args.get("limit", 20))
+    except (ValueError, TypeError):
+        limit = 20
+
+    query = """
+        SELECT f.*, 
+               orig.city AS origin_city, orig.name AS origin_name,
+               dest.city AS dest_city, dest.name AS dest_name,
+               (SELECT COUNT(*) FROM seats s WHERE s.flight_id = f.id AND s.is_booked = 0) AS available_seats
+        FROM flights f
+        JOIN airports orig ON f.origin_code = orig.code
+        JOIN airports dest ON f.destination_code = dest.code
+        WHERE 1=1
+    """
+    params = []
+
+    if origin:
+        query += " AND f.origin_code = ?"
+        params.append(origin)
+    if destination:
+        query += " AND f.destination_code = ?"
+        params.append(destination)
+    if date_param:
+        query += " AND f.departure_time LIKE ?"
+        params.append(f"{date_param}%")
+
+    query += " ORDER BY f.departure_time ASC LIMIT ?"
+    params.append(limit)
+
+    rows = db.execute(query, params).fetchall()
+
+    # Fallback if 0 found with date_param
+    if len(rows) == 0 and date_param and (origin or destination):
+        fb_query = """
+            SELECT f.*, 
+                   orig.city AS origin_city, orig.name AS origin_name,
+                   dest.city AS dest_city, dest.name AS dest_name,
+                   (SELECT COUNT(*) FROM seats s WHERE s.flight_id = f.id AND s.is_booked = 0) AS available_seats
+            FROM flights f
+            JOIN airports orig ON f.origin_code = orig.code
+            JOIN airports dest ON f.destination_code = dest.code
+            WHERE 1=1
+        """
+        fb_params = []
+        if origin:
+            fb_query += " AND f.origin_code = ?"
+            fb_params.append(origin)
+        if destination:
+            fb_query += " AND f.destination_code = ?"
+            fb_params.append(destination)
+        fb_query += " ORDER BY f.departure_time ASC LIMIT ?"
+        fb_params.append(limit)
+        rows = db.execute(fb_query, fb_params).fetchall()
+
+    # Fallback to general flights if still empty
+    if len(rows) == 0 and (origin or destination):
+        rows = db.execute("""
+            SELECT f.*, 
+                   orig.city AS origin_city, orig.name AS origin_name,
+                   dest.city AS dest_city, dest.name AS dest_name,
+                   (SELECT COUNT(*) FROM seats s WHERE s.flight_id = f.id AND s.is_booked = 0) AS available_seats
+            FROM flights f
+            JOIN airports orig ON f.origin_code = orig.code
+            JOIN airports dest ON f.destination_code = dest.code
+            ORDER BY f.departure_time ASC LIMIT ?
+        """, (limit,)).fetchall()
+
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["dest_code"] = d.get("destination_code", "")
+        dep = str(d.get("departure_time", ""))
+        arr = str(d.get("arrival_time", ""))
+        d["departure_date"] = dep[:10] if len(dep) >= 10 else dep
+        d["date"] = d["departure_date"]
+        d["departure_hour"] = dep[11:16] if len(dep) >= 16 else dep
+        d["arrival_hour"] = arr[11:16] if len(arr) >= 16 else arr
+        result.append(d)
+
+    return jsonify(result)
+
 @api_bp.route("/flights/<int:flight_id>/seats", methods=["GET"])
 def get_flight_seats(flight_id):
     """

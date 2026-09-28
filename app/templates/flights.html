@@ -187,6 +187,8 @@
                         :key="flight.id" 
                         class="flight-list-row" 
                         :id="'flight-row-' + flight.id"
+                        @click="selectFlight(flight)"
+                        style="cursor: pointer;"
                     >
                         <div class="flight-row-identity">
                             <div class="airline-icon-circle">
@@ -227,7 +229,7 @@
                                 <i class="fa-solid fa-chair"></i> [[ flight.available_seats ]] seats left
                             </div>
                             <div class="price-figure">₹[[ formatINR(flight.base_price) ]]</div>
-                            <a :href="'/booking/' + flight.id" class="btn btn-primary" :id="'btn-select-' + flight.id">
+                            <a :href="'/booking/' + flight.id" class="btn btn-primary" :id="'btn-select-' + flight.id" @click.stop="selectFlight(flight)">
                                 Choose Seats <i class="fa-solid fa-arrow-right"></i>
                             </a>
                         </div>
@@ -368,6 +370,11 @@
                 return list;
             });
 
+            const selectFlight = (flight) => {
+                if (!flight || !flight.id) return;
+                window.location.href = `/booking/${flight.id}`;
+            };
+
             return {
                 allFlights,
                 sortBy,
@@ -381,7 +388,8 @@
                 hasActiveFilters,
                 resetFilters,
                 filteredFlights,
-                formatINR
+                formatINR,
+                selectFlight
             };
         }
     }).mount('#flights-vue-app');
