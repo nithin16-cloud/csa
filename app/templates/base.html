@@ -31,24 +31,24 @@
             </a>
 
             <nav class="nav-links">
-                <a href="{{ url_for('main.index') }}" class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}" id="nav-home">
+                <a href="{{ url_for('main.index') }}#flight-search-form" class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}" id="nav-home">
                     <i class="fa-solid fa-compass"></i> Book Flights
                 </a>
                 <a href="{{ url_for('main.flights_search') }}" class="nav-item {% if request.endpoint == 'main.flights_search' %}active{% endif %}" id="nav-flights">
                     <i class="fa-solid fa-plane-up"></i> Schedules
                 </a>
-                <a href="{{ url_for('main.manage') }}" class="nav-item {% if request.endpoint == 'main.manage' %}active{% endif %}" id="nav-manage">
-                    <i class="fa-solid fa-ticket"></i> Manage Booking (PNR)
+                <a href="{{ url_for('main.manage') }}" class="nav-item {% if request.endpoint == 'main.manage' and not request.args.get('checkin') %}active{% endif %}" id="nav-manage">
+                    <i class="fa-solid fa-ticket"></i> Manage Booking
                 </a>
             </nav>
 
             <div class="nav-right-actions">
-                <a href="{{ url_for('main.manage') }}" class="nav-action-link" id="nav-checkin">
+                <a href="{{ url_for('main.manage') }}?checkin=1" class="nav-action-link {% if request.args.get('checkin') %}active{% endif %}" id="nav-checkin">
                     <i class="fa-solid fa-qrcode"></i> Web Check-in
                 </a>
                 {% if current_user %}
                     <div class="user-profile-menu">
-                        <button type="button" class="user-pill-btn" id="user-menu-btn">
+                        <button type="button" class="user-pill-btn" id="user-menu-btn" title="Account Menu">
                             <i class="fa-solid fa-circle-user"></i>
                             <span>{{ current_user.name.split()[0] }}</span>
                             <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
@@ -60,18 +60,22 @@
                             </div>
                             <div class="user-dropdown-divider"></div>
                             <a href="{{ url_for('main.manage') }}" class="dropdown-item">
-                                <i class="fa-solid fa-ticket"></i> My Itineraries
+                                <i class="fa-solid fa-ticket"></i> Manage Bookings
                             </a>
+                            <a href="{{ url_for('main.manage') }}?checkin=1" class="dropdown-item">
+                                <i class="fa-solid fa-qrcode"></i> Web Check-in
+                            </a>
+                            <div class="user-dropdown-divider"></div>
                             <a href="{{ url_for('auth.logout') }}" class="dropdown-item text-danger">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
                             </a>
                         </div>
                     </div>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="nav-action-link" id="nav-signin">
+                    <a href="{{ url_for('auth.login') }}" class="nav-action-link {% if request.endpoint == 'auth.login' %}active{% endif %}" id="nav-signin">
                         <i class="fa-regular fa-circle-user"></i> Sign In
                     </a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signup">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm nav-signin-btn {% if request.endpoint == 'auth.register' %}active{% endif %}" id="nav-signup">
                         <i class="fa-solid fa-user-plus"></i> Sign Up
                     </a>
                 {% endif %}

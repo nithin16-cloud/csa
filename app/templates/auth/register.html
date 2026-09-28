@@ -3,51 +3,265 @@
 {% block title %}Create Account — CloudSky Airways{% endblock %}
 
 {% block content %}
-<div class="section-container" style="padding-top: 3rem; padding-bottom: 5rem;">
-    <div class="auth-card" style="max-width: 520px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 2.75rem 2.25rem; box-shadow: var(--shadow-lg);">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div class="logo-icon" style="margin: 0 auto 1rem auto; width: 48px; height: 48px;">
-                <i class="fa-solid fa-plane-departure"></i>
+<div class="auth-page-wrapper">
+    <div class="auth-card-split">
+        <!-- Left Luxury Showcase Panel -->
+        <div class="auth-showcase-panel">
+            <div>
+                <div class="auth-brand-badge">
+                    <i class="fa-solid fa-crown"></i> FREQUENT FLYER PROGRAM
+                </div>
+                <h1 class="auth-showcase-title">
+                    Join the <span>Elite Skies</span>
+                </h1>
+                <p class="auth-showcase-desc">
+                    Register for a complimentary CloudSky account to streamline your domestic & international commercial flight reservations.
+                </p>
+
+                <div class="auth-perks-list">
+                    <div class="auth-perk-item">
+                        <div class="auth-perk-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="auth-perk-text">
+                            <strong>Express 1-Click Reservations</strong>
+                            <span>Pre-saved passenger profiles for lightning-fast seat selection.</span>
+                        </div>
+                    </div>
+
+                    <div class="auth-perk-item">
+                        <div class="auth-perk-icon"><i class="fa-solid fa-lock"></i></div>
+                        <div class="auth-perk-text">
+                            <strong>Guaranteed Seat Holds</strong>
+                            <span>5-minute lock on checkout prevents any double-booking conflict.</span>
+                        </div>
+                    </div>
+
+                    <div class="auth-perk-item">
+                        <div class="auth-perk-icon"><i class="fa-solid fa-ticket"></i></div>
+                        <div class="auth-perk-text">
+                            <strong>Centralized Itinerary Hub</strong>
+                            <span>Manage your trips, swap assigned seats, and reprint official passes anytime.</span>
+                        </div>
+                    </div>
+
+                    <div class="auth-perk-item">
+                        <div class="auth-perk-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="auth-perk-text">
+                            <strong>Instant Refund Settlements</strong>
+                            <span>Automated transparent cancellation and NPCI refund tracking.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <h1 style="font-size: 1.85rem; color: var(--accent-navy); margin-bottom: 0.35rem;">Join CloudSky Airways</h1>
-            <p style="color: var(--text-subtle); font-size: 0.92rem;">Enjoy faster bookings, guaranteed seat holds, and trip management.</p>
+
+            <div class="auth-showcase-footer">
+                <span class="auth-trust-chip"><i class="fa-solid fa-shield-check"></i> IATA Accredited</span>
+                <span class="auth-trust-chip"><i class="fa-solid fa-lock"></i> 256-Bit SSL</span>
+                <span class="auth-trust-chip"><i class="fa-solid fa-circle-check"></i> Verified PNRs</span>
+            </div>
         </div>
 
-        <form action="{{ url_for('auth.register') }}" method="POST">
-            <div class="form-group" style="margin-bottom: 1.15rem;">
-                <label for="name"><i class="fa-regular fa-user"></i> Full Name</label>
-                <input type="text" name="name" id="reg-name" class="form-control" placeholder="e.g. Rohan Sharma" required value="{{ name or '' }}">
+        <!-- Right Form Panel -->
+        <div class="auth-form-panel">
+            <div class="auth-form-header">
+                <span class="section-tag" style="margin-bottom: 0.5rem; display: inline-block;">NEW PASSENGER ENROLLMENT</span>
+                <h2>Join CloudSky Airways</h2>
+                <p>Enjoy faster bookings, guaranteed seat holds, and trip management.</p>
             </div>
 
-            <div class="form-group" style="margin-bottom: 1.15rem;">
-                <label for="email"><i class="fa-regular fa-envelope"></i> Email Address</label>
-                <input type="email" name="email" id="reg-email" class="form-control" placeholder="e.g. rohan.sharma@example.in" required value="{{ email or '' }}">
-            </div>
+            <form action="{{ url_for('auth.register') }}" method="POST" id="register-form">
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label for="reg-name"><i class="fa-regular fa-user"></i> Full Name (as per Govt ID)</label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="reg-name" 
+                        class="form-control" 
+                        placeholder="e.g. Rohan Sharma" 
+                        required 
+                        value="{{ name or '' }}"
+                        autocomplete="name"
+                    >
+                </div>
 
-            <div class="form-group" style="margin-bottom: 1.15rem;">
-                <label for="phone"><i class="fa-solid fa-phone"></i> Mobile Phone (India)</label>
-                <input type="tel" name="phone" id="reg-phone" class="form-control" placeholder="+91 98765 43210" value="{{ phone or '' }}">
-            </div>
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label for="reg-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="reg-email" 
+                        class="form-control" 
+                        placeholder="e.g. rohan.sharma@example.in" 
+                        required 
+                        value="{{ email or '' }}"
+                        autocomplete="email"
+                    >
+                </div>
 
-            <div class="form-group" style="margin-bottom: 1.15rem;">
-                <label for="password"><i class="fa-solid fa-lock"></i> Password (min. 6 characters)</label>
-                <input type="password" name="password" id="reg-password" class="form-control" placeholder="••••••••" required minlength="6">
-            </div>
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label for="reg-phone"><i class="fa-solid fa-phone"></i> Mobile Phone (India)</label>
+                    <input 
+                        type="tel" 
+                        name="phone" 
+                        id="reg-phone" 
+                        class="form-control" 
+                        placeholder="+91 98765 43210" 
+                        value="{{ phone or '' }}"
+                        autocomplete="tel"
+                    >
+                </div>
 
-            <div class="form-group" style="margin-bottom: 1.6rem;">
-                <label for="confirm_password"><i class="fa-solid fa-shield-halved"></i> Confirm Password</label>
-                <input type="password" name="confirm_password" id="reg-confirm" class="form-control" placeholder="••••••••" required minlength="6">
-            </div>
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label for="reg-password"><i class="fa-solid fa-lock"></i> Password (min. 6 characters)</label>
+                    <div class="password-field-wrapper">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="reg-password" 
+                            class="form-control" 
+                            placeholder="Create a strong password" 
+                            required 
+                            minlength="6"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="password-toggle-btn" id="toggle-reg-pass" title="Show or hide password">
+                            <i class="fa-regular fa-eye" id="reg-eye-icon"></i>
+                        </button>
+                    </div>
+                    <!-- Live Password Strength Meter -->
+                    <div class="password-strength-box">
+                        <div class="password-strength-bar">
+                            <div class="password-strength-fill" id="strength-fill"></div>
+                        </div>
+                        <div class="password-strength-label">
+                            <span id="strength-text">Password Strength</span>
+                            <span id="strength-score"></span>
+                        </div>
+                    </div>
+                </div>
 
-            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-bottom: 1.5rem;">
-                <i class="fa-solid fa-user-plus"></i> Create Account & Sign In
-            </button>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="reg-confirm"><i class="fa-solid fa-shield-halved"></i> Confirm Password</label>
+                    <div class="password-field-wrapper">
+                        <input 
+                            type="password" 
+                            name="confirm_password" 
+                            id="reg-confirm" 
+                            class="form-control" 
+                            placeholder="Re-enter your password" 
+                            required 
+                            minlength="6"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="password-toggle-btn" id="toggle-reg-confirm" title="Show or hide confirm password">
+                            <i class="fa-regular fa-eye" id="reg-confirm-eye"></i>
+                        </button>
+                    </div>
+                    <div id="password-match-hint" style="font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600; display: none;"></div>
+                </div>
 
-            <div style="text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
-                <span style="font-size: 0.9rem; color: var(--text-subtle);">Already have an account? </span>
-                <a href="{{ url_for('auth.login') }}" style="font-weight: 700; color: var(--primary);">Sign In</a>
-            </div>
-        </form>
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-register-submit" style="margin-bottom: 1.25rem;">
+                    <i class="fa-solid fa-user-plus"></i> Create Account & Sign In
+                </button>
+
+                <div style="text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+                    <span style="font-size: 0.9rem; color: var(--text-subtle);">Already have a CloudSky account? </span>
+                    <a href="{{ url_for('auth.login') }}" style="font-weight: 700; color: var(--primary); text-decoration: none;">
+                        Sign In &rarr;
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const passInput = document.getElementById("reg-password");
+        const confirmInput = document.getElementById("reg-confirm");
+        const strengthFill = document.getElementById("strength-fill");
+        const strengthScore = document.getElementById("strength-score");
+        const matchHint = document.getElementById("password-match-hint");
+
+        // Toggle Password visibility
+        const setupToggle = (btnId, inputId, eyeId) => {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            const eye = document.getElementById(eyeId);
+            if (btn && input && eye) {
+                btn.addEventListener("click", () => {
+                    if (input.type === "password") {
+                        input.type = "text";
+                        eye.classList.remove("fa-eye");
+                        eye.classList.add("fa-eye-slash");
+                    } else {
+                        input.type = "password";
+                        eye.classList.remove("fa-eye-slash");
+                        eye.classList.add("fa-eye");
+                    }
+                });
+            }
+        };
+
+        setupToggle("toggle-reg-pass", "reg-password", "reg-eye-icon");
+        setupToggle("toggle-reg-confirm", "reg-confirm", "reg-confirm-eye");
+
+        // Password strength meter
+        if (passInput && strengthFill && strengthScore) {
+            passInput.addEventListener("input", () => {
+                const val = passInput.value;
+                if (!val) {
+                    strengthFill.className = "password-strength-fill";
+                    strengthFill.style.width = "0%";
+                    strengthScore.textContent = "";
+                    return;
+                }
+
+                let score = 0;
+                if (val.length >= 6) score++;
+                if (val.length >= 10) score++;
+                if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+                if (/[0-9]/.test(val)) score++;
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+
+                strengthFill.className = "password-strength-fill";
+                if (score <= 2) {
+                    strengthFill.classList.add("weak");
+                    strengthScore.textContent = "Weak";
+                    strengthScore.style.color = "#EF4444";
+                } else if (score <= 4) {
+                    strengthFill.classList.add("fair");
+                    strengthScore.textContent = "Good";
+                    strengthScore.style.color = "#F59E0B";
+                } else {
+                    strengthFill.classList.add("strong");
+                    strengthScore.textContent = "Strong";
+                    strengthScore.style.color = "#10B981";
+                }
+            });
+        }
+
+        // Real-time password match confirmation
+        if (passInput && confirmInput && matchHint) {
+            const checkMatch = () => {
+                if (!confirmInput.value) {
+                    matchHint.style.display = "none";
+                    return;
+                }
+                matchHint.style.display = "block";
+                if (passInput.value === confirmInput.value) {
+                    matchHint.style.color = "#059669";
+                    matchHint.innerHTML = '<i class="fa-solid fa-check"></i> Passwords match perfectly.';
+                } else {
+                    matchHint.style.color = "#DC2626";
+                    matchHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Passwords do not match yet.';
+                }
+            };
+
+            confirmInput.addEventListener("input", checkMatch);
+            passInput.addEventListener("input", checkMatch);
+        }
+    });
+</script>
 {% endblock %}

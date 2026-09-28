@@ -6,13 +6,25 @@
 <div id="manage-vue-app">
     <div class="search-page-header">
         <div class="header-container">
-            <span class="section-tag">PASSENGER SELF-SERVICE PORTAL</span>
-            <h1 style="font-size: 2.2rem; margin-top: 0.35rem; color: var(--accent-navy);">Manage Your Flight Reservation</h1>
-            <p style="color: var(--text-subtle);">Retrieve itinerary details, swap passenger seats, download printable boarding passes, or manage cancellations with instant refund calculation.</p>
+            <span class="section-tag">[[ isCheckinMode ? 'INSTANT WEB CHECK-IN & DIGITAL BOARDING PASS' : 'PASSENGER SELF-SERVICE PORTAL' ]]</span>
+            <h1 style="font-size: 2.2rem; margin-top: 0.35rem; color: var(--accent-navy);">
+                [[ isCheckinMode ? 'Web Check-in & Boarding Pass Issuance' : 'Manage Your Flight Reservation' ]]
+            </h1>
+            <p style="color: var(--text-subtle);">
+                [[ isCheckinMode ? 'Verify flight reservations online up to 48 hours prior to departure, confirm passenger seats, and immediately access your official printable boarding pass.' : 'Retrieve itinerary details, swap passenger seats, download printable boarding passes, or manage cancellations with instant refund calculation.' ]]
+            </p>
         </div>
     </div>
 
     <div class="section-container" style="padding-bottom: 4rem;">
+        <!-- Web Check-in Helper Badge -->
+        <div v-if="isCheckinMode" class="alert-box alert-info" style="max-width: 620px; margin: 0 auto 1.5rem auto; background: #EFF6FF; border-color: #93C5FD; color: #1E40AF; display: flex; align-items: center; gap: 0.75rem; border-radius: var(--radius-md); padding: 0.85rem 1.15rem;">
+            <i class="fa-solid fa-plane-circle-check" style="font-size: 1.25rem; color: var(--primary);"></i>
+            <div style="font-size: 0.88rem; line-height: 1.45;">
+                <strong>Web Check-in Active:</strong> Enter your 6-character PNR below to verify ticket status and immediately generate your official CloudSky boarding pass.
+            </div>
+        </div>
+
         <!-- PNR Lookup Form Card (Shown when searching or updating search) -->
         <div class="search-card" style="max-width: 620px; margin: 0 auto 2.5rem auto;">
             <form @submit.prevent="lookupBooking" class="manage-form">
@@ -43,8 +55,9 @@
                 <div class="form-submit">
                     <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
                         <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i>
+                        <i v-else-if="isCheckinMode" class="fa-solid fa-id-card"></i>
                         <i v-else class="fa-solid fa-magnifying-glass"></i>
-                        [[ loading ? 'Retrieving Reservation...' : 'Retrieve Booking Itinerary' ]]
+                        [[ loading ? 'Retrieving Reservation...' : (isCheckinMode ? 'Complete Web Check-in & View Boarding Pass' : 'Retrieve Booking Itinerary') ]]
                     </button>
                 </div>
             </form>
@@ -518,6 +531,8 @@
     createApp({
         delimiters: ['[[', ']]'],
         setup() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isCheckinMode = ref(urlParams.get('checkin') === '1');
             const initialPnr = "{{ initial_pnr or '' }}";
 
             const searchPnr = ref(initialPnr);
@@ -591,6 +606,10 @@
                         booking.value = data.booking;
                         seats.value = data.seats || [];
                         activeBpIndex.value = 0;
+                        if (isCheckinMode.value && data.booking.payment_status !== 'Cancelled') {
+                            successMessage.value = `Web check-in verified for ${data.booking.passenger_name}! Your boarding pass is displayed below.`;
+                            showBoardingPassModal.value = true;
+                        }
                     } else {
                         booking.value = null;
                         seats.value = [];
@@ -696,12 +715,17 @@
             };
 
             onMounted(() => {
+                if (isCheckinMode.value) {
+                    const pnrInput = document.getElementById('pnr-input');
+                    if (pnrInput) pnrInput.focus();
+                }
                 if (initialPnr) {
                     lookupBooking();
                 }
             });
 
             return {
+                isCheckinMode,
                 searchPnr,
                 searchEmail,
                 loading,

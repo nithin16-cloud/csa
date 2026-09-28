@@ -42,6 +42,12 @@ def register():
         session['user_id'] = user_id
         session['user_name'] = name
         session['user_email'] = email
+        session['user'] = {
+            "id": user_id,
+            "name": name,
+            "email": email,
+            "phone": phone
+        }
 
         flash(f"Welcome to CloudSky Airways, {name}! Your account has been created.", "success")
         return redirect(url_for("main.index"))
@@ -68,6 +74,12 @@ def login():
         session['user_id'] = user["id"]
         session['user_name'] = user["name"]
         session['user_email'] = user["email"]
+        session['user'] = {
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "phone": user["phone"]
+        }
 
         flash(f"Welcome back, {user['name']}!", "success")
         next_url = request.args.get("next") or url_for("main.index")

@@ -31,27 +31,54 @@
             </a>
 
             <nav class="nav-links">
-                <a href="/" class="nav-item active" id="nav-home">
+                <a href="#flight-search-form" class="nav-item active" id="nav-home">
                     <i class="fa-solid fa-compass"></i> Book Flights
                 </a>
                 <a href="/flights" class="nav-item" id="nav-flights">
                     <i class="fa-solid fa-plane-up"></i> Schedules
                 </a>
                 <a href="/manage" class="nav-item" id="nav-manage">
-                    <i class="fa-solid fa-ticket"></i> Manage Booking (PNR)
+                    <i class="fa-solid fa-ticket"></i> Manage Booking
                 </a>
             </nav>
 
             <div class="nav-right-actions">
-                <a href="/manage" class="nav-action-link" id="nav-checkin">
+                <a href="/manage?checkin=1" class="nav-action-link" id="nav-checkin">
                     <i class="fa-solid fa-qrcode"></i> Web Check-in
                 </a>
-                <a href="/login" class="nav-action-link" id="nav-signin">
-                    <i class="fa-regular fa-circle-user"></i> Sign In
-                </a>
-                <a href="/register" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signup">
-                    <i class="fa-solid fa-user-plus"></i> Sign Up
-                </a>
+                {% if current_user %}
+                    <div class="user-profile-menu">
+                        <button type="button" class="user-pill-btn" id="user-menu-btn" title="Account Menu">
+                            <i class="fa-solid fa-circle-user"></i>
+                            <span>{{ current_user.name.split()[0] }}</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
+                        </button>
+                        <div class="user-dropdown-card" id="user-dropdown-menu">
+                            <div class="user-dropdown-header">
+                                <strong>{{ current_user.name }}</strong>
+                                <small>{{ current_user.email }}</small>
+                            </div>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="/manage" class="dropdown-item">
+                                <i class="fa-solid fa-ticket"></i> Manage Bookings
+                            </a>
+                            <a href="/manage?checkin=1" class="dropdown-item">
+                                <i class="fa-solid fa-qrcode"></i> Web Check-in
+                            </a>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="/logout" class="dropdown-item text-danger">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="/login" class="nav-action-link" id="nav-signin">
+                        <i class="fa-regular fa-circle-user"></i> Sign In
+                    </a>
+                    <a href="/register" class="btn btn-primary btn-sm nav-signin-btn" id="nav-signup">
+                        <i class="fa-solid fa-user-plus"></i> Sign Up
+                    </a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -683,6 +710,40 @@
                 };
             }
         }).mount('#home-vue-app');
+
+        function initHeaderInteractions() {
+            const userBtn = document.getElementById("user-menu-btn");
+            const dropdown = document.getElementById("user-dropdown-menu");
+            if (userBtn && dropdown) {
+                userBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle("show");
+                });
+                document.addEventListener("click", () => {
+                    dropdown.classList.remove("show");
+                });
+            }
+
+            const navHome = document.getElementById("nav-home");
+            if (navHome) {
+                navHome.addEventListener("click", (e) => {
+                    const searchSection = document.getElementById("flight-search-form") || document.querySelector(".search-card");
+                    if (searchSection) {
+                        e.preventDefault();
+                        searchSection.scrollIntoView({ behavior: "smooth", block: "center" });
+                        searchSection.classList.remove("search-card-pulse");
+                        void searchSection.offsetWidth;
+                        searchSection.classList.add("search-card-pulse");
+                    }
+                });
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHeaderInteractions);
+        } else {
+            initHeaderInteractions();
+        }
     </script>
 </body>
 </html>
