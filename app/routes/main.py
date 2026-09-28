@@ -7,6 +7,8 @@ main_bp = Blueprint("main", __name__)
 def index():
     db = get_db()
     airports = db.execute("SELECT * FROM airports ORDER BY city ASC").fetchall()
+    
+    # Query 12 random diverse popular flights across domestic and international routes
     featured_flights = db.execute("""
         SELECT f.*, 
                orig.city AS origin_city, orig.name AS origin_name,
@@ -15,9 +17,24 @@ def index():
         FROM flights f
         JOIN airports orig ON f.origin_code = orig.code
         JOIN airports dest ON f.destination_code = dest.code
-        ORDER BY f.departure_time ASC
-        LIMIT 6
+        WHERE f.departure_time >= date('now')
+        GROUP BY f.origin_code, f.destination_code
+        ORDER BY RANDOM()
+        LIMIT 12
     """).fetchall()
+
+    if len(featured_flights) < 12:
+        featured_flights = db.execute("""
+            SELECT f.*, 
+                   orig.city AS origin_city, orig.name AS origin_name,
+                   dest.city AS dest_city, dest.name AS dest_name,
+                   (SELECT COUNT(*) FROM seats s WHERE s.flight_id = f.id AND s.is_booked = 0) AS available_seats
+            FROM flights f
+            JOIN airports orig ON f.origin_code = orig.code
+            JOIN airports dest ON f.destination_code = dest.code
+            ORDER BY RANDOM()
+            LIMIT 12
+        """).fetchall()
 
     featured_flights_data = []
     for f in featured_flights:
@@ -175,3 +192,21 @@ def manage():
             error = f"No booking found matching reservation reference {pnr_param}."
 
     return render_template("manage.html", booking=booking, seats=seats, error=error, initial_pnr=pnr)
+
+@main_bp.route("/info/<section>")
+def info_page(section):
+    """Passenger Information, Guidelines, Policies, and Services."""
+    valid_sections = ["dining", "baggage", "faq", "cancellation", "privacy", "terms", "passenger-rights"]
+    sec = section.lower().strip()
+    if sec not in valid_sections:
+        sec = "dining"
+    return render_template("info.html", active_section=sec)
+
+@main_bp.route("/info")
+def info_default():
+    return redirect(url_for("main.info_page", section="dining"))
+
+@main_bp.route("/services/<section>")
+def services_redirect(section):
+    return redirect(url_for("main.info_page", section=section))
+

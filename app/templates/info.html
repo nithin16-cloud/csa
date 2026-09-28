@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if active_section == 'dining' %}In-Flight Dining & Wi-Fi — CloudSky Airways
+{% elif active_section == 'baggage' %}Baggage Guidelines & Allowances — CloudSky Airways
+{% elif active_section == 'faq' %}Frequently Asked Questions & Assistance — CloudSky Airways
+{% elif active_section == 'cancellation' %}Cancellation & Refund Policy — CloudSky Airways
+{% elif active_section == 'privacy' %}Privacy Policy — CloudSky Airways
+{% elif active_section == 'terms' %}Terms & Conditions — CloudSky Airways
+{% elif active_section == 'passenger-rights' %}Passenger Rights & Charter — CloudSky Airways
+{% else %}Travel Guidelines & Services — CloudSky Airways{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="info-page-wrapper">
+    <!-- Header Page Banner -->
+    <div class="search-page-header">
+        <div class="header-container">
+            <span class="section-tag">PASSENGER SERVICES & POLICIES</span>
+            <h1 style="font-size: 2.2rem; margin-top: 0.35rem; color: var(--accent-navy);">
+                Travel Guidelines & Services
+            </h1>
+            <p style="color: var(--text-subtle);">
+                Everything you need to know about our in-flight dining, baggage allowances, reservation rules, and cancellation policies.
+            </p>
+        </div>
+    </div>
+
+    <div class="section-container" style="max-width: 1140px; margin: 0 auto; padding-top: 2rem; padding-bottom: 4rem;">
+        <!-- Navigation Pills Bar -->
+        <div class="info-nav-bar">
+            <a href="{{ url_for('main.info_page', section='dining') }}" class="info-nav-tab {% if active_section == 'dining' %}active{% endif %}" id="tab-dining">
+                <i class="fa-solid fa-utensils"></i> In-Flight Dining & Wi-Fi
+            </a>
+            <a href="{{ url_for('main.info_page', section='baggage') }}" class="info-nav-tab {% if active_section == 'baggage' %}active{% endif %}" id="tab-baggage">
+                <i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines
+            </a>
+            <a href="{{ url_for('main.info_page', section='faq') }}" class="info-nav-tab {% if active_section == 'faq' %}active{% endif %}" id="tab-faq">
+                <i class="fa-solid fa-circle-question"></i> FAQs & Assistance
+            </a>
+            <a href="{{ url_for('main.info_page', section='cancellation') }}" class="info-nav-tab {% if active_section == 'cancellation' %}active{% endif %}" id="tab-cancellation">
+                <i class="fa-solid fa-rotate-left"></i> Cancellation Policy
+            </a>
+            <a href="{{ url_for('main.info_page', section='passenger-rights') }}" class="info-nav-tab {% if active_section == 'passenger-rights' %}active{% endif %}" id="tab-rights">
+                <i class="fa-solid fa-shield-halved"></i> Passenger Rights
+            </a>
+        </div>
+
+        <!-- SECTION 1: IN-FLIGHT DINING & WI-FI -->
+        {% if active_section == 'dining' %}
+        <div class="info-section-content" id="section-dining">
+            <div class="info-hero-banner" style="background: linear-gradient(135deg, #0A192F 0%, #1E3A8A 100%); color: #FFFFFF; border-radius: var(--radius-xl); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="max-width: 680px;">
+                    <span style="background: rgba(251, 191, 36, 0.2); color: #FBBF24; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 1rem;">
+                        HIGH-ALTITUDE CULINARY HOSPITALITY
+                    </span>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.75rem;">World-Class Dining & Seamless Wi-Fi at 38,000 Feet</h2>
+                    <p style="color: #E2E8F0; font-size: 1.05rem; line-height: 1.6;">
+                        Every journey with CloudSky Airways features gourmet meals crafted by award-winning chefs, complimentary hot beverages, and high-speed satellite Wi-Fi to keep you entertained and connected throughout your flight.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-grid-3">
+                <div class="info-card">
+                    <div class="info-card-icon" style="background: #FEF3C7; color: #D97706;">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <h3>First Class Private Dining</h3>
+                    <p>Dine on demand with à la carte multi-course menus served on fine bone china. Featuring premium royal Indian dishes, chef's seasonal degustation, artisanal cheese platters, and vintage hot beverages.</p>
+                    <ul class="info-check-list">
+                        <li><i class="fa-solid fa-check"></i> Personalized Dine-on-Demand timing</li>
+                        <li><i class="fa-solid fa-check"></i> Sommelier curated pairings & mocktails</li>
+                        <li><i class="fa-solid fa-check"></i> Pre-flight meal reservation via portal</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-icon" style="background: #E0E7FF; color: #4338CA;">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <h3>Business Class Gastronomy</h3>
+                    <p>Enjoy regional and international gourmet selections with three hot main course options, freshly baked bread baskets, specialty espresso coffee, and decadent warm desserts.</p>
+                    <ul class="info-check-list">
+                        <li><i class="fa-solid fa-check"></i> Choice of Regional Indian or Global cuisine</li>
+                        <li><i class="fa-solid fa-check"></i> High-altitude taste calibrated recipes</li>
+                        <li><i class="fa-solid fa-check"></i> Complimentary mid-flight snacks</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-icon" style="background: #DCFCE7; color: #15803D;">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <h3>Economy Class Comfort Dining</h3>
+                    <p>Complimentary wholesome hot meals on flights over 90 minutes. Includes vegetarian and non-vegetarian selections accompanied by fresh salad, warm rolls, and traditional sweet desserts.</p>
+                    <ul class="info-check-list">
+                        <li><i class="fa-solid fa-check"></i> Complimentary hot meal & mineral water</li>
+                        <li><i class="fa-solid fa-check"></i> Premium tea & South Indian filter coffee</li>
+                        <li><i class="fa-solid fa-check"></i> Packaged snack boxes on shorter flights</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Special Dietary Preferences -->
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.5rem;"><i class="fa-solid fa-leaf" style="color: #10B981;"></i> Special Dietary Meal Requests</h3>
+                <p style="color: var(--text-subtle); margin-bottom: 1.25rem;">
+                    We cater to diverse dietary preferences and cultural traditions. You can request your special meal free of charge up to 24 hours prior to departure during booking or via the Manage Booking portal.
+                </p>
+                <div class="dietary-tags-grid">
+                    <span class="dietary-tag"><strong>AVML</strong> Asian Vegetarian</span>
+                    <span class="dietary-tag"><strong>VJML</strong> Vegetarian Jain Meal</span>
+                    <span class="dietary-tag"><strong>VGML</strong> Strict Vegan</span>
+                    <span class="dietary-tag"><strong>GFML</strong> Gluten Intolerant</span>
+                    <span class="dietary-tag"><strong>DBML</strong> Diabetic Meal</span>
+                    <span class="dietary-tag"><strong>MOML</strong> Halal Certified</span>
+                    <span class="dietary-tag"><strong>CHML</strong> Child Friendly Meal</span>
+                    <span class="dietary-tag"><strong>FPML</strong> Fresh Fruit Platter</span>
+                </div>
+            </div>
+
+            <!-- Wi-Fi & Connectivity -->
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.5rem;"><i class="fa-solid fa-wifi" style="color: var(--primary);"></i> In-Flight Satellite Wi-Fi & Device Power</h3>
+                <p style="color: var(--text-subtle); margin-bottom: 1.5rem;">
+                    Connect seamlessly above the clouds. Our widebody Boeing 787 Dreamliner and Airbus A350 fleet are equipped with next-generation Ku/Ka-band high-speed satellite connectivity.
+                </p>
+                <div class="info-grid-3">
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+                        <h4 style="color: var(--accent-navy); margin-bottom: 0.35rem;"><i class="fa-solid fa-comment-dots" style="color: var(--primary);"></i> Free Messaging Pass</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-subtle);">Complimentary for all passengers. Stay in touch on WhatsApp, iMessage, and WeChat for the full duration of your flight.</p>
+                    </div>
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+                        <h4 style="color: var(--accent-navy); margin-bottom: 0.35rem;"><i class="fa-solid fa-bolt" style="color: #F59E0B;"></i> In-Seat AC & USB-C</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-subtle);">Universal 110V AC power outlets and 65W fast-charging USB-C sockets available at every seat in all cabin classes.</p>
+                    </div>
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+                        <h4 style="color: var(--accent-navy); margin-bottom: 0.35rem;"><i class="fa-solid fa-film" style="color: #EC4899;"></i> CloudStream IFE</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-subtle);">Over 1,200 hours of movies, regional series, podcasts, and live flight radar streaming directly to your phone, tablet, or seat screen.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECTION 2: BAGGAGE GUIDELINES -->
+        {% if active_section == 'baggage' %}
+        <div class="info-section-content" id="section-baggage">
+            <div class="info-hero-banner" style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%); color: #FFFFFF; border-radius: var(--radius-xl); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="max-width: 680px;">
+                    <span style="background: rgba(255, 255, 255, 0.2); color: #FFFFFF; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 1rem;">
+                        CLEAR & TRANSPARENT ALLOWANCES
+                    </span>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.75rem;">Baggage Guidelines & Allowances</h2>
+                    <p style="color: #D1FAE5; font-size: 1.05rem; line-height: 1.6;">
+                        Travel with confidence knowing your exact check-in and cabin baggage limits across all domestic and international CloudSky flights.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Allowances Table -->
+            <div class="info-card">
+                <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 1rem;"><i class="fa-solid fa-weight-hanging" style="color: var(--primary);"></i> Free Checked Baggage Allowances</h3>
+                <div style="overflow-x: auto;">
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th>Cabin Class</th>
+                                <th>Domestic Flights (India)</th>
+                                <th>International Flights</th>
+                                <th>Cabin Carry-On Allowance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong style="color: #D97706;"><i class="fa-solid fa-crown"></i> First Class</strong>
+                                </td>
+                                <td><strong>35 kg</strong> (up to 2 pieces)</td>
+                                <td><strong>2 x 32 kg</strong> (64 kg total)</td>
+                                <td>1 piece (10 kg) + 1 laptop bag</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: #4338CA;"><i class="fa-solid fa-gem"></i> Business Class</strong>
+                                </td>
+                                <td><strong>25 kg</strong> (up to 2 pieces)</td>
+                                <td><strong>2 x 23 kg</strong> (46 kg total)</td>
+                                <td>1 piece (8 kg) + 1 laptop bag</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: #15803D;"><i class="fa-solid fa-chair"></i> Economy Class</strong>
+                                </td>
+                                <td><strong>15 kg</strong> (1 piece)</td>
+                                <td><strong>1 x 23 kg</strong> (23 kg total)</td>
+                                <td>1 piece (7 kg) + 1 personal handbag</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: var(--text-subtle);"><i class="fa-solid fa-baby"></i> Infant (0-2 yrs)</strong>
+                                </td>
+                                <td><strong>10 kg</strong> check-in baggage</td>
+                                <td><strong>10 kg</strong> check-in baggage</td>
+                                <td>1 stroller / collapsible pram free</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cabin Luggage Specs -->
+            <div class="info-grid-2" style="margin-top: 2rem;">
+                <div class="info-card">
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.75rem;"><i class="fa-solid fa-briefcase" style="color: var(--primary);"></i> Cabin Carry-on Dimensions</h3>
+                    <p style="color: var(--text-subtle); margin-bottom: 1rem;">
+                        Your cabin baggage must easily fit into the overhead bin or beneath the seat in front of you. Maximum dimensions allowed:
+                    </p>
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-md); border-left: 4px solid var(--primary); margin-bottom: 1rem;">
+                        <strong style="color: var(--accent-navy); font-size: 1.1rem;">55 cm × 35 cm × 25 cm</strong>
+                        <span style="display: block; font-size: 0.85rem; color: var(--text-subtle); margin-top: 2px;">Including wheels, handles, and side pockets. Max weight: 7 kg (Economy) / 8-10 kg (Premium).</span>
+                    </div>
+                    <p style="font-size: 0.88rem; color: var(--text-subtle);">
+                        In addition, you may carry 1 small personal item: a laptop bag, lady's handbag, or baby diaper pouch.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.75rem;"><i class="fa-solid fa-plus-circle" style="color: #F59E0B;"></i> Prepaid Excess Baggage Rates</h3>
+                    <p style="color: var(--text-subtle); margin-bottom: 1rem;">
+                        Need more baggage? Save up to 25% by booking excess baggage in advance rather than paying airport counter rates:
+                    </p>
+                    <ul class="info-check-list" style="margin-bottom: 1.25rem;">
+                        <li><strong>5 kg Add-on:</strong> ₹2,250 (Prepaid) vs ₹2,750 (Airport)</li>
+                        <li><strong>10 kg Add-on:</strong> ₹4,200 (Prepaid) vs ₹5,500 (Airport)</li>
+                        <li><strong>15 kg Add-on:</strong> ₹6,000 (Prepaid) vs ₹8,250 (Airport)</li>
+                    </ul>
+                    <a href="{{ url_for('main.manage') }}" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-plus"></i> Add Baggage via Manage Portal
+                    </a>
+                </div>
+            </div>
+
+            <!-- Prohibited Items & Safety -->
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.75rem;"><i class="fa-solid fa-triangle-exclamation" style="color: #EF4444;"></i> Important Dangerous Goods Regulations</h3>
+                <div class="info-grid-3">
+                    <div style="border: 1px solid var(--border-subtle); padding: 1rem; border-radius: var(--radius-md);">
+                        <strong style="color: #EF4444; display: block; margin-bottom: 0.25rem;"><i class="fa-solid fa-battery-full"></i> Power Banks & Lithium Batteries</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-subtle);">Must be carried in CABIN baggage only. Strictly prohibited in checked luggage under DGCA safety protocols.</p>
+                    </div>
+                    <div style="border: 1px solid var(--border-subtle); padding: 1rem; border-radius: var(--radius-md);">
+                        <strong style="color: #EF4444; display: block; margin-bottom: 0.25rem;"><i class="fa-solid fa-bottle-droplet"></i> Liquids, Aerosols & Gels (LAGs)</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-subtle);">In cabin baggage, containers must not exceed 100 ml each and should fit in a single transparent re-sealable bag.</p>
+                    </div>
+                    <div style="border: 1px solid var(--border-subtle); padding: 1rem; border-radius: var(--radius-md);">
+                        <strong style="color: #EF4444; display: block; margin-bottom: 0.25rem;"><i class="fa-solid fa-ban"></i> Restricted Sharp Objects</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-subtle);">Scissors, blades, matchboxes, and compressed gas canisters are prohibited in cabin bags and must be checked in.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECTION 3: FAQS & ASSISTANCE -->
+        {% if active_section == 'faq' %}
+        <div class="info-section-content" id="section-faq">
+            <div class="info-hero-banner" style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); color: #FFFFFF; border-radius: var(--radius-xl); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="max-width: 680px;">
+                    <span style="background: rgba(255, 255, 255, 0.2); color: #FFFFFF; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 1rem;">
+                        24/7 PASSENGER SUPPORT
+                    </span>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.75rem;">Frequently Asked Questions & Special Assistance</h2>
+                    <p style="color: #E0E7FF; font-size: 1.05rem; line-height: 1.6;">
+                        Find quick answers to common questions about booking, online check-in, seat reservations, and special passenger care.
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-accordion-group">
+                <div class="faq-card">
+                    <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> When does online Web Check-in open and close?</h4>
+                    <p>Web check-in opens <strong>48 hours prior</strong> to the scheduled departure time and closes <strong>60 minutes prior</strong> for domestic flights (75 minutes for international flights). You can complete web check-in and download your digital boarding pass directly via our <a href="{{ url_for('main.manage') }}?checkin=1" style="color: var(--primary); font-weight: 700;">Web Check-in Portal</a>.</p>
+                </div>
+
+                <div class="faq-card">
+                    <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How does the 5-Minute Seat Reservation Hold work?</h4>
+                    <p>When you select a seat on our interactive 2D cabin map, our database locks it with a temporary reservation token for <strong>5 minutes (300 seconds)</strong>. During this window, no other passenger can book or select your held seat while you complete passenger details and payment authorization.</p>
+                </div>
+
+                <div class="faq-card">
+                    <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How do I retrieve or reprint my Boarding Pass?</h4>
+                    <p>You can retrieve and reprint your official airline boarding pass at any time by visiting our <a href="{{ url_for('main.manage') }}" style="color: var(--primary); font-weight: 700;">Manage Booking Portal</a>. Simply enter your 6-character PNR code (e.g., <code>CS-7K9A2M</code>) and your registered email address.</p>
+                </div>
+
+                <div class="faq-card">
+                    <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Can I swap or change my seat after booking?</h4>
+                    <p>Yes! CloudSky Airways offers an instant seat swap feature. Navigate to <strong>Manage Booking</strong>, enter your PNR, and click <strong>"Swap Seats"</strong>. You can view available cabin seats and instantly switch your seat assignment without cancelling your flight.</p>
+                </div>
+
+                <div class="faq-card">
+                    <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How do I request Wheelchair or Special Assistance?</h4>
+                    <p>Wheelchair assistance for seniors or passengers with reduced mobility is provided free of charge at all airport hubs. Please request wheelchair assistance at least 24 hours prior to departure by calling our 24/7 toll-free helpline at <a href="tel:18002097755" style="color: var(--primary); font-weight: 700;">1800-209-7755</a> or emailing <a href="mailto:concierge@cloudsky.in" style="color: var(--primary); font-weight: 700;">concierge@cloudsky.in</a>.</p>
+                </div>
+
+                <div class="faq-card">
+                    <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> What are the guidelines for infants and expectant mothers?</h4>
+                    <p>Expectant mothers with uncomplicated pregnancies may travel up to 36 weeks of pregnancy (or 32 weeks for multiple pregnancies) with a fit-to-fly certificate issued by a registered medical practitioner within 7 days of departure. Infants up to 2 years travel under the lap infant fare with a dedicated 10 kg baggage allowance.</p>
+                </div>
+            </div>
+
+            <!-- Customer Service Quick Contacts -->
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1rem;"><i class="fa-solid fa-headset" style="color: var(--primary);"></i> Need Further Assistance?</h3>
+                <div class="info-grid-3">
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                        <i class="fa-solid fa-phone" style="font-size: 1.75rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                        <h4 style="color: var(--accent-navy);">Toll-Free Helpline</h4>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem;">1800-209-7755</p>
+                        <span style="font-size: 0.78rem; color: var(--text-subtle);">Available 24/7 across India</span>
+                    </div>
+
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                        <i class="fa-solid fa-envelope" style="font-size: 1.75rem; color: #10B981; margin-bottom: 0.5rem;"></i>
+                        <h4 style="color: var(--accent-navy);">Priority Concierge</h4>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: #10B981; margin-top: 0.25rem;">concierge@cloudsky.in</p>
+                        <span style="font-size: 0.78rem; color: var(--text-subtle);">Replies within 2 hours</span>
+                    </div>
+
+                    <div style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                        <i class="fa-solid fa-comments" style="font-size: 1.75rem; color: #F59E0B; margin-bottom: 0.5rem;"></i>
+                        <h4 style="color: var(--accent-navy);">WhatsApp Support</h4>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: #F59E0B; margin-top: 0.25rem;">+91 98765 43210</p>
+                        <span style="font-size: 0.78rem; color: var(--text-subtle);">Live flight updates & check-in</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECTION 4: CANCELLATION & REFUND POLICY -->
+        {% if active_section == 'cancellation' %}
+        <div class="info-section-content" id="section-cancellation">
+            <div class="info-hero-banner" style="background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 100%); color: #FFFFFF; border-radius: var(--radius-xl); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="max-width: 680px;">
+                    <span style="background: rgba(255, 255, 255, 0.2); color: #FFFFFF; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 1rem;">
+                        100% TRANSPARENT REFUNDS
+                    </span>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.75rem;">Cancellation, Rescheduling & Refund Policy</h2>
+                    <p style="color: #FEE2E2; font-size: 1.05rem; line-height: 1.6;">
+                        Plans change. We offer hassle-free online cancellations with guaranteed instant refund calculations and immediate seat inventory release.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 24h Free Cancellation Banner -->
+            <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.25rem;">
+                <div style="width: 52px; height: 52px; border-radius: 50%; background: #D1FAE5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <h3 style="color: #065F46; font-size: 1.2rem; margin-bottom: 0.25rem;">24-Hour Free Cancellation Guarantee</h3>
+                    <p style="color: #047857; font-size: 0.95rem; margin: 0;">
+                        Cancel within 24 hours of booking for a <strong>100% full refund</strong> with zero cancellation fee, provided the flight departure is at least 7 days away from the booking time.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Fee Structure Table -->
+            <div class="info-card">
+                <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 1rem;"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Cancellation Fee Structure</h3>
+                <div style="overflow-x: auto;">
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th>Cancellation Window</th>
+                                <th>Economy Class Fee</th>
+                                <th>Business Class Fee</th>
+                                <th>First Class Suites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Within 24 Hours of Booking</strong></td>
+                                <td><span class="badge-free">FREE (₹0)</span></td>
+                                <td><span class="badge-free">FREE (₹0)</span></td>
+                                <td><span class="badge-free">FREE (₹0)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>More than 24h before Departure</strong></td>
+                                <td>₹1,500 per passenger</td>
+                                <td>₹1,000 per passenger</td>
+                                <td><span class="badge-free">FREE (₹0)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Between 2h and 24h before Departure</strong></td>
+                                <td>₹2,500 per passenger</td>
+                                <td>₹1,800 per passenger</td>
+                                <td>₹1,000 per passenger</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Within 2 Hours of Departure (No-Show)</strong></td>
+                                <td>Non-refundable (Taxes returned)</td>
+                                <td>Non-refundable (Taxes returned)</td>
+                                <td>50% Refundable</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Refund Process Timeline -->
+            <div class="info-grid-2" style="margin-top: 2rem;">
+                <div class="info-card">
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.75rem;"><i class="fa-solid fa-bolt" style="color: #10B981;"></i> Instant Online Cancellation Workflow</h3>
+                    <ol style="padding-left: 1.25rem; color: var(--text-subtle); line-height: 1.7; font-size: 0.95rem;">
+                        <li>Navigate to the <a href="{{ url_for('main.manage') }}" style="color: var(--primary); font-weight: 700;">Manage Booking Portal</a>.</li>
+                        <li>Enter your 6-character Reference (PNR) and email.</li>
+                        <li>Review your itinerary and click <strong>"Cancel Reservation"</strong>.</li>
+                        <li>The system automatically computes statutory deductions and your net refund amount in Indian Rupees (₹).</li>
+                        <li>Confirm cancellation: your booked seats are immediately released back to the airline inventory, and a refund transaction is generated.</li>
+                    </ol>
+                </div>
+
+                <div class="info-card">
+                    <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.75rem;"><i class="fa-solid fa-credit-card" style="color: var(--primary);"></i> Refund Settlement Timelines</h3>
+                    <p style="color: var(--text-subtle); margin-bottom: 1rem;">
+                        Refunds are credited back exclusively to the original payment instrument used during booking:
+                    </p>
+                    <ul class="info-check-list" style="margin-bottom: 1.5rem;">
+                        <li><strong>UPI / Google Pay / PhonePe:</strong> Instant to 24 hours</li>
+                        <li><strong>Credit / Debit Cards:</strong> 3 to 5 business days</li>
+                        <li><strong>NetBanking / IMPS:</strong> 2 to 4 business days</li>
+                    </ul>
+                    <a href="{{ url_for('main.manage') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-ticket"></i> Manage Booking & Request Refund
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECTION 5: PASSENGER RIGHTS / CHARTER -->
+        {% if active_section == 'passenger-rights' or active_section == 'privacy' or active_section == 'terms' %}
+        <div class="info-section-content" id="section-rights">
+            <div class="info-hero-banner" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF; border-radius: var(--radius-xl); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="max-width: 680px;">
+                    <span style="background: rgba(255, 255, 255, 0.2); color: #FFFFFF; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 1rem;">
+                        GOVERNANCE & CONSUMER PROTECTION
+                    </span>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.75rem;">
+                        {% if active_section == 'privacy' %}Privacy Policy & Data Security
+                        {% elif active_section == 'terms' %}Conditions of Carriage & Terms
+                        {% else %}Passenger Rights & DGCA Citizen Charter{% endif %}
+                    </h2>
+                    <p style="color: #94A3B8; font-size: 1.05rem; line-height: 1.6;">
+                        CloudSky Airways strictly adheres to civil aviation passenger protection standards, stringent data protection guidelines, and clear terms of travel.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                {% if active_section == 'privacy' %}
+                    <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.75rem;">Privacy Policy & Data Protection</h3>
+                    <p style="color: var(--text-subtle); line-height: 1.7; margin-bottom: 1rem;">
+                        CloudSky Airways is committed to preserving the privacy of our travelers. All personal information collected during flight search, booking, payment, and web check-in is encrypted via 256-bit SSL transport security.
+                    </p>
+                    <ul class="info-check-list" style="margin-bottom: 1.5rem;">
+                        <li><strong>Data Minimization:</strong> We only collect passenger contact details necessary to issue verified airline tickets and communicate flight schedule updates.</li>
+                        <li><strong>Zero Third-Party Marketing:</strong> We never sell, rent, or trade your personal email, phone number, or booking records with advertising brokers.</li>
+                        <li><strong>Financial Security:</strong> Payment transactions are handled through simulated encrypted gateways adhering to PCI-DSS standards. We do not store raw CVV codes.</li>
+                    </ul>
+                {% elif active_section == 'terms' %}
+                    <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.75rem;">Terms & Conditions of Carriage</h3>
+                    <p style="color: var(--text-subtle); line-height: 1.7; margin-bottom: 1rem;">
+                        By booking or checking in on CloudSky Airways flights, travelers agree to standard airline conditions of carriage:
+                    </p>
+                    <ul class="info-check-list" style="margin-bottom: 1.5rem;">
+                        <li><strong>Identity Verification:</strong> Passengers must present a valid government-issued photo ID (Aadhaar, Passport, Voter ID, Driving License) at airport boarding gates.</li>
+                        <li><strong>Boarding Gate Closure:</strong> Boarding gates close strictly 25 minutes prior to scheduled flight departure.</li>
+                        <li><strong>Itinerary Revisions:</strong> CloudSky reserves the right to substitute aircraft models or adjust schedules due to adverse weather or air traffic control directives.</li>
+                    </ul>
+                {% else %}
+                    <h3 style="font-size: 1.35rem; color: var(--accent-navy); margin-bottom: 0.75rem;">DGCA Passenger Rights Charter</h3>
+                    <p style="color: var(--text-subtle); line-height: 1.7; margin-bottom: 1rem;">
+                        In accordance with the Directorate General of Civil Aviation (DGCA) CAR Series M Section 3 guidelines:
+                    </p>
+                    <ul class="info-check-list" style="margin-bottom: 1.5rem;">
+                        <li><strong>Flight Delays over 2 Hours:</strong> Complimentary refreshments and snacks provided at airport terminals.</li>
+                        <li><strong>Flight Cancellation with Short Notice:</strong> Choice of alternate flight within 2 hours or 100% full refund without deduction.</li>
+                        <li><strong>Denied Boarding (Overbooking):</strong> Full refund plus monetary compensation in accordance with statutory guidelines.</li>
+                        <li><strong>Baggage Delay or Damage:</strong> Swift compensation up to ₹20,000 for checked baggage loss upon verified claim filing.</li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

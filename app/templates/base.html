@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CloudSky Airways — Luxury Commercial Flight Simulator{% endblock %}</title>
+    <title>{% block title %}CloudSky Airways — Commercial Airline Flight Booking & Web Check-in{% endblock %}</title>
     <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -132,8 +132,8 @@
                 <ul>
                     <li><a href="{{ url_for('main.manage') }}"><i class="fa-solid fa-ticket"></i> Web Check-in & Boarding Pass</a></li>
                     <li><a href="{{ url_for('main.flights_search') }}"><i class="fa-solid fa-calendar-days"></i> Flight Schedule Tracker</a></li>
-                    <li><a href="#amenities"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
-                    <li><a href="#baggage"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
+                    <li><a href="{{ url_for('main.info_page', section='dining') }}"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
+                    <li><a href="{{ url_for('main.info_page', section='baggage') }}"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
                 </ul>
             </div>
 
@@ -142,8 +142,8 @@
                 <ul>
                     <li><a href="tel:18002097755"><i class="fa-solid fa-phone"></i> 1800-209-7755 (Toll-Free)</a></li>
                     <li><a href="mailto:concierge@cloudsky.in"><i class="fa-solid fa-envelope"></i> concierge@cloudsky.in</a></li>
-                    <li><a href="#faq"><i class="fa-solid fa-circle-question"></i> FAQs & Special Assistance</a></li>
-                    <li><a href="#refunds"><i class="fa-solid fa-rotate-left"></i> Cancellation & Refund Policy</a></li>
+                    <li><a href="{{ url_for('main.info_page', section='faq') }}"><i class="fa-solid fa-circle-question"></i> FAQs & Assistance</a></li>
+                    <li><a href="{{ url_for('main.info_page', section='cancellation') }}"><i class="fa-solid fa-rotate-left"></i> Cancellation Policy</a></li>
                 </ul>
             </div>
         </div>
@@ -151,9 +151,9 @@
         <div class="footer-bottom">
             <p>© 2026 CloudSky Airways Ltd. All rights reserved.</p>
             <div class="footer-bottom-links">
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#terms">Terms & Conditions</a>
-                <a href="#security">Passenger Rights</a>
+                <a href="{{ url_for('main.info_page', section='privacy') }}">Privacy Policy</a>
+                <a href="{{ url_for('main.info_page', section='terms') }}">Terms & Conditions</a>
+                <a href="{{ url_for('main.info_page', section='passenger-rights') }}">Passenger Rights</a>
             </div>
         </div>
     </footer>

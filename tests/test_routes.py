@@ -463,15 +463,59 @@ def test_api_flights_endpoint(client):
     assert "base_price" in first
 
 def test_main_page_featured_flights_json(client):
-    """Test index.html embeds serialized featured flights for Vue."""
+    """Test index.html embeds serialized 12 featured flights for Vue and has clean title."""
     res = client.get("/")
     assert res.status_code == 200
     assert b"featured-flights-data" in res.data
     assert b"application/json" in res.data
+    # Verify title does not contain "Luxury"
+    html_text = res.data.decode("utf-8")
+    assert "<title>CloudSky Airways — Commercial Airline Flight Booking & Web Check-in</title>" in html_text
+    assert "Luxury Commercial Flight Simulator" not in html_text
+    
+    # Verify 12 featured flights are embedded in the JSON payload
+    import json
+    start_tag = '<script id="featured-flights-data" type="application/json">'
+    end_tag = '</script>'
+    start_idx = html_text.find(start_tag) + len(start_tag)
+    end_idx = html_text.find(end_tag, start_idx)
+    json_str = html_text[start_idx:end_idx].strip()
+    flights_data = json.loads(json_str)
+    assert len(flights_data) == 12
+
+def test_passenger_info_routes(client):
+    """Test all passenger information and policy portal routes."""
+    # Test section routes
+    sections = [
+        ("dining", b"In-Flight Dining"),
+        ("baggage", b"Baggage Guidelines"),
+        ("faq", b"Frequently Asked Questions"),
+        ("cancellation", b"Cancellation & Refund Policy"),
+        ("privacy", b"Privacy Policy"),
+        ("terms", b"Terms & Conditions"),
+        ("passenger-rights", b"Passenger Rights")
+    ]
+    for section, expected_content in sections:
+        res = client.get(f"/info/{section}")
+        assert res.status_code == 200, f"Failed for section {section}"
+        assert expected_content in res.data, f"Content not found for section {section}"
+        assert b"CloudSky Airways" in res.data
+        assert b"PASSENGER SERVICES & POLICIES" in res.data
+
+    # Test /info root redirect
+    res_root = client.get("/info", follow_redirects=False)
+    assert res_root.status_code == 302
+    assert "/info/dining" in res_root.headers.get("Location", "")
+
+    # Test /services/<section> backward compatibility redirect
+    res_svc = client.get("/services/baggage", follow_redirects=False)
+    assert res_svc.status_code == 302
+    assert "/info/baggage" in res_svc.headers.get("Location", "")
 
 def test_flights_search_fallback(client):
     """Test flights search fallback when searching route without strict date."""
     res = client.get("/flights?origin=DEL&destination=BOM")
     assert res.status_code == 200
     assert b"flight-list-row" in res.data
+
 

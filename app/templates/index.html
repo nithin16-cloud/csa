@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudSky Airways — Luxury Commercial Flight Simulator</title>
+    <title>CloudSky Airways — Commercial Airline Flight Booking & Web Check-in</title>
     <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -206,7 +206,7 @@
             <div class="section-header">
                 <span class="section-tag">THE CLOUDSKY DISTINCTION</span>
                 <h2 class="section-title">Designed for Unrivaled Comfort & Precision</h2>
-                <p class="section-desc">Experience commercial flight booking engineered with state-of-the-art seat locking and luxurious hospitality.</p>
+                <p class="section-desc">Experience commercial flight booking engineered with state-of-the-art seat locking and world-class hospitality.</p>
             </div>
 
             <div class="luxury-pillars-grid">
@@ -334,7 +334,7 @@
                     </button>
                 </div>
 
-                <!-- Day 2: Seat Reservation Hold Timer Banner -->
+                <!-- Seat Reservation Hold Timer Banner -->
                 <div v-if="selectedSeatsList.length > 0" class="seat-hold-banner">
                     <div>
                         <i class="fa-solid fa-clock"></i> Selected seats held exclusively for you during checkout
@@ -593,8 +593,8 @@
                 <ul>
                     <li><a href="/manage"><i class="fa-solid fa-ticket"></i> Web Check-in & Boarding Pass</a></li>
                     <li><a href="/flights"><i class="fa-solid fa-calendar-days"></i> Flight Schedule Tracker</a></li>
-                    <li><a href="#amenities"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
-                    <li><a href="#baggage"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
+                    <li><a href="/info/dining"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
+                    <li><a href="/info/baggage"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
                 </ul>
             </div>
 
@@ -603,8 +603,8 @@
                 <ul>
                     <li><a href="tel:18002097755"><i class="fa-solid fa-phone"></i> 1800-209-7755 (Toll-Free)</a></li>
                     <li><a href="mailto:concierge@cloudsky.in"><i class="fa-solid fa-envelope"></i> concierge@cloudsky.in</a></li>
-                    <li><a href="#faq"><i class="fa-solid fa-circle-question"></i> FAQs & Assistance</a></li>
-                    <li><a href="#refunds"><i class="fa-solid fa-rotate-left"></i> Cancellation Policy</a></li>
+                    <li><a href="/info/faq"><i class="fa-solid fa-circle-question"></i> FAQs & Assistance</a></li>
+                    <li><a href="/info/cancellation"><i class="fa-solid fa-rotate-left"></i> Cancellation Policy</a></li>
                 </ul>
             </div>
         </div>
@@ -612,9 +612,9 @@
         <div class="footer-bottom">
             <p>© 2026 CloudSky Airways Ltd. All rights reserved.</p>
             <div class="footer-bottom-links">
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#terms">Terms & Conditions</a>
-                <a href="#security">Passenger Rights</a>
+                <a href="/info/privacy">Privacy Policy</a>
+                <a href="/info/terms">Terms & Conditions</a>
+                <a href="/info/passenger-rights">Passenger Rights</a>
             </div>
         </div>
     </footer>
@@ -662,7 +662,13 @@
                     { id: 3, flight_number: "CS-201", origin_code: "BOM", origin_city: "Mumbai", dest_code: "DXB", dest_city: "Dubai", departure_time: "17:00", arrival_time: "20:30", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 16999.00, status: "Scheduled", available_seats: 48 },
                     { id: 4, flight_number: "CS-301", origin_code: "BLR", origin_city: "Bengaluru", dest_code: "SIN", dest_city: "Singapore", departure_time: "21:00", arrival_time: "05:30", date: "2026-09-28", aircraft_model: "Airbus A350-900", base_price: 21500.00, status: "Scheduled", available_seats: 52 },
                     { id: 5, flight_number: "CS-401", origin_code: "DEL", origin_city: "New Delhi", dest_code: "LHR", dest_city: "London", departure_time: "06:00", arrival_time: "15:00", date: "2026-09-28", aircraft_model: "Boeing 777-300ER", base_price: 42500.00, status: "Scheduled", available_seats: 60 },
-                    { id: 6, flight_number: "CS-501", origin_code: "BOM", origin_city: "Mumbai", dest_code: "JFK", dest_city: "New York", departure_time: "01:30", arrival_time: "17:00", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 68000.00, status: "Scheduled", available_seats: 38 }
+                    { id: 6, flight_number: "CS-501", origin_code: "BOM", origin_city: "Mumbai", dest_code: "JFK", dest_city: "New York", departure_time: "01:30", arrival_time: "17:00", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 68000.00, status: "Scheduled", available_seats: 38 },
+                    { id: 7, flight_number: "CS-105", origin_code: "HYD", origin_city: "Hyderabad", dest_code: "MAA", dest_city: "Chennai", departure_time: "10:30", arrival_time: "11:45", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 8", base_price: 4200.00, status: "Scheduled", available_seats: 54 },
+                    { id: 8, flight_number: "CS-107", origin_code: "CCU", origin_city: "Kolkata", dest_code: "DEL", dest_city: "New Delhi", departure_time: "14:15", arrival_time: "16:40", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 5800.00, status: "Scheduled", available_seats: 62 },
+                    { id: 9, flight_number: "CS-203", origin_code: "DEL", origin_city: "New Delhi", dest_code: "DXB", dest_city: "Dubai", departure_time: "19:45", arrival_time: "22:15", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 15400.00, status: "Scheduled", available_seats: 44 },
+                    { id: 10, flight_number: "CS-403", origin_code: "BOM", origin_city: "Mumbai", dest_code: "LHR", dest_city: "London", departure_time: "08:15", arrival_time: "13:30", date: "2026-09-28", aircraft_model: "Airbus A350-900", base_price: 44800.00, status: "Scheduled", available_seats: 50 },
+                    { id: 11, flight_number: "CS-109", origin_code: "BLR", origin_city: "Bengaluru", dest_code: "DEL", dest_city: "New Delhi", departure_time: "18:20", arrival_time: "21:05", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 8", base_price: 6499.00, status: "Scheduled", available_seats: 56 },
+                    { id: 12, flight_number: "CS-111", origin_code: "MAA", origin_city: "Chennai", dest_code: "BOM", dest_city: "Mumbai", departure_time: "16:10", arrival_time: "18:00", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 4950.00, status: "Scheduled", available_seats: 66 }
                 ]);
 
                 const selectedOrigin = ref("");
@@ -692,15 +698,17 @@
                         // Live Server fallback
                     }
 
-                    // Fetch latest live flights from backend if available
-                    try {
-                        const fRes = await fetch('/api/flights?limit=6');
-                        if (fRes.ok) {
-                            const fData = await fRes.json();
-                            if (fData && fData.length > 0) flights.value = fData;
+                    // Fetch latest live flights from backend if not already hydrated from server
+                    if (!initialFeaturedFlights || initialFeaturedFlights.length < 12) {
+                        try {
+                            const fRes = await fetch('/api/flights?limit=12');
+                            if (fRes.ok) {
+                                const fData = await fRes.json();
+                                if (fData && fData.length > 0) flights.value = fData;
+                            }
+                        } catch (e) {
+                            // Live Server fallback
                         }
-                    } catch (e) {
-                        // Live Server fallback
                     }
                 });
 
