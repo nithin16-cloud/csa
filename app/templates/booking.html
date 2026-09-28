@@ -3,9 +3,7 @@
 {% block title %}Select Cabin Seats — {{ flight.flight_number }} | CloudSky Airways{% endblock %}
 
 {% block content %}
-<!-- Vue template: stored in script tag to avoid HTML parser interference with & > && in v-if/v-for -->
-<script type="text/x-template" id="booking-template">
-<div class="booking-vue-root">
+<div id="booking-vue-app">
     <!-- Header Banner -->
     <div class="booking-page-header">
         <div class="header-container">
@@ -857,11 +855,11 @@
         </div>
     </div>
 </div>
-</script>
-<div id="booking-vue-app"></div>
 {% endblock %}
 
 {% block extra_scripts %}
+<!-- Use Vue dev build temporarily to show errors -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script>
     const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
@@ -869,7 +867,6 @@
 
     createApp({
         delimiters: ['[[', ']]'],
-        template: document.getElementById('booking-template').innerHTML,
         setup() {
             const flightId = {{ flight.id }};
             const basePrice = {{ flight.base_price }};
