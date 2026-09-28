@@ -240,7 +240,7 @@
                                                             { 'inspected-seat': inspectedSeat && inspectedSeat.id === seat.id }
                                                         ]"
                                                         :disabled="seat.is_booked || seat.is_held"
-                                                        :title="seat.seat_number + ' (' + seat.cabin_class + ' - ' + (seat.seat_pitch || '31\"') + ') - ₹' + formatINR(seat.price_inr)"
+                                                        :title="seat.seat_number + ' (' + seat.cabin_class + ' - ' + (seat.seat_pitch || '31in') + ') - \u20B9' + formatINR(seat.price_inr)"
                                                         @mouseenter="inspectSeat(seat)"
                                                         @click="toggleSeat(seat)"
                                                     >
@@ -274,7 +274,7 @@
                                                             { 'inspected-seat': inspectedSeat && inspectedSeat.id === seat.id }
                                                         ]"
                                                         :disabled="seat.is_booked || seat.is_held"
-                                                        :title="seat.seat_number + ' (' + seat.cabin_class + ' - ' + (seat.seat_pitch || '31\"') + ') - ₹' + formatINR(seat.price_inr)"
+                                                        :title="seat.seat_number + ' (' + seat.cabin_class + ' - ' + (seat.seat_pitch || '31in') + ') - \u20b9' + formatINR(seat.price_inr)"
                                                         @mouseenter="inspectSeat(seat)"
                                                         @click="toggleSeat(seat)"
                                                     >
