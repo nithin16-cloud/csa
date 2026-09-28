@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}404 — Flight Route Not Found | CloudSky Airways{% endblock %}
+
+{% block content %}
+<div class="error-page-container" style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 4rem 1.5rem; text-align: center;">
+    <div class="error-card" style="max-width: 600px; background: #FFFFFF; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); padding: 3.5rem 2.5rem; box-shadow: var(--shadow-lg);">
+        <div class="error-icon-box" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(2, 132, 199, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 1.75rem auto;">
+            <i class="fa-solid fa-plane-slash"></i>
+        </div>
+        <span class="badge" style="background: rgba(30, 64, 175, 0.1); color: var(--accent-navy); padding: 0.35rem 1rem; border-radius: var(--radius-full); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Error 404 • Destination Not Found</span>
+        <h1 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--accent-navy); margin: 1.25rem 0 0.75rem 0; line-height: 1.2;">Off Course & Radar Contact Lost</h1>
+        <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 2rem;">
+            The flight path or page you are searching for does not exist in our flight navigation database, or may have been rerouted to another terminal.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; border-radius: var(--radius-full); font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-compass"></i> Return to Terminal Home
+            </a>
+            <a href="{{ url_for('main.flights_search') }}" class="btn btn-secondary" style="padding: 0.75rem 1.75rem; border-radius: var(--radius-full); font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-subtle);">
+                <i class="fa-solid fa-plane-up"></i> Browse Flight Schedules
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

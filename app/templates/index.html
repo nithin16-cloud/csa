@@ -42,7 +42,7 @@
                 </a>
             </nav>
 
-            <div class="nav-right-actions">
+            <div class="nav-right-actions" id="nav-right-actions">
                 <a href="/manage?checkin=1" class="nav-action-link" id="nav-checkin">
                     <i class="fa-solid fa-qrcode"></i> Web Check-in
                 </a>
@@ -82,6 +82,39 @@
             </div>
         </div>
     </header>
+
+    <!-- Synchronous Live Server & Static Preview Guard:
+         When viewed via VS Code Live Server or static file preview, Flask Jinja2 tags remain unparsed.
+         Instantly removes unparsed template text nodes and uncompiled user dropdown before paint,
+         ensuring a clean luxury navbar showing default guest navigation. -->
+    <script>
+        (function() {
+            var actions = document.getElementById('nav-right-actions') || document.querySelector('.nav-right-actions');
+            if (actions && (actions.innerHTML.indexOf('{' + '%') !== -1 || actions.innerHTML.indexOf('{' + '{') !== -1)) {
+                var walker = document.createTreeWalker(actions, NodeFilter.SHOW_TEXT, null, false);
+                var toRemove = [];
+                var tagStart = '{' + '%';
+                var tagEnd = '%' + '}';
+                var varStart = '{' + '{';
+                var varEnd = '}' + '}';
+                while (walker.nextNode()) {
+                    var val = walker.currentNode.nodeValue;
+                    if (val.indexOf(tagStart) !== -1 || val.indexOf(tagEnd) !== -1 || val.indexOf(varStart) !== -1 || val.indexOf(varEnd) !== -1) {
+                        toRemove.push(walker.currentNode);
+                    }
+                }
+                for (var i = 0; i < toRemove.length; i++) {
+                    if (toRemove[i].parentNode) {
+                        toRemove[i].parentNode.removeChild(toRemove[i]);
+                    }
+                }
+                var userMenu = actions.querySelector('.user-profile-menu');
+                if (userMenu && (userMenu.innerHTML.indexOf('{' + '{') !== -1 || userMenu.innerHTML.indexOf('{' + '%') !== -1)) {
+                    userMenu.remove();
+                }
+            }
+        })();
+    </script>
 
     <!-- Flash Notifications Container (Clean luxury toast, hidden in static Live Server preview) -->
     <div id="flash-toast-container" class="toast-container" style="display: none;">
@@ -734,6 +767,50 @@
                         searchSection.classList.remove("search-card-pulse");
                         void searchSection.offsetWidth;
                         searchSection.classList.add("search-card-pulse");
+                    }
+                });
+            }
+
+            // Static preview / Live Server friendly navigation
+            if (window.location.port === '5500' || window.location.protocol === 'file:') {
+                const navFlights = document.getElementById("nav-flights");
+                if (navFlights) {
+                    navFlights.addEventListener("click", (e) => {
+                        const flightsSection = document.querySelector(".featured-section") || document.querySelector(".section-container");
+                        if (flightsSection) {
+                            e.preventDefault();
+                            flightsSection.scrollIntoView({ behavior: "smooth" });
+                        }
+                    });
+                }
+
+                function showBackendNotice(e, actionName) {
+                    e.preventDefault();
+                    let toastContainer = document.getElementById("preview-toast-container");
+                    if (!toastContainer) {
+                        toastContainer = document.createElement("div");
+                        toastContainer.id = "preview-toast-container";
+                        toastContainer.className = "toast-container";
+                        document.body.appendChild(toastContainer);
+                    }
+                    const toast = document.createElement("div");
+                    toast.className = "toast-card toast-info";
+                    toast.innerHTML = '<i class="fa-solid fa-circle-info"></i><span><strong>Live Server Preview:</strong> ' + actionName + ' requires the Flask backend. Start Flask with <code>python run.py</code> and open <a href="http://127.0.0.1:5000" style="text-decoration: underline; color: var(--primary); font-weight: 700;">http://127.0.0.1:5000</a></span>';
+                    toastContainer.appendChild(toast);
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        toast.style.transition = 'opacity 0.4s ease';
+                        setTimeout(() => toast.remove(), 400);
+                    }, 6000);
+                }
+
+                ["nav-checkin", "nav-manage", "nav-signin", "nav-signup"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener("click", (e) => {
+                            const name = el.textContent.trim() || "This feature";
+                            showBackendNotice(e, name);
+                        });
                     }
                 });
             }
