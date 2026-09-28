@@ -3,6 +3,7 @@ import random
 import uuid
 import datetime
 import sqlite3
+import json
 from flask import Blueprint, jsonify, request, session
 from app.db import get_db
 
@@ -293,12 +294,23 @@ def create_booking():
 
         user_id = session.get("user_id") or data.get("user_id")
         pnr = generate_pnr()
+        payment_method = data.get("payment_method", "UPI")
+        payment_details = data.get("payment_details", "")
+        transaction_id = "TXN-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
         cursor = db.execute("""
             INSERT INTO bookings (user_id, booking_reference, flight_id, passenger_name, passenger_email, passenger_phone, total_amount, payment_status)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'Confirmed')
         """, (user_id, pnr, flight_id, passenger_name, passenger_email, passenger_phone, total_amount))
         
         booking_id = cursor.lastrowid
+
+        # Insert Payment Transaction Record
+        p_details_str = json.dumps(payment_details) if isinstance(payment_details, dict) else str(payment_details)
+        db.execute("""
+            INSERT INTO payments (booking_id, transaction_id, payment_method, amount, currency, status, payment_details)
+            VALUES (?, ?, ?, ?, 'INR', 'Success', ?)
+        """, (booking_id, transaction_id, payment_method, total_amount, p_details_str))
 
         for s_info in booked_seats_info:
             db.execute("""
@@ -317,9 +329,21 @@ def create_booking():
 
         db.commit()
 
+        # Compute realistic gate, terminal & boarding time for instant pass
+        term = f"T{((flight_id % 2) + 2)}" if flight["origin_code"] in ("DEL", "BOM") else "T1"
+        gate_letter = ['A', 'B', 'C', 'D'][(flight_id * 3) % 4]
+        gate_num = ((flight_id * 7) % 24) + 1
+        gate = f"{gate_num}{gate_letter}"
+
+        try:
+            dep_dt = datetime.datetime.strptime(flight["departure_time"], "%Y-%m-%d %H:%M")
+            boarding_time = (dep_dt - datetime.timedelta(minutes=45)).strftime("%H:%M")
+        except Exception:
+            boarding_time = "45m prior"
+
         return jsonify({
             "success": True,
-            "message": "Booking confirmed successfully!",
+            "message": "Payment authorized and booking confirmed successfully!",
             "booking": {
                 "id": booking_id,
                 "pnr": pnr,
@@ -328,6 +352,12 @@ def create_booking():
                 "passenger_email": passenger_email,
                 "passenger_phone": passenger_phone,
                 "total_amount_inr": total_amount,
+                "payment_status": "Confirmed",
+                "payment_method": payment_method,
+                "transaction_id": transaction_id,
+                "terminal": term,
+                "gate": gate,
+                "boarding_time": boarding_time,
                 "seats": [s["seat_number"] for s in booked_seats_info],
                 "passengers": [
                     {
@@ -337,7 +367,11 @@ def create_booking():
                         "passenger_age": s["passenger_age"],
                         "passenger_gender": s["passenger_gender"],
                         "cabin_class": s["cabin_class"],
-                        "price_inr": s["price"]
+                        "price_inr": s["price"],
+                        "terminal": term,
+                        "gate": gate,
+                        "boarding_time": boarding_time,
+                        "boarding_group": "Group 1" if s["cabin_class"] in ("First", "Business") else "Group 2"
                     }
                     for s in booked_seats_info
                 ]
@@ -354,6 +388,8 @@ def create_booking():
 @api_bp.route("/bookings/<string:pnr>", methods=["GET"])
 def get_booking(pnr):
     db = get_db()
+    clean_expired_holds(db)
+
     booking = db.execute("""
         SELECT b.*, f.flight_number, f.departure_time, f.arrival_time, f.aircraft_model,
                orig.city AS origin_city, orig.name AS origin_name, orig.code AS origin_code,
@@ -375,7 +411,247 @@ def get_booking(pnr):
         WHERE bs.booking_id = ?
     """, (booking["id"],)).fetchall()
 
+    payment = db.execute("""
+        SELECT * FROM payments 
+        WHERE booking_id = ? 
+        ORDER BY id DESC LIMIT 1
+    """, (booking["id"],)).fetchone()
+
+    # Dynamic gate & boarding calculation
+    term = f"T{((booking['flight_id'] % 2) + 2)}" if booking["origin_code"] in ("DEL", "BOM") else "T1"
+    gate_letter = ['A', 'B', 'C', 'D'][(booking["flight_id"] * 3) % 4]
+    gate_num = ((booking["flight_id"] * 7) % 24) + 1
+    gate = f"{gate_num}{gate_letter}"
+
+    try:
+        dep_dt = datetime.datetime.strptime(booking["departure_time"], "%Y-%m-%d %H:%M")
+        boarding_time = (dep_dt - datetime.timedelta(minutes=45)).strftime("%H:%M")
+    except Exception:
+        boarding_time = "45m prior"
+
+    booking_dict = dict(booking)
+    booking_dict["terminal"] = term
+    booking_dict["gate"] = gate
+    booking_dict["boarding_time"] = boarding_time
+    booking_dict["payment"] = dict(payment) if payment else None
+
+    # Attach boarding pass info to individual passenger seats
+    seats_list = []
+    if seats:
+        for s in seats:
+            sd = dict(s)
+            sd["terminal"] = term
+            sd["gate"] = gate
+            sd["boarding_time"] = boarding_time
+            sd["boarding_group"] = "Group 1" if sd.get("cabin_class") in ("First", "Business") else "Group 2"
+            seats_list.append(sd)
+    elif booking["payment_status"] == "Cancelled" and booking["cancellation_details"]:
+        try:
+            raw_seats = json.loads(booking["cancellation_details"])
+            for s in raw_seats:
+                sd = dict(s)
+                sd["terminal"] = term
+                sd["gate"] = gate
+                sd["boarding_time"] = boarding_time
+                sd["boarding_group"] = "Group 1" if sd.get("cabin_class") in ("First", "Business") else "Group 2"
+                seats_list.append(sd)
+        except Exception:
+            pass
+
     return jsonify({
-        "booking": dict(booking),
-        "seats": [dict(s) for s in seats]
+        "booking": booking_dict,
+        "seats": seats_list
+    })
+
+@api_bp.route("/bookings/<string:pnr>/cancel", methods=["POST"])
+def cancel_booking(pnr):
+    """
+    Cancels a booking reservation, frees up seats back to inventory atomically,
+    calculates cancellation fee and refund, and records payment refund.
+    """
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+
+    db = get_db()
+    booking = db.execute("""
+        SELECT b.*, f.flight_number 
+        FROM bookings b
+        JOIN flights f ON b.flight_id = f.id
+        WHERE UPPER(b.booking_reference) = ?
+    """, (pnr.strip().upper(),)).fetchone()
+
+    if not booking:
+        return jsonify({"error": "Booking not found"}), 404
+
+    if email and booking["passenger_email"].strip().lower() != email:
+        return jsonify({"error": "Email does not match booking record."}), 403
+
+    if booking["payment_status"] == "Cancelled":
+        return jsonify({"error": "Booking has already been cancelled."}), 400
+
+    try:
+        db.execute("BEGIN IMMEDIATE")
+
+        # 1. Fetch booked seats
+        booked_seats = db.execute("""
+            SELECT bs.seat_id, bs.seat_number, bs.price_paid, bs.passenger_name, bs.passenger_age, bs.passenger_gender,
+                   s.cabin_class, s.seat_type, s.seat_pitch, s.has_power, s.has_extra_legroom, s.recline_deg, s.features
+            FROM booking_seats bs
+            JOIN seats s ON bs.seat_id = s.id
+            WHERE bs.booking_id = ?
+        """, (booking["id"],)).fetchall()
+
+        seat_ids = [s["seat_id"] for s in booked_seats]
+        seat_numbers = [s["seat_number"] for s in booked_seats]
+        seats_snapshot = json.dumps([dict(s) for s in booked_seats])
+
+        # 2. Free seats immediately back to inventory
+        if seat_ids:
+            placeholders = ",".join("?" for _ in seat_ids)
+            db.execute(f"""
+                UPDATE seats 
+                SET is_booked = 0, locked_until = NULL, lock_token = NULL, version = version + 1
+                WHERE id IN ({placeholders})
+            """, seat_ids)
+
+        # 3. Release seat mapping from booking_seats so the freed seats can be re-booked
+        db.execute("DELETE FROM booking_seats WHERE booking_id = ?", (booking["id"],))
+
+        # 4. Calculate refund and cancellation charge
+        total_fare = float(booking["total_amount"])
+        pax_count = max(1, len(seat_ids))
+        cancellation_fee = min(total_fare, 500.0 * pax_count)
+        refund_amount = round(max(0.0, total_fare - cancellation_fee), 2)
+        now_iso = datetime.datetime.now().isoformat()
+
+        # 5. Update booking status
+        db.execute("""
+            UPDATE bookings 
+            SET payment_status = 'Cancelled', cancellation_fee = ?, refund_amount = ?, cancelled_at = ?, cancellation_details = ?
+            WHERE id = ?
+        """, (cancellation_fee, refund_amount, now_iso, seats_snapshot, booking["id"]))
+
+        # 5. Record refund transaction in payments
+        refund_txn = "REF-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        db.execute("""
+            INSERT INTO payments (booking_id, transaction_id, payment_method, amount, currency, status, payment_details)
+            VALUES (?, ?, 'Refund', ?, 'INR', 'Refunded', ?)
+        """, (booking["id"], refund_txn, refund_amount, f"Refund to original source for {pnr}"))
+
+        db.commit()
+
+        return jsonify({
+            "success": True,
+            "message": f"Booking {pnr} has been successfully cancelled. Seats have been returned to available inventory.",
+            "cancellation": {
+                "pnr": pnr,
+                "flight_number": booking["flight_number"],
+                "seats_freed": seat_numbers,
+                "total_fare_inr": total_fare,
+                "cancellation_fee_inr": cancellation_fee,
+                "refund_amount_inr": refund_amount,
+                "refund_transaction_id": refund_txn,
+                "cancelled_at": now_iso
+            }
+        })
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": "Failed to cancel booking", "details": str(e)}), 500
+
+@api_bp.route("/bookings/<string:pnr>/change-seat", methods=["POST"])
+def change_seat(pnr):
+    """
+    Atomically reassigns a passenger from an existing seat to a new available seat on the same flight.
+    """
+    data = request.get_json() or {}
+    old_seat_id = data.get("old_seat_id")
+    new_seat_id = data.get("new_seat_id")
+
+    if not old_seat_id or not new_seat_id:
+        return jsonify({"error": "old_seat_id and new_seat_id required"}), 400
+
+    db = get_db()
+    booking = db.execute("SELECT * FROM bookings WHERE UPPER(booking_reference) = ?", (pnr.strip().upper(),)).fetchone()
+    if not booking:
+        return jsonify({"error": "Booking not found"}), 404
+
+    if booking["payment_status"] == "Cancelled":
+        return jsonify({"error": "Cannot change seats on a cancelled booking"}), 400
+
+    try:
+        db.execute("BEGIN IMMEDIATE")
+
+        # Verify old seat belongs to this booking
+        bs = db.execute("SELECT * FROM booking_seats WHERE booking_id = ? AND seat_id = ?", (booking["id"], old_seat_id)).fetchone()
+        if not bs:
+            db.rollback()
+            return jsonify({"error": "Specified current seat is not part of this booking"}), 404
+
+        # Verify new seat is on the same flight and available
+        new_seat = db.execute("SELECT * FROM seats WHERE id = ? AND flight_id = ?", (new_seat_id, booking["flight_id"])).fetchone()
+        if not new_seat:
+            db.rollback()
+            return jsonify({"error": "Target seat not found on this flight"}), 404
+
+        if new_seat["is_booked"]:
+            db.rollback()
+            return jsonify({"error": f"Target seat {new_seat['seat_number']} is already occupied"}), 409
+
+        # Atomic seat swap
+        db.execute("UPDATE seats SET is_booked = 0, locked_until = NULL, lock_token = NULL WHERE id = ?", (old_seat_id,))
+        db.execute("UPDATE seats SET is_booked = 1, locked_until = NULL, lock_token = NULL WHERE id = ?", (new_seat_id,))
+
+        flight = db.execute("SELECT base_price FROM flights WHERE id = ?", (booking["flight_id"],)).fetchone()
+        new_price = round(flight["base_price"] * new_seat["price_multiplier"])
+
+        db.execute("""
+            UPDATE booking_seats 
+            SET seat_id = ?, seat_number = ?, price_paid = ?
+            WHERE id = ?
+        """, (new_seat_id, new_seat["seat_number"], new_price, bs["id"]))
+
+        db.commit()
+
+        return jsonify({
+            "success": True,
+            "message": f"Seat successfully updated to {new_seat['seat_number']}",
+            "old_seat": bs["seat_number"],
+            "new_seat": new_seat["seat_number"],
+            "cabin_class": new_seat["cabin_class"],
+            "new_price_inr": new_price
+        })
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": "Seat change failed", "details": str(e)}), 500
+
+@api_bp.route("/payments/simulate", methods=["POST"])
+def simulate_payment():
+    """Simulates instant Indian payment gateway authorization for UPI, Cards, and Net Banking."""
+    data = request.get_json() or {}
+    method = data.get("method", "UPI")
+    amount = data.get("amount", 0)
+
+    # Basic method validation
+    if method == "UPI":
+        vpa = data.get("vpa", "").strip()
+        if not vpa or "@" not in vpa:
+            return jsonify({"success": False, "error": "Invalid UPI ID. Format should be username@bank (e.g. rohan@okhdfcbank)"}), 400
+    elif method in ("CreditCard", "DebitCard", "Card"):
+        card_num = str(data.get("card_number", "")).replace(" ", "")
+        if len(card_num) < 15 or not card_num.isdigit():
+            return jsonify({"success": False, "error": "Invalid Card Number. Must be 15 or 16 digits."}), 400
+    elif method == "NetBanking":
+        bank = data.get("bank", "").strip()
+        if not bank:
+            return jsonify({"success": False, "error": "Please select a participating Indian bank."}), 400
+
+    txn_id = "TXN-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    return jsonify({
+        "success": True,
+        "transaction_id": txn_id,
+        "status": "Authorized",
+        "gateway": "National Payments Corporation of India (NPCI) Gateway Simulator",
+        "amount_inr": amount
     })

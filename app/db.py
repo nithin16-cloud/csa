@@ -69,7 +69,40 @@ def migrate_db(db):
                     features = 'Ergonomic Cushioning, Personal Reading Light, High-Speed USB Port'
                 WHERE cabin_class = 'Economy' AND (features IS NULL OR features = '')
             """)
-            db.commit()
+
+        # Migration: Ensure bookings cancellation columns exist
+        b_cols = [row[1] for row in cursor.execute("PRAGMA table_info(bookings)").fetchall()]
+        if b_cols:
+            if "cancellation_fee" not in b_cols:
+                cursor.execute("ALTER TABLE bookings ADD COLUMN cancellation_fee REAL DEFAULT 0.0")
+            if "refund_amount" not in b_cols:
+                cursor.execute("ALTER TABLE bookings ADD COLUMN refund_amount REAL DEFAULT 0.0")
+            if "cancelled_at" not in b_cols:
+                cursor.execute("ALTER TABLE bookings ADD COLUMN cancelled_at TIMESTAMP DEFAULT NULL")
+            if "cancellation_details" not in b_cols:
+                cursor.execute("ALTER TABLE bookings ADD COLUMN cancellation_details TEXT DEFAULT ''")
+
+        # Clean any historical booking_seats orphaned from cancelled bookings
+        cursor.execute("DELETE FROM booking_seats WHERE booking_id IN (SELECT id FROM bookings WHERE payment_status = 'Cancelled')")
+
+        # Migration: Ensure payments table exists
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                booking_id INTEGER NOT NULL,
+                transaction_id VARCHAR(50) UNIQUE NOT NULL,
+                payment_method VARCHAR(30) NOT NULL,
+                amount REAL NOT NULL,
+                currency VARCHAR(5) NOT NULL DEFAULT 'INR',
+                status VARCHAR(20) NOT NULL DEFAULT 'Success',
+                payment_details TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_booking ON payments(booking_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_txn ON payments(transaction_id)")
+        db.commit()
     except Exception:
         pass
 

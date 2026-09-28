@@ -2766,3 +2766,467 @@ select.form-control {
     }
 }
 
+/* Payment Gateway Modal & Simulator */
+.payment-modal-dialog {
+    max-width: 680px;
+    width: 100%;
+    background: #FFFFFF;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+    border: 1px solid var(--border-card);
+    animation: modalScaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+
+@keyframes modalScaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.payment-modal-header {
+    background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%);
+    color: #FFFFFF;
+    padding: 1.35rem 1.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-modal-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.payment-modal-fare {
+    text-align: right;
+}
+
+.payment-modal-fare .fare-lbl {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+}
+
+.payment-modal-fare .fare-val {
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.payment-tabs-bar {
+    display: flex;
+    border-bottom: 1.5px solid var(--border-card);
+    background: #F8FAFC;
+}
+
+.payment-tab-btn {
+    flex: 1;
+    padding: 0.95rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: var(--text-subtle);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.payment-tab-btn:hover {
+    color: var(--primary);
+    background: rgba(30, 64, 175, 0.04);
+}
+
+.payment-tab-btn.active {
+    color: var(--primary);
+    background: #FFFFFF;
+    border-bottom-color: var(--primary);
+}
+
+.payment-tab-body {
+    padding: 1.85rem;
+    min-height: 290px;
+    position: relative;
+}
+
+/* UPI Styles */
+.upi-box {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.75rem;
+    align-items: center;
+}
+
+@media (max-width: 600px) {
+    .upi-box {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+.upi-qr-card {
+    background: #FFFFFF;
+    border: 1.5px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.qr-placeholder {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-code-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.qr-timer-pill {
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #D97706;
+    background: #FEF3C7;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.vpa-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.vpa-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-subtle);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--primary);
+    transition: all 0.15s ease;
+}
+
+.vpa-chip:hover {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+/* Card Mockup Styles */
+.card-simulator-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    .card-simulator-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.credit-card-mockup {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 1.35rem;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    min-height: 175px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-chip-gold {
+    width: 34px;
+    height: 26px;
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    border-radius: 4px;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.card-brand-logo {
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: 0.05em;
+    color: #FFFFFF;
+}
+
+.card-display-num {
+    font-family: monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+
+.card-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.card-holder-name {
+    font-weight: 700;
+    color: #F8FAFC;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Net Banking Grid */
+.banks-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (max-width: 600px) {
+    .banks-selection-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.bank-choice-card {
+    background: #FFFFFF;
+    border: 1.5px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.bank-choice-card:hover {
+    border-color: var(--primary);
+    background: #F0F6FF;
+}
+
+.bank-choice-card.selected {
+    border-color: var(--primary);
+    background: #EFF6FF;
+    color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.bank-choice-card i {
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+/* Payment Processing Overlay */
+.payment-processing-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 10;
+    padding: 2rem;
+}
+
+.processing-shield {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    border: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1.8rem;
+    margin-bottom: 1.25rem;
+    animation: pulseRing 1.5s infinite;
+}
+
+@keyframes pulseRing {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.4); }
+    70% { transform: scale(1); box-shadow: 0 0 0 16px rgba(30, 64, 175, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 64, 175, 0); }
+}
+
+/* Enhanced Boarding Pass Layout */
+.bp-fields-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (max-width: 640px) {
+    .bp-fields-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.bp-stub-qr {
+    width: 80px;
+    height: 80px;
+    margin: 0.75rem auto 0;
+    background: #FFFFFF;
+    border: 1px solid var(--border-card);
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.bp-security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-emerald);
+    background: #ECFDF5;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+}
+
+/* Self-Service Trip Management Portal */
+.manage-portal-grid {
+    display: grid;
+    gap: 2rem;
+    max-width: 880px;
+    margin: 0 auto;
+}
+
+.manage-status-banner {
+    padding: 1.25rem 1.75rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.manage-status-banner.status-confirmed {
+    background: #ECFDF5;
+    border: 1.5px solid #6EE7B7;
+    color: #065F46;
+}
+
+.manage-status-banner.status-cancelled {
+    background: #FEF2F2;
+    border: 1.5px solid #FCA5A5;
+    color: #991B1B;
+}
+
+.manage-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.cancellation-refund-box {
+    background: var(--bg-surface-subtle);
+    border: 1.5px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin: 1.25rem 0;
+}
+
+.refund-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.92rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+.refund-line.total {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--accent-emerald);
+    border-top: 1px dashed var(--border-card);
+    padding-top: 0.6rem;
+    margin-top: 0.6rem;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    .site-header, .site-footer, .search-page-header, .booking-page-header,
+    .bp-actions, .manage-actions-bar, .modal-backdrop, .btn, .back-link,
+    .cabin-section, .seat-hold-banner, .toast-container, .summary-section {
+        display: none !important;
+    }
+
+    .modal-dialog, .boarding-pass-card, #printable-boarding-pass {
+        box-shadow: none !important;
+        border: 2px solid #000000 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-inside: avoid;
+    }
+
+    .bp-header {
+        background: #1E40AF !important;
+        color: #FFFFFF !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .barcode-lines {
+        background: #000000 !important;
+    }
+}
+
+

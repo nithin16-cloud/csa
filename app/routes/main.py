@@ -90,13 +90,20 @@ def manage():
     booking = None
     seats = []
     error = None
+    pnr_param = request.args.get("pnr", "").strip().upper()
+
+    pnr = ""
+    email = ""
 
     if request.method == "POST":
         pnr = request.form.get("pnr", "").strip().upper()
         email = request.form.get("email", "").strip().lower()
+    elif pnr_param:
+        pnr = pnr_param
 
+    if pnr:
         db = get_db()
-        booking = db.execute("""
+        query = """
             SELECT b.*, f.flight_number, f.departure_time, f.arrival_time, f.aircraft_model,
                    orig.city AS origin_city, orig.code AS origin_code,
                    dest.city AS dest_city, dest.code AS dest_code
@@ -104,9 +111,14 @@ def manage():
             JOIN flights f ON b.flight_id = f.id
             JOIN airports orig ON f.origin_code = orig.code
             JOIN airports dest ON f.destination_code = dest.code
-            WHERE UPPER(b.booking_reference) = ? AND LOWER(b.passenger_email) = ?
-        """, (pnr, email)).fetchone()
+            WHERE UPPER(b.booking_reference) = ?
+        """
+        params = [pnr]
+        if email:
+            query += " AND LOWER(b.passenger_email) = ?"
+            params.append(email)
 
+        booking = db.execute(query, params).fetchone()
         if booking:
             seats = db.execute("""
                 SELECT bs.*, s.cabin_class, s.seat_type
@@ -114,7 +126,9 @@ def manage():
                 JOIN seats s ON bs.seat_id = s.id
                 WHERE bs.booking_id = ?
             """, (booking["id"],)).fetchall()
-        else:
+        elif request.method == "POST":
             error = "No booking found with this Reference Code and Email combination."
+        elif pnr_param:
+            error = f"No booking found matching reservation reference {pnr_param}."
 
-    return render_template("manage.html", booking=booking, seats=seats, error=error)
+    return render_template("manage.html", booking=booking, seats=seats, error=error, initial_pnr=pnr)

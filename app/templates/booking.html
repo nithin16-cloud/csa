@@ -24,7 +24,7 @@
 
     <!-- Booking Content Grid -->
     <div class="section-container">
-        <!-- Day 2: Real-Time Seat Reservation Hold Banner -->
+        <!-- Real-Time Seat Reservation Hold Banner -->
         <div v-if="selectedSeats.length > 0 && holdSecondsLeft > 0" class="seat-hold-banner">
             <div>
                 <i class="fa-solid fa-lock"></i> 
@@ -325,7 +325,7 @@
                     <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 1.25rem;">
                         <i class="fa-solid fa-users"></i> Passenger & Contact Details
                     </h3>
-                    <form @submit.prevent="submitBooking" class="booking-form">
+                    <form @submit.prevent="proceedToPayment" class="booking-form">
                         <!-- Primary Contact Section -->
                         <div style="background: var(--bg-surface-subtle); padding: 1.15rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; border: 1px solid var(--border-subtle);">
                             <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem;">
@@ -454,7 +454,7 @@
                             <span>[[ conflictError ]]</span>
                         </div>
 
-                        <!-- Submit Button -->
+                        <!-- Submit to Payment Button -->
                         <button 
                             type="submit" 
                             id="btn-submit-booking" 
@@ -462,8 +462,8 @@
                             :disabled="selectedSeats.length === 0 || isSubmitting"
                         >
                             <i v-if="isSubmitting" class="fa-solid fa-circle-notch fa-spin"></i>
-                            <i v-else class="fa-solid fa-lock"></i>
-                            [[ isSubmitting ? 'Confirming Reservation...' : 'Complete Booking' ]]
+                            <i v-else class="fa-solid fa-credit-card"></i>
+                            [[ isSubmitting ? 'Processing...' : 'Proceed to Express Payment (₹' + formatINR(itemizedFare.total) + ')' ]]
                         </button>
 
                         <p class="concurrency-note">
@@ -471,6 +471,261 @@
                         </p>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indian Payment Gateway Simulator Modal -->
+    <div v-if="showPaymentModal" class="modal-backdrop">
+        <div class="payment-modal-dialog">
+            <!-- Processing Overlay with Security Shield -->
+            <div v-if="isProcessingPayment" class="payment-processing-overlay">
+                <div class="processing-shield">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--accent-navy); margin-bottom: 0.5rem;">
+                    Connecting to NPCI Payment Gateway...
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 320px; line-height: 1.4;">
+                    Authorizing payment with your bank. Please do not close or reload this window.
+                </p>
+                <div style="margin-top: 1.25rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.82rem; color: var(--text-subtle);">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> 256-Bit SSL Encrypted Banking Session
+                </div>
+            </div>
+
+            <!-- Payment Modal Header -->
+            <div class="payment-modal-header">
+                <div>
+                    <div class="payment-modal-title">
+                        <i class="fa-solid fa-shield-halved"></i> Express Indian Payment Gateway
+                    </div>
+                    <div style="font-size: 0.78rem; opacity: 0.85; margin-top: 0.2rem;">
+                        Flight {{ flight.flight_number }} &bull; [[ selectedSeats.length ]] Passenger[[ selectedSeats.length > 1 ? 's' : '' ]]
+                    </div>
+                </div>
+                <div class="payment-modal-fare">
+                    <div class="fare-lbl">Total Payable</div>
+                    <div class="fare-val">₹[[ formatINR(itemizedFare.total) ]]</div>
+                </div>
+            </div>
+
+            <!-- Payment Method Tabs -->
+            <div class="payment-tabs-bar">
+                <button 
+                    type="button" 
+                    :class="['payment-tab-btn', { active: paymentTab === 'upi' }]"
+                    @click="paymentTab = 'upi'"
+                >
+                    <i class="fa-solid fa-qrcode"></i> UPI / QR Code
+                </button>
+                <button 
+                    type="button" 
+                    :class="['payment-tab-btn', { active: paymentTab === 'card' }]"
+                    @click="paymentTab = 'card'"
+                >
+                    <i class="fa-solid fa-credit-card"></i> Cards (Visa/MC/RuPay)
+                </button>
+                <button 
+                    type="button" 
+                    :class="['payment-tab-btn', { active: paymentTab === 'netbanking' }]"
+                    @click="paymentTab = 'netbanking'"
+                >
+                    <i class="fa-solid fa-building-columns"></i> Net Banking
+                </button>
+            </div>
+
+            <!-- Payment Tab Body -->
+            <div class="payment-tab-body">
+                <!-- Payment Error Display -->
+                <div v-if="paymentError" class="alert-box alert-danger" style="margin-bottom: 1.25rem; font-size: 0.85rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>[[ paymentError ]]</span>
+                </div>
+
+                <!-- UPI Tab -->
+                <div v-if="paymentTab === 'upi'" class="upi-box">
+                    <div class="upi-qr-card">
+                        <div class="qr-placeholder">
+                            <svg class="qr-code-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="100" height="100" fill="white"/>
+                                <rect x="8" y="8" width="28" height="28" fill="#0F172A" rx="3"/>
+                                <rect x="12" y="12" width="20" height="20" fill="white" rx="1"/>
+                                <rect x="16" y="16" width="12" height="12" fill="#0F172A" rx="1"/>
+                                
+                                <rect x="64" y="8" width="28" height="28" fill="#0F172A" rx="3"/>
+                                <rect x="68" y="12" width="20" height="20" fill="white" rx="1"/>
+                                <rect x="72" y="16" width="12" height="12" fill="#0F172A" rx="1"/>
+                                
+                                <rect x="8" y="64" width="28" height="28" fill="#0F172A" rx="3"/>
+                                <rect x="12" y="68" width="20" height="20" fill="white" rx="1"/>
+                                <rect x="16" y="72" width="12" height="12" fill="#0F172A" rx="1"/>
+                                
+                                <rect x="44" y="10" width="6" height="6" fill="#0F172A"/>
+                                <rect x="52" y="18" width="6" height="6" fill="#0F172A"/>
+                                <rect x="44" y="26" width="6" height="6" fill="#0F172A"/>
+                                <rect x="44" y="44" width="12" height="12" fill="#1E40AF" rx="2"/>
+                                <rect x="20" y="44" width="6" height="6" fill="#0F172A"/>
+                                <rect x="30" y="44" width="6" height="6" fill="#0F172A"/>
+                                <rect x="64" y="44" width="6" height="6" fill="#0F172A"/>
+                                <rect x="74" y="44" width="6" height="6" fill="#0F172A"/>
+                                <rect x="44" y="64" width="6" height="6" fill="#0F172A"/>
+                                <rect x="52" y="72" width="6" height="6" fill="#0F172A"/>
+                                <rect x="44" y="80" width="6" height="6" fill="#0F172A"/>
+                                <rect x="64" y="64" width="10" height="10" fill="#0F172A"/>
+                                <rect x="78" y="64" width="8" height="8" fill="#0F172A"/>
+                                <rect x="64" y="78" width="8" height="8" fill="#0F172A"/>
+                                <rect x="76" y="76" width="10" height="10" fill="#0F172A"/>
+                            </svg>
+                        </div>
+                        <div class="qr-timer-pill">
+                            <i class="fa-solid fa-clock"></i> Hold: [[ formattedHoldTime ]]
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-subtle); margin-top: 0.4rem; font-weight: 600;">
+                            Scan via GPay, PhonePe, Paytm or BHIM
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem; display: block;">
+                            Enter Virtual Payment Address (VPA / UPI ID)
+                        </label>
+                        <input 
+                            type="text" 
+                            v-model="upiVpa" 
+                            class="form-control" 
+                            placeholder="e.g. rohan.sharma@okhdfcbank"
+                            style="font-weight: 600;"
+                        >
+                        <div style="margin-top: 0.65rem; font-size: 0.75rem; color: var(--text-subtle); font-weight: 600;">
+                            Quick-test verified UPI handles:
+                        </div>
+                        <div class="vpa-chips">
+                            <span class="vpa-chip" @click="upiVpa = 'rohan@okhdfcbank'">rohan@okhdfcbank</span>
+                            <span class="vpa-chip" @click="upiVpa = 'priya@okaxis'">priya@okaxis</span>
+                            <span class="vpa-chip" @click="upiVpa = 'traveler@paytm'">traveler@paytm</span>
+                            <span class="vpa-chip" @click="upiVpa = 'passenger@sbi'">passenger@sbi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credit/Debit Card Tab -->
+                <div v-else-if="paymentTab === 'card'" class="card-simulator-grid">
+                    <div class="credit-card-mockup">
+                        <div class="card-top-row">
+                            <div class="card-chip-gold"></div>
+                            <div class="card-brand-logo">
+                                <i :class="cardBrandIcon"></i> [[ cardBrandName ]]
+                            </div>
+                        </div>
+                        <div class="card-display-num">
+                            [[ formattedCardNumber || '•••• •••• •••• ••••' ]]
+                        </div>
+                        <div class="card-bottom-row">
+                            <div>
+                                <div style="font-size: 0.6rem; opacity: 0.7;">CARD HOLDER</div>
+                                <div class="card-holder-name">[[ cardHolder || (passengers[0]?.name || 'PASSENGER NAME') ]]</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.6rem; opacity: 0.7;">EXPIRES</div>
+                                <div style="font-weight: 700;">[[ cardExpiry || 'MM/YY' ]]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem; font-weight: 700; margin-bottom: 0.2rem;">Card Number</label>
+                            <input 
+                                type="text" 
+                                v-model="cardNumber" 
+                                maxlength="19" 
+                                class="form-control form-control-sm" 
+                                placeholder="4532 0123 4567 8910"
+                                @input="onCardNumberInput"
+                                style="font-family: monospace; font-weight: 700;"
+                            >
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem; font-weight: 700; margin-bottom: 0.2rem;">Cardholder Name</label>
+                            <input 
+                                type="text" 
+                                v-model="cardHolder" 
+                                class="form-control form-control-sm" 
+                                placeholder="Full Name as on card"
+                            >
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.75rem; font-weight: 700; margin-bottom: 0.2rem;">Expiry (MM/YY)</label>
+                                <input 
+                                    type="text" 
+                                    v-model="cardExpiry" 
+                                    maxlength="5" 
+                                    class="form-control form-control-sm" 
+                                    placeholder="MM/YY"
+                                    @input="onExpiryInput"
+                                    style="font-family: monospace;"
+                                >
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.75rem; font-weight: 700; margin-bottom: 0.2rem;">CVV</label>
+                                <input 
+                                    type="password" 
+                                    v-model="cardCvv" 
+                                    maxlength="4" 
+                                    class="form-control form-control-sm" 
+                                    placeholder="•••"
+                                    style="font-family: monospace;"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Net Banking Tab -->
+                <div v-else-if="paymentTab === 'netbanking'">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; display: block;">
+                        Select Participating Indian Bank
+                    </label>
+                    <div class="banks-selection-grid">
+                        <div 
+                            v-for="b in indianBanks" 
+                            :key="b.id"
+                            :class="['bank-choice-card', { selected: selectedBank === b.id }]"
+                            @click="selectedBank = b.id"
+                        >
+                            <i :class="b.icon"></i>
+                            <span>[[ b.name ]]</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-subtle); display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i>
+                        Instant simulated authorization via NPCI direct banking gateway.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div style="background: #F8FAFC; border-top: 1px solid var(--border-subtle); padding: 1.15rem 1.85rem; display: flex; justify-content: space-between; align-items: center;">
+                <button 
+                    type="button" 
+                    class="btn btn-outline" 
+                    @click="showPaymentModal = false"
+                    :disabled="isProcessingPayment"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="button" 
+                    class="btn btn-primary btn-lg" 
+                    @click="authorizeAndPay"
+                    :disabled="isProcessingPayment"
+                >
+                    <i v-if="isProcessingPayment" class="fa-solid fa-circle-notch fa-spin"></i>
+                    <i v-else class="fa-solid fa-lock"></i>
+                    [[ isProcessingPayment ? 'Authorizing Payment...' : 'Authorize & Pay ₹' + formatINR(itemizedFare.total) ]]
+                </button>
             </div>
         </div>
     </div>
@@ -543,14 +798,36 @@
                             </div>
                         </div>
 
+                        <!-- Terminal, Gate, Boarding Time, Group -->
+                        <div class="bp-fields-grid-4" style="background: var(--bg-surface-subtle); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
+                            <div class="bp-field">
+                                <label>TERMINAL</label>
+                                <div class="val" style="font-weight: 800; color: var(--primary);">[[ confirmedBooking.terminal || 'T3' ]]</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>BOARDING GATE</label>
+                                <div class="val" style="font-weight: 800; color: var(--primary);">[[ confirmedBooking.gate || '14B' ]]</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>BOARDING TIME</label>
+                                <div class="val" style="font-weight: 800;">[[ confirmedBooking.boarding_time || '45m prior' ]]</div>
+                            </div>
+                            <div class="bp-field">
+                                <label>BOARDING GROUP</label>
+                                <div class="val" style="font-weight: 800;">[[ currentBpPassenger.boarding_group || 'Group 1' ]]</div>
+                            </div>
+                        </div>
+
                         <div class="bp-row">
                             <div class="bp-field">
                                 <label>DEPARTURE TIME</label>
                                 <div class="val">{{ flight.departure_time }}</div>
                             </div>
                             <div class="bp-field">
-                                <label>SEAT FARE PAID</label>
-                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">₹[[ formatINR(currentBpPassenger.price_inr) ]]</div>
+                                <label>PAYMENT RECEIPT</label>
+                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">
+                                    ₹[[ formatINR(currentBpPassenger.price_inr) ]] Paid
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -567,6 +844,9 @@
                     <button type="button" class="btn btn-secondary" @click="printPass">
                         <i class="fa-solid fa-print"></i> Print Boarding Pass
                     </button>
+                    <a :href="'/manage?pnr=' + confirmedBooking.pnr" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary);">
+                        <i class="fa-solid fa-sliders"></i> Manage Trip & Portal
+                    </a>
                     <a href="{{ url_for('main.index') }}" class="btn btn-primary">
                         Return to Homepage
                     </a>
@@ -636,12 +916,12 @@
                 return 'status-available';
             };
 
-            // Day 2: Session lock token and hold timer
+            // Session lock token and hold timer
             const lockToken = ref("token-" + Math.random().toString(36).substring(2, 12));
             const holdSecondsLeft = ref(0);
             let timerInterval = null;
 
-            // Day 3: Multi-Passenger and primary contact details
+            // Multi-passenger and primary contact details
             const passengerEmail = ref(loggedInUser ? (loggedInUser.email || "") : "");
             const passengerPhone = ref(loggedInUser ? (loggedInUser.phone || "") : "");
             const passengers = ref([]);
@@ -856,7 +1136,62 @@
                 return paxList[activeBpIndex.value] || paxList[0];
             });
 
-            const submitBooking = async () => {
+            // Payment Gateway Simulator state
+            const showPaymentModal = ref(false);
+            const isProcessingPayment = ref(false);
+            const paymentTab = ref('upi');
+            const paymentError = ref('');
+            
+            const upiVpa = ref('rohan.sharma@okhdfcbank');
+            const cardNumber = ref('4532 8821 9012 3456');
+            const cardHolder = ref('');
+            const cardExpiry = ref('12/28');
+            const cardCvv = ref('345');
+            const selectedBank = ref('HDFC');
+
+            const indianBanks = [
+                { id: 'HDFC', name: 'HDFC Bank', icon: 'fa-solid fa-building-columns' },
+                { id: 'SBI', name: 'State Bank of India', icon: 'fa-solid fa-landmark' },
+                { id: 'ICICI', name: 'ICICI Bank', icon: 'fa-solid fa-building' },
+                { id: 'AXIS', name: 'Axis Bank', icon: 'fa-solid fa-building-columns' },
+                { id: 'KOTAK', name: 'Kotak Mahindra', icon: 'fa-solid fa-landmark' },
+                { id: 'PNB', name: 'Punjab National Bank', icon: 'fa-solid fa-building' }
+            ];
+
+            const cardBrandName = computed(() => {
+                const cleaned = cardNumber.value.replace(/\s+/g, '');
+                if (cleaned.startsWith('4')) return 'Visa';
+                if (/^5[1-5]/.test(cleaned) || /^2[2-7]/.test(cleaned)) return 'Mastercard';
+                if (/^(60|65|81|82)/.test(cleaned)) return 'RuPay';
+                return 'Card';
+            });
+
+            const cardBrandIcon = computed(() => {
+                const brand = cardBrandName.value;
+                if (brand === 'Visa') return 'fa-brands fa-cc-visa';
+                if (brand === 'Mastercard') return 'fa-brands fa-cc-mastercard';
+                return 'fa-regular fa-credit-card';
+            });
+
+            const formattedCardNumber = computed(() => {
+                const val = cardNumber.value.replace(/\D/g, '').slice(0, 16);
+                return val.match(/.{1,4}/g)?.join(' ') || val;
+            });
+
+            const onCardNumberInput = (e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                cardNumber.value = val.match(/.{1,4}/g)?.join(' ') || val;
+            };
+
+            const onExpiryInput = (e) => {
+                let val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                if (val.length >= 3) {
+                    val = val.slice(0, 2) + '/' + val.slice(2);
+                }
+                cardExpiry.value = val;
+            };
+
+            const proceedToPayment = () => {
                 if (selectedSeats.value.length === 0) return;
                 conflictError.value = "";
 
@@ -868,9 +1203,51 @@
                     }
                 }
 
-                isSubmitting.value = true;
+                if (!cardHolder.value && passengers.value[0]?.name) {
+                    cardHolder.value = passengers.value[0].name.trim().toUpperCase();
+                }
+
+                paymentError.value = "";
+                showPaymentModal.value = true;
+            };
+
+            const authorizeAndPay = async () => {
+                paymentError.value = "";
+                isProcessingPayment.value = true;
 
                 try {
+                    // 1. Simulate gateway authorization
+                    const method = paymentTab.value === 'upi' ? 'UPI' : (paymentTab.value === 'card' ? 'CreditCard' : 'NetBanking');
+                    const simPayload = {
+                        method: method,
+                        amount: itemizedFare.value.total,
+                        vpa: upiVpa.value,
+                        card_number: cardNumber.value,
+                        bank: selectedBank.value
+                    };
+
+                    const simResp = await fetch("/api/payments/simulate", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(simPayload)
+                    });
+                    const simData = await simResp.json();
+
+                    if (!simResp.ok || !simData.success) {
+                        paymentError.value = simData.error || "Payment authorization declined by issuing bank.";
+                        isProcessingPayment.value = false;
+                        return;
+                    }
+
+                    // 2. Submit booking to /api/bookings with authorized transaction info
+                    const paymentDetails = {
+                        method: method,
+                        transaction_id: simData.transaction_id,
+                        vpa: method === 'UPI' ? upiVpa.value : undefined,
+                        last4: method === 'CreditCard' ? cardNumber.value.slice(-4) : undefined,
+                        bank: method === 'NetBanking' ? selectedBank.value : undefined
+                    };
+
                     const resp = await fetch("/api/bookings", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -881,6 +1258,8 @@
                             passenger_phone: passengerPhone.value,
                             seat_ids: Array.from(selectedSeatIds.value),
                             lock_token: lockToken.value,
+                            payment_method: method,
+                            payment_details: paymentDetails,
                             passengers: passengers.value.map(p => ({
                                 seat_id: p.seat_id,
                                 name: p.name.trim(),
@@ -894,20 +1273,22 @@
 
                     if (resp.status === 201) {
                         if (timerInterval) clearInterval(timerInterval);
+                        showPaymentModal.value = false;
                         confirmedBooking.value = data.booking;
                         activeBpIndex.value = 0;
                     } else if (resp.status === 409) {
+                        showPaymentModal.value = false;
                         conflictError.value = data.error || "Seat conflict detected. Please select another seat.";
                         selectedSeatIds.value.clear();
                         syncPassengers();
                         await loadSeats();
                     } else {
-                        conflictError.value = data.error || "Failed to complete reservation. Please try again.";
+                        paymentError.value = data.error || "Failed to complete reservation. Please try again.";
                     }
                 } catch (err) {
-                    conflictError.value = "Network error. Please try again.";
+                    paymentError.value = "Payment network gateway error. Please try again.";
                 } finally {
-                    isSubmitting.value = false;
+                    isProcessingPayment.value = false;
                 }
             };
 
@@ -949,8 +1330,26 @@
                 toggleSeat,
                 selectedSeats,
                 itemizedFare,
-                submitBooking,
                 printPass,
+                // Payment simulator properties & handlers
+                showPaymentModal,
+                isProcessingPayment,
+                paymentTab,
+                paymentError,
+                upiVpa,
+                cardNumber,
+                cardHolder,
+                cardExpiry,
+                cardCvv,
+                selectedBank,
+                indianBanks,
+                cardBrandName,
+                cardBrandIcon,
+                formattedCardNumber,
+                onCardNumberInput,
+                onExpiryInput,
+                proceedToPayment,
+                authorizeAndPay,
                 // Cabin inspector & filter properties
                 seatFilter,
                 inspectedSeat,

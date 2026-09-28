@@ -66,7 +66,11 @@ CREATE TABLE bookings (
     passenger_email VARCHAR(100) NOT NULL,
     passenger_phone VARCHAR(30) NOT NULL,
     total_amount REAL NOT NULL,                         -- Total fare in Indian Rupees (₹)
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'Confirmed',
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'Confirmed', -- 'Confirmed', 'Cancelled'
+    cancellation_fee REAL DEFAULT 0.0,
+    refund_amount REAL DEFAULT 0.0,
+    cancelled_at TIMESTAMP DEFAULT NULL,
+    cancellation_details TEXT DEFAULT '',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL,
     FOREIGN KEY (flight_id) REFERENCES flights (id)
@@ -88,8 +92,23 @@ CREATE TABLE booking_seats (
     UNIQUE (flight_id, seat_id)                         -- Prevent same seat mapped to multiple bookings
 );
 
+CREATE TABLE payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    booking_id INTEGER NOT NULL,
+    transaction_id VARCHAR(50) UNIQUE NOT NULL,
+    payment_method VARCHAR(30) NOT NULL,                -- 'UPI', 'CreditCard', 'DebitCard', 'NetBanking'
+    amount REAL NOT NULL,
+    currency VARCHAR(5) NOT NULL DEFAULT 'INR',
+    status VARCHAR(20) NOT NULL DEFAULT 'Success',      -- 'Success', 'Refunded', 'Failed'
+    payment_details TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE
+);
+
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_flights_search ON flights(origin_code, destination_code, departure_time);
 CREATE INDEX idx_seats_flight ON seats(flight_id, is_booked, locked_until);
 CREATE INDEX idx_bookings_pnr ON bookings(booking_reference);
 CREATE INDEX idx_bookings_user ON bookings(user_id);
+CREATE INDEX idx_payments_booking ON payments(booking_id);
+CREATE INDEX idx_payments_txn ON payments(transaction_id);
