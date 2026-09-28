@@ -245,7 +245,7 @@
             </div>
 
             <div class="flights-grid">
-                <div v-for="flight in filteredFlights" :key="flight.id" class="flight-card" :id="'flight-card-' + flight.id" @click="openSeatModal(flight)" style="cursor: pointer;">
+                <div v-for="flight in filteredFlights" :key="flight.id" class="flight-card" :id="'flight-card-' + flight.id" @click="goToBooking(flight.id)" style="cursor: pointer;">
                     <div class="flight-card-header">
                         <div class="airline-meta">
                             <i class="fa-solid fa-paper-plane flight-logo"></i>
@@ -293,9 +293,9 @@
                                 <span class="price-from">Fares from</span>
                                 <span class="price-value">₹[[ formatINR(flight.base_price) ]]</span>
                             </div>
-                            <a :href="'/booking/' + flight.id" class="btn btn-primary btn-sm" :id="'book-btn-' + flight.id" @click.stop="openSeatModal(flight)">
+                            <button type="button" class="btn btn-primary btn-sm" :id="'book-btn-' + flight.id" @click.stop="goToBooking(flight.id)">
                                 Select Seat <i class="fa-solid fa-chevron-right"></i>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -740,10 +740,14 @@
                     window.location.href = `/flights?origin=${orig}&destination=${dest}&date=${dt}`;
                 };
 
-                const openSeatModal = (flight, e) => {
-                    if (e && e.preventDefault) e.preventDefault();
+                const openSeatModal = (flight) => {
                     if (!flight || !flight.id) return;
                     window.location.href = `/booking/${flight.id}`;
+                };
+
+                const goToBooking = (flightId) => {
+                    if (!flightId) return;
+                    window.location.href = `/booking/${flightId}`;
                 };
 
                 const isSeatSelected = (seatNum) => {
@@ -792,6 +796,7 @@
                     resetFilters,
                     handleSearch,
                     openSeatModal,
+                    goToBooking,
                     isSeatSelected,
                     isOccupied,
                     toggleSeat
