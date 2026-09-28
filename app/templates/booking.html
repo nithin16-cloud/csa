@@ -861,7 +861,7 @@
 <script>
     const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
-    const loggedInUser = {{ (user_json or session.get('user')) | tojson | safe if (user_json or session.get('user')) else 'null' }};
+    const loggedInUser = {{ user_json | tojson | safe if user_json else 'null' }};
 
     createApp({
         delimiters: ['[[', ']]'],
