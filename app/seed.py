@@ -47,7 +47,12 @@ def generate_seats_for_flight(cursor, flight_id):
     for r in range(1, 3):
         for col in ["A", "B", "E", "F"]:
             stype = "Window" if col in ("A", "F") else "Aisle"
-            seat_records.append((flight_id, f"{r}{col}", "First", stype, 2.2, 0))
+            seat_records.append((
+                flight_id, f"{r}{col}", "First", stype, 2.2,
+                '78"', 1, 1, 180,
+                'Lie-flat Bed, Private Suite, Chef Dining, 24" 4K IFE Screen, Universal AC & 65W USB-C',
+                0
+            ))
 
     # Business Class: Rows 3-6 (6 seats per row: A-F) (1.6x multiplier)
     for r in range(3, 7):
@@ -58,7 +63,12 @@ def generate_seats_for_flight(cursor, flight_id):
                 stype = "Aisle"
             else:
                 stype = "Middle"
-            seat_records.append((flight_id, f"{r}{col}", "Business", stype, 1.6, 0))
+            seat_records.append((
+                flight_id, f"{r}{col}", "Business", stype, 1.6,
+                '42"', 1, 1, 150,
+                'Plush Leather Recline, 15.6" Touchscreen, Gourmet Hot Meals, Universal AC & USB-C Power',
+                0
+            ))
 
     # Economy Class: Rows 7-16 (1.0x - 1.15x multiplier)
     for r in range(7, 17):
@@ -66,20 +76,41 @@ def generate_seats_for_flight(cursor, flight_id):
             if r == 10:
                 stype = "Exit Row"
                 mult = 1.15
+                pitch = '34"'
+                extra_leg = 1
+                recline = 20
+                features = "Extra Legroom, Priority Exit, High-Speed USB Port, Complimentary Refreshment"
             elif col in ("A", "F"):
                 stype = "Window"
                 mult = 1.05
+                pitch = '31"'
+                extra_leg = 0
+                recline = 15
+                features = "Scenic Window View, Ergonomic Headrest, High-Speed USB Port"
             elif col in ("C", "D"):
                 stype = "Aisle"
                 mult = 1.05
+                pitch = '31"'
+                extra_leg = 0
+                recline = 15
+                features = "Direct Aisle Access, Rapid Movement, High-Speed USB Port"
             else:
                 stype = "Middle"
                 mult = 1.0
-            seat_records.append((flight_id, f"{r}{col}", "Economy", stype, mult, 0))
+                pitch = '31"'
+                extra_leg = 0
+                recline = 15
+                features = "Ergonomic Cushioning, Personal Reading Light, High-Speed USB Port"
+
+            seat_records.append((
+                flight_id, f"{r}{col}", "Economy", stype, mult,
+                pitch, 1, extra_leg, recline, features,
+                0
+            ))
 
     cursor.executemany("""
-        INSERT INTO seats (flight_id, seat_number, cabin_class, seat_type, price_multiplier, is_booked)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO seats (flight_id, seat_number, cabin_class, seat_type, price_multiplier, seat_pitch, has_power, has_extra_legroom, recline_deg, features, is_booked)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, seat_records)
 
 def seed_database():

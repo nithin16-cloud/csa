@@ -44,6 +44,11 @@ CREATE TABLE seats (
     cabin_class VARCHAR(20) NOT NULL DEFAULT 'Economy',  -- 'Economy', 'Business', 'First'
     seat_type VARCHAR(20) NOT NULL DEFAULT 'Standard',  -- 'Window', 'Aisle', 'Middle', 'Exit Row'
     price_multiplier REAL NOT NULL DEFAULT 1.0,
+    seat_pitch VARCHAR(10) DEFAULT '31"',               -- Legroom pitch (e.g. 78", 42", 34", 31")
+    has_power INTEGER NOT NULL DEFAULT 1,               -- 1 = Universal AC & USB-C, 0 = Standard USB
+    has_extra_legroom INTEGER NOT NULL DEFAULT 0,       -- 1 = Extra legroom (Exit / Premium), 0 = Standard
+    recline_deg INTEGER NOT NULL DEFAULT 15,            -- Recline angle in degrees (180 for lie-flat)
+    features TEXT DEFAULT '',                           -- Comma-separated amenity tags
     is_booked INTEGER NOT NULL DEFAULT 0,              -- 0 = available, 1 = booked
     locked_until TEXT DEFAULT NULL,                     -- ISO timestamp for 5-minute hold lock
     lock_token TEXT DEFAULT NULL,                       -- Session token holding this seat

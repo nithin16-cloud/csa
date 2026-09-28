@@ -40,8 +40,109 @@
             <div class="cabin-section">
                 <div class="cabin-card">
                     <div class="cabin-header">
-                        <h2><i class="fa-solid fa-plane"></i> Interactive Aircraft Cabin</h2>
-                        <p>Select your preferred seat. Click to select or deselect. Real-time availability refreshed from SQLite.</p>
+                        <div>
+                            <h2><i class="fa-solid fa-plane"></i> Interactive Aircraft Cabin</h2>
+                            <p>Real-time cabin seat map with live pitch, legroom, and power amenities. Click to select or inspect.</p>
+                        </div>
+                        
+                        <!-- Interactive Quick Filter Pills -->
+                        <div class="cabin-filters-toolbar">
+                            <span class="filter-label"><i class="fa-solid fa-sliders"></i> Filter:</span>
+                            <div class="filter-pills">
+                                <button type="button" :class="['filter-pill', { active: seatFilter === 'all' }]" @click="seatFilter = 'all'">
+                                    All Seats <span class="pill-badge">[[ totalSeatsCount ]]</span>
+                                </button>
+                                <button type="button" :class="['filter-pill', { active: seatFilter === 'window' }]" @click="seatFilter = 'window'">
+                                    <i class="fa-regular fa-sun"></i> Window <span class="pill-badge">[[ windowSeatsCount ]]</span>
+                                </button>
+                                <button type="button" :class="['filter-pill', { active: seatFilter === 'aisle' }]" @click="seatFilter = 'aisle'">
+                                    <i class="fa-solid fa-person-walking"></i> Aisle <span class="pill-badge">[[ aisleSeatsCount ]]</span>
+                                </button>
+                                <button type="button" :class="['filter-pill', { active: seatFilter === 'legroom' }]" @click="seatFilter = 'legroom'">
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Extra Legroom <span class="pill-badge">[[ extraLegroomCount ]]</span>
+                                </button>
+                                <button type="button" :class="['filter-pill', { active: seatFilter === 'premium' }]" @click="seatFilter = 'premium'">
+                                    <i class="fa-solid fa-crown"></i> First & Business <span class="pill-badge">[[ premiumSeatsCount ]]</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Interactive Seat Inspector Card -->
+                    <div class="seat-inspector-card" :class="{ 'has-seat': inspectedSeat }">
+                        <div v-if="inspectedSeat" class="inspector-active">
+                            <div class="inspector-top-row">
+                                <div class="inspector-badge-group">
+                                    <span class="seat-tag-large">Seat [[ inspectedSeat.seat_number ]]</span>
+                                    <span :class="['badge-class', 'badge-' + inspectedSeat.cabin_class.toLowerCase()]">
+                                        [[ inspectedSeat.cabin_class ]] Class
+                                    </span>
+                                    <span class="badge-type">[[ inspectedSeat.seat_type ]]</span>
+                                    <span v-if="inspectedSeat.has_extra_legroom" class="badge-legroom">
+                                        <i class="fa-solid fa-star"></i> Extra Legroom
+                                    </span>
+                                </div>
+                                <div class="inspector-price">
+                                    <span class="price-val">₹[[ formatINR(inspectedSeat.price_inr) ]]</span>
+                                    <span class="price-sub">all taxes included</span>
+                                </div>
+                            </div>
+
+                            <!-- Key Specs Grid -->
+                            <div class="inspector-specs-grid">
+                                <div class="spec-item">
+                                    <div class="spec-label"><i class="fa-solid fa-arrows-up-down"></i> Seat Pitch</div>
+                                    <div class="spec-val">[[ inspectedSeat.seat_pitch || '31"' ]]</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label"><i class="fa-solid fa-chair"></i> Recline</div>
+                                    <div class="spec-val">[[ inspectedSeat.recline_deg || 15 ]]°</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label"><i class="fa-solid fa-bolt"></i> In-Seat Power</div>
+                                    <div class="spec-val">[[ inspectedSeat.has_power ? 'AC & USB-C' : 'USB Port' ]]</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label"><i class="fa-solid fa-circle-check"></i> Status</div>
+                                    <div class="spec-val" :class="getSeatStatusClass(inspectedSeat)">
+                                        [[ getSeatStatusLabel(inspectedSeat) ]]
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Features Tag Chips -->
+                            <div class="inspector-features" v-if="inspectedSeat.features_list && inspectedSeat.features_list.length > 0">
+                                <span v-for="(feat, fIdx) in inspectedSeat.features_list" :key="fIdx" class="feature-chip">
+                                    <i class="fa-solid fa-check"></i> [[ feat ]]
+                                </span>
+                            </div>
+
+                            <!-- Quick Action Button -->
+                            <div class="inspector-actions">
+                                <button 
+                                    v-if="!inspectedSeat.is_booked && !inspectedSeat.is_held" 
+                                    type="button" 
+                                    :class="['btn', 'btn-sm', isSeatSelected(inspectedSeat.id) ? 'btn-danger-subtle' : 'btn-primary']"
+                                    @click="toggleSeat(inspectedSeat)"
+                                >
+                                    <i :class="isSeatSelected(inspectedSeat.id) ? 'fa-solid fa-xmark' : 'fa-solid fa-plus'"></i>
+                                    [[ isSeatSelected(inspectedSeat.id) ? 'Deselect Seat ' + inspectedSeat.seat_number : 'Select Seat ' + inspectedSeat.seat_number ]]
+                                </button>
+                                <span v-else-if="inspectedSeat.is_booked" class="seat-unavailable-note">
+                                    <i class="fa-solid fa-lock"></i> Seat is confirmed for another passenger.
+                                </span>
+                                <span v-else-if="inspectedSeat.is_held" class="seat-unavailable-note held">
+                                    <i class="fa-solid fa-hourglass-half"></i> Currently in checkout hold.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-else class="inspector-empty">
+                            <div class="inspector-empty-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                            <div class="inspector-empty-text">
+                                <strong>Interactive Seat Inspector:</strong> Hover or tap any seat to inspect exact legroom pitch, recline angle, in-seat power, and luxury amenities.
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Seat Legend -->
@@ -50,79 +151,168 @@
                         <div class="legend-item"><span class="legend-box seat-sample selected"></span> Selected</div>
                         <div class="legend-item"><span class="legend-box seat-sample booked"></span> Booked</div>
                         <div class="legend-item"><span class="legend-box seat-sample held"></span> In Checkout</div>
-                        <div class="legend-item"><span class="legend-box seat-sample first-class"></span> First Class</div>
-                        <div class="legend-item"><span class="legend-box seat-sample business"></span> Business</div>
+                        <div class="legend-item"><span class="legend-box seat-sample first-class"></span> First Class (Suite)</div>
+                        <div class="legend-item"><span class="legend-box seat-sample business"></span> Business (Plush)</div>
+                        <div class="legend-item"><span class="legend-box seat-sample exit-row"></span> Exit Row (XL)</div>
                     </div>
 
-                    <!-- Aircraft Fuselage Simulation -->
-                    <div class="aircraft-fuselage">
-                        <div class="cockpit-nose">
-                            <i class="fa-solid fa-plane"></i> COCKPIT NOSE
+                    <!-- Aerodynamic Aircraft Fuselage with Realistic Wings -->
+                    <div class="fuselage-outer-stage">
+                        <!-- Left Wing -->
+                        <div class="airplane-wing wing-left">
+                            <div class="wing-body"></div>
+                            <div class="wing-winglet"></div>
+                            <div class="engine-pod left-engine">
+                                <div class="engine-intake"></div>
+                            </div>
                         </div>
 
-                        <!-- Loading State -->
-                        <div v-if="loadingSeats" class="empty-hint" style="text-align: center; padding: 2.5rem 0;">
-                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.6rem; color: var(--primary);"></i>
-                            <p style="margin-top: 0.75rem; font-weight: 600;">Loading live aircraft cabin layout...</p>
-                        </div>
+                        <!-- Central Fuselage Body -->
+                        <div class="aircraft-fuselage">
+                            <!-- Cockpit Canopy & Model Badge -->
+                            <div class="cockpit-nose">
+                                <div class="cockpit-windows">
+                                    <span class="cockpit-glass glass-1"></span>
+                                    <span class="cockpit-glass glass-2"></span>
+                                    <span class="cockpit-glass glass-3"></span>
+                                    <span class="cockpit-glass glass-4"></span>
+                                </div>
+                                <div class="aircraft-badge">
+                                    <i class="fa-solid fa-plane"></i> {{ flight.aircraft_model }}
+                                </div>
+                            </div>
 
-                        <!-- Vue Reactive Seat Map -->
-                        <div v-else class="cabin-seats-wrapper">
-                            <div v-for="section in cabinSections" :key="section.name" class="cabin-class-block">
-                                <div class="cabin-class-title">[[ section.name ]]</div>
-                                
-                                <div class="cabin-rows">
-                                    <div v-for="(seatsInRow, rowNum) in section.rows" :key="rowNum" class="cabin-row">
-                                        <div class="row-number">[[ rowNum ]]</div>
-                                        
-                                        <!-- Left Side Seats (A, B, C) -->
-                                        <div class="seat-side left">
-                                            <button 
-                                                v-for="seat in getLeftSeats(seatsInRow)" 
-                                                :key="seat.id"
-                                                type="button"
-                                                :class="[
-                                                    'seat-btn', 
-                                                    'class-' + seat.cabin_class.toLowerCase(),
-                                                    seat.is_booked ? 'booked' : (seat.is_held ? 'held' : 'available'),
-                                                    { 'selected': isSeatSelected(seat.id) }
-                                                ]"
-                                                :disabled="seat.is_booked || seat.is_held"
-                                                :title="seat.seat_number + ' (' + seat.cabin_class + ') - ₹' + formatINR(seat.price_inr)"
-                                                @click="toggleSeat(seat)"
-                                            >
-                                                <i v-if="seat.is_booked" class="fa-solid fa-xmark"></i>
-                                                <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
-                                                <span v-else>[[ seat.seat_number.slice(-1) ]]</span>
-                                            </button>
-                                        </div>
+                            <!-- Forward Galley & Lavatory Station -->
+                            <div class="cabin-amenity-station">
+                                <div><i class="fa-solid fa-mug-hot"></i> Forward Galley</div>
+                                <div class="station-divider"></div>
+                                <div><i class="fa-solid fa-restroom"></i> Lavatories A & B</div>
+                            </div>
 
-                                        <!-- Aisle Walkway -->
-                                        <div class="aisle-walkway"></div>
+                            <!-- Loading State -->
+                            <div v-if="loadingSeats" class="empty-hint" style="text-align: center; padding: 2.5rem 0;">
+                                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.6rem; color: var(--primary);"></i>
+                                <p style="margin-top: 0.75rem; font-weight: 600;">Loading live aircraft cabin layout...</p>
+                            </div>
 
-                                        <!-- Right Side Seats (D, E, F) -->
-                                        <div class="seat-side right">
-                                            <button 
-                                                v-for="seat in getRightSeats(seatsInRow)" 
-                                                :key="seat.id"
-                                                type="button"
-                                                :class="[
-                                                    'seat-btn', 
-                                                    'class-' + seat.cabin_class.toLowerCase(),
-                                                    seat.is_booked ? 'booked' : (seat.is_held ? 'held' : 'available'),
-                                                    { 'selected': isSeatSelected(seat.id) }
-                                                ]"
-                                                :disabled="seat.is_booked || seat.is_held"
-                                                :title="seat.seat_number + ' (' + seat.cabin_class + ') - ₹' + formatINR(seat.price_inr)"
-                                                @click="toggleSeat(seat)"
-                                            >
-                                                <i v-if="seat.is_booked" class="fa-solid fa-xmark"></i>
-                                                <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
-                                                <span v-else>[[ seat.seat_number.slice(-1) ]]</span>
-                                            </button>
+                            <!-- Vue Reactive Seat Map -->
+                            <div v-else class="cabin-seats-wrapper">
+                                <div v-for="(section, sIdx) in cabinSections" :key="section.name" class="cabin-class-block">
+                                    <!-- Mid-Cabin Amenities Separator between First and Business -->
+                                    <div v-if="sIdx === 1" class="cabin-amenity-station">
+                                        <div><i class="fa-solid fa-champagne-glasses"></i> Premium Bar & Galley</div>
+                                        <div class="station-divider"></div>
+                                        <div><i class="fa-solid fa-restroom"></i> Executive Lavatories</div>
+                                    </div>
+
+                                    <!-- Mid-Cabin Amenities Separator between Business and Economy -->
+                                    <div v-if="sIdx === 2" class="cabin-amenity-station">
+                                        <div><i class="fa-solid fa-utensils"></i> Main Galley Service</div>
+                                        <div class="station-divider"></div>
+                                        <div><i class="fa-solid fa-restroom"></i> Main Deck Lavatories</div>
+                                    </div>
+
+                                    <div class="cabin-class-title">[[ section.name ]]</div>
+                                    
+                                    <div class="cabin-rows">
+                                        <div v-for="(seatsInRow, rowNum) in section.rows" :key="rowNum" class="cabin-row-wrapper">
+                                            <!-- Lighted Emergency Exit Left (Row 10) -->
+                                            <div v-if="rowNum == 10" class="emergency-exit-marker exit-left" title="Emergency Exit Door - Left Wing">
+                                                <i class="fa-solid fa-person-running"></i> EXIT
+                                            </div>
+
+                                            <div class="cabin-row">
+                                                <div class="row-number">[[ rowNum ]]</div>
+                                                
+                                                <!-- Left Side Seats (A, B, C) -->
+                                                <div class="seat-side left">
+                                                    <button 
+                                                        v-for="seat in getLeftSeats(seatsInRow)" 
+                                                        :key="seat.id"
+                                                        type="button"
+                                                        :class="[
+                                                            'seat-btn', 
+                                                            'class-' + seat.cabin_class.toLowerCase(),
+                                                            seat.is_booked ? 'booked' : (seat.is_held ? 'held' : 'available'),
+                                                            { 'selected': isSeatSelected(seat.id) },
+                                                            { 'is-exit-row': seat.seat_type === 'Exit Row' },
+                                                            { 'dimmed-seat': !isSeatMatchingFilter(seat) },
+                                                            { 'inspected-seat': inspectedSeat && inspectedSeat.id === seat.id }
+                                                        ]"
+                                                        :disabled="seat.is_booked || seat.is_held"
+                                                        :title="seat.seat_number + ' (' + seat.cabin_class + ' - ' + (seat.seat_pitch || '31\"') + ') - ₹' + formatINR(seat.price_inr)"
+                                                        @mouseenter="inspectSeat(seat)"
+                                                        @click="toggleSeat(seat)"
+                                                    >
+                                                        <i v-if="seat.is_booked" class="fa-solid fa-xmark"></i>
+                                                        <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
+                                                        <i v-else-if="isSeatSelected(seat.id)" class="fa-solid fa-check"></i>
+                                                        <template v-else>
+                                                            <i v-if="seat.cabin_class === 'First'" class="fa-solid fa-crown seat-sub-icon"></i>
+                                                            <i v-else-if="seat.cabin_class === 'Business'" class="fa-solid fa-gem seat-sub-icon"></i>
+                                                            <span>[[ seat.seat_number.slice(-1) ]]</span>
+                                                        </template>
+                                                    </button>
+                                                </div>
+
+                                                <!-- Aisle Walkway -->
+                                                <div class="aisle-walkway"></div>
+
+                                                <!-- Right Side Seats (D, E, F) -->
+                                                <div class="seat-side right">
+                                                    <button 
+                                                        v-for="seat in getRightSeats(seatsInRow)" 
+                                                        :key="seat.id"
+                                                        type="button"
+                                                        :class="[
+                                                            'seat-btn', 
+                                                            'class-' + seat.cabin_class.toLowerCase(),
+                                                            seat.is_booked ? 'booked' : (seat.is_held ? 'held' : 'available'),
+                                                            { 'selected': isSeatSelected(seat.id) },
+                                                            { 'is-exit-row': seat.seat_type === 'Exit Row' },
+                                                            { 'dimmed-seat': !isSeatMatchingFilter(seat) },
+                                                            { 'inspected-seat': inspectedSeat && inspectedSeat.id === seat.id }
+                                                        ]"
+                                                        :disabled="seat.is_booked || seat.is_held"
+                                                        :title="seat.seat_number + ' (' + seat.cabin_class + ' - ' + (seat.seat_pitch || '31\"') + ') - ₹' + formatINR(seat.price_inr)"
+                                                        @mouseenter="inspectSeat(seat)"
+                                                        @click="toggleSeat(seat)"
+                                                    >
+                                                        <i v-if="seat.is_booked" class="fa-solid fa-xmark"></i>
+                                                        <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
+                                                        <i v-else-if="isSeatSelected(seat.id)" class="fa-solid fa-check"></i>
+                                                        <template v-else>
+                                                            <i v-if="seat.cabin_class === 'First'" class="fa-solid fa-crown seat-sub-icon"></i>
+                                                            <i v-else-if="seat.cabin_class === 'Business'" class="fa-solid fa-gem seat-sub-icon"></i>
+                                                            <span>[[ seat.seat_number.slice(-1) ]]</span>
+                                                        </template>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Lighted Emergency Exit Right (Row 10) -->
+                                            <div v-if="rowNum == 10" class="emergency-exit-marker exit-right" title="Emergency Exit Door - Right Wing">
+                                                EXIT <i class="fa-solid fa-person-running"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Aft Station at Aircraft Tail -->
+                                <div class="cabin-amenity-station">
+                                    <div><i class="fa-solid fa-boxes-packing"></i> Aft Galley & Crew Station</div>
+                                    <div class="station-divider"></div>
+                                    <div><i class="fa-solid fa-door-open"></i> Aft Exit Doors</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Wing -->
+                        <div class="airplane-wing wing-right">
+                            <div class="wing-body"></div>
+                            <div class="wing-winglet"></div>
+                            <div class="engine-pod right-engine">
+                                <div class="engine-intake"></div>
                             </div>
                         </div>
                     </div>
@@ -165,6 +355,14 @@
                                         <span>Passenger [[ pIdx + 1 ]]</span>
                                         <span class="seat-badge-indicator">Seat [[ p.seat_number ]] • [[ p.cabin_class ]]</span>
                                     </div>
+                                </div>
+
+                                <!-- Passenger Seat Amenity Badges -->
+                                <div class="passenger-seat-meta" style="margin-bottom: 0.85rem;">
+                                    <span class="meta-item"><i class="fa-solid fa-arrows-up-down"></i> [[ p.seat_pitch || '31"' ]] Pitch</span>
+                                    <span class="meta-item" v-if="p.has_extra_legroom"><i class="fa-solid fa-star"></i> Extra Legroom</span>
+                                    <span class="meta-item"><i class="fa-solid fa-bolt"></i> [[ p.has_power ? 'AC & USB-C' : 'USB' ]]</span>
+                                    <span class="meta-badge">₹[[ formatINR(p.price_inr) ]]</span>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom: 0.75rem;">
@@ -399,6 +597,45 @@
             const confirmedBooking = ref(null);
             const activeBpIndex = ref(0);
 
+            // Interactive Cabin Filter and Seat Inspector state
+            const seatFilter = ref('all');
+            const inspectedSeat = ref(null);
+
+            const inspectSeat = (seat) => {
+                inspectedSeat.value = seat;
+            };
+
+            const isSeatMatchingFilter = (seat) => {
+                if (seatFilter.value === 'all') return true;
+                if (seatFilter.value === 'window') return seat.seat_type === 'Window';
+                if (seatFilter.value === 'aisle') return seat.seat_type === 'Aisle';
+                if (seatFilter.value === 'legroom') return seat.has_extra_legroom === 1 || seat.seat_type === 'Exit Row';
+                if (seatFilter.value === 'premium') return seat.cabin_class === 'First' || seat.cabin_class === 'Business';
+                return true;
+            };
+
+            const totalSeatsCount = computed(() => seats.value.filter(s => !s.is_booked).length);
+            const windowSeatsCount = computed(() => seats.value.filter(s => s.seat_type === 'Window' && !s.is_booked).length);
+            const aisleSeatsCount = computed(() => seats.value.filter(s => s.seat_type === 'Aisle' && !s.is_booked).length);
+            const extraLegroomCount = computed(() => seats.value.filter(s => (s.has_extra_legroom === 1 || s.seat_type === 'Exit Row') && !s.is_booked).length);
+            const premiumSeatsCount = computed(() => seats.value.filter(s => (s.cabin_class === 'First' || s.cabin_class === 'Business') && !s.is_booked).length);
+
+            const getSeatStatusLabel = (seat) => {
+                if (!seat) return '';
+                if (isSeatSelected(seat.id)) return 'Selected for Booking';
+                if (seat.is_booked) return 'Confirmed Occupied';
+                if (seat.is_held) return 'In Checkout Hold';
+                return 'Available to Book';
+            };
+
+            const getSeatStatusClass = (seat) => {
+                if (!seat) return '';
+                if (isSeatSelected(seat.id)) return 'status-selected';
+                if (seat.is_booked) return 'status-booked';
+                if (seat.is_held) return 'status-held';
+                return 'status-available';
+            };
+
             // Day 2: Session lock token and hold timer
             const lockToken = ref("token-" + Math.random().toString(36).substring(2, 12));
             const holdSecondsLeft = ref(0);
@@ -496,6 +733,9 @@
                             ...existing,
                             seat_number: seat.seat_number,
                             cabin_class: seat.cabin_class,
+                            seat_pitch: seat.seat_pitch,
+                            has_extra_legroom: seat.has_extra_legroom,
+                            has_power: seat.has_power,
                             price_inr: seat.price_inr
                         });
                     } else {
@@ -503,6 +743,9 @@
                             seat_id: seat.id,
                             seat_number: seat.seat_number,
                             cabin_class: seat.cabin_class,
+                            seat_pitch: seat.seat_pitch,
+                            has_extra_legroom: seat.has_extra_legroom,
+                            has_power: seat.has_power,
                             price_inr: seat.price_inr,
                             name: (idx === 0 && loggedInUser && loggedInUser.name) ? loggedInUser.name : "",
                             age: "",
@@ -516,6 +759,7 @@
             const toggleSeat = async (seat) => {
                 if (seat.is_booked || seat.is_held) return;
                 conflictError.value = "";
+                inspectedSeat.value = seat;
                 
                 if (selectedSeatIds.value.has(seat.id)) {
                     selectedSeatIds.value.delete(seat.id);
@@ -706,7 +950,19 @@
                 selectedSeats,
                 itemizedFare,
                 submitBooking,
-                printPass
+                printPass,
+                // Cabin inspector & filter properties
+                seatFilter,
+                inspectedSeat,
+                inspectSeat,
+                isSeatMatchingFilter,
+                totalSeatsCount,
+                windowSeatsCount,
+                aisleSeatsCount,
+                extraLegroomCount,
+                premiumSeatsCount,
+                getSeatStatusLabel,
+                getSeatStatusClass
             };
         }
     }).mount('#booking-vue-app');

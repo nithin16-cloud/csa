@@ -986,30 +986,489 @@ select.form-control {
 .seat-sample.held { background: #FDE68A; border: 1.5px solid #F59E0B; }
 .seat-sample.first-class { border: 2px solid var(--accent-gold); }
 .seat-sample.business { border: 2px solid #7C3AED; }
+.seat-sample.exit-row { border: 2px solid #10B981; background: #ECFDF5; }
+
+/* Cabin Filters Toolbar */
+.cabin-filters-toolbar {
+    margin-top: 1.25rem;
+    padding: 0.85rem 1.15rem;
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.filter-pill {
+    background: #FFFFFF;
+    border: 1px solid var(--border-card);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filter-pill:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #F0F6FF;
+}
+
+.filter-pill.active {
+    background: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.filter-pill .pill-badge {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.filter-pill.active .pill-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #FFFFFF;
+}
+
+/* Interactive Live Seat Inspector Card */
+.seat-inspector-card {
+    background: #FFFFFF;
+    border: 1.5px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+    transition: all 0.25s ease;
+}
+
+.seat-inspector-card.has-seat {
+    border-color: var(--primary);
+    box-shadow: 0 6px 24px rgba(30, 64, 175, 0.12);
+}
+
+.inspector-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.inspector-badge-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.seat-tag-large {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--accent-navy);
+    letter-spacing: -0.01em;
+}
+
+.badge-class {
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-first { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+.badge-business { background: #EDE9FE; color: #5B21B6; border: 1px solid #C4B5FD; }
+.badge-economy { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+
+.badge-type {
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-card);
+    color: var(--text-subtle);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-legroom {
+    background: #ECFDF5;
+    border: 1px solid #6EE7B7;
+    color: #065F46;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.inspector-price {
+    text-align: right;
+}
+
+.inspector-price .price-val {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent-emerald);
+}
+
+.inspector-price .price-sub {
+    font-size: 0.72rem;
+    color: var(--text-subtle);
+    font-weight: 600;
+}
+
+.inspector-specs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+    .inspector-specs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.spec-item {
+    background: var(--bg-surface-subtle);
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+}
+
+.spec-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.spec-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.spec-val.status-available { color: var(--accent-emerald); }
+.spec-val.status-selected { color: var(--primary); }
+.spec-val.status-booked { color: #94A3B8; }
+.spec-val.status-held { color: #D97706; }
+
+.inspector-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.feature-chip {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.feature-chip i {
+    color: var(--accent-emerald);
+    font-size: 0.7rem;
+}
+
+.inspector-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.btn-danger-subtle {
+    background: #FEE2E2;
+    color: #DC2626;
+    border: 1px solid #FCA5A5;
+}
+
+.btn-danger-subtle:hover {
+    background: #FCD34D;
+    color: #92400E;
+}
+
+.seat-unavailable-note {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-subtle);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.seat-unavailable-note.held {
+    color: #D97706;
+}
+
+.inspector-empty {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    color: var(--text-subtle);
+}
+
+.inspector-empty-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-surface-subtle);
+    border: 1px dashed var(--border-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.inspector-empty-text {
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.inspector-empty-text strong {
+    color: var(--accent-navy);
+}
+
+/* Aerodynamic Fuselage Stage & Airplane Wings */
+.fuselage-outer-stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    margin: 1.5rem auto 0;
+    max-width: 820px;
+    padding: 0 1rem;
+}
+
+.airplane-wing {
+    width: 85px;
+    position: relative;
+    align-self: center;
+    height: 380px;
+    margin-top: 180px;
+    display: none; /* Shown on desktop screens */
+}
+
+@media (min-width: 900px) {
+    .airplane-wing {
+        display: block;
+    }
+}
+
+.airplane-wing.wing-left {
+    margin-right: -10px;
+}
+
+.airplane-wing.wing-right {
+    margin-left: -10px;
+}
+
+/* Swept wing body */
+.wing-body {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #E2E8F0 0%, #F1F5F9 50%, #CBD5E1 100%);
+    border: 1.5px solid var(--border-card);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.wing-left .wing-body {
+    border-radius: 80px 0 0 120px;
+    transform: skewY(-15deg);
+    border-right: none;
+}
+
+.wing-right .wing-body {
+    border-radius: 0 80px 120px 0;
+    transform: skewY(15deg);
+    border-left: none;
+}
+
+.wing-winglet {
+    position: absolute;
+    width: 12px;
+    height: 60px;
+    background: var(--primary);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.wing-left .wing-winglet {
+    left: -4px;
+    top: -20px;
+    transform: rotate(-10deg);
+}
+
+.wing-right .wing-winglet {
+    right: -4px;
+    top: -20px;
+    transform: rotate(10deg);
+}
+
+/* Turbofan Engine Pods */
+.engine-pod {
+    position: absolute;
+    width: 38px;
+    height: 95px;
+    background: linear-gradient(180deg, #334155 0%, #1E293B 100%);
+    border-radius: 19px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+    border: 2px solid #475569;
+    z-index: 2;
+}
+
+.left-engine {
+    left: 20px;
+    top: 140px;
+}
+
+.right-engine {
+    right: 20px;
+    top: 140px;
+}
+
+.engine-intake {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0F172A;
+    border: 2.5px solid #94A3B8;
+    margin: 8px auto 0;
+    box-shadow: inset 0 0 8px #000;
+}
 
 /* Aircraft Fuselage Simulation */
 .aircraft-fuselage {
-    background: #F8FAFC;
-    border: 2px solid var(--border-subtle);
-    border-radius: 95px 95px 35px 35px;
-    padding: 2.5rem 2.5rem 3rem;
+    background: #FFFFFF;
+    border: 2px solid var(--border-card);
+    border-radius: 120px 120px 50px 50px;
+    padding: 2rem 2.25rem 3.5rem;
+    width: 100%;
     max-width: 520px;
-    margin: 0 auto;
     position: relative;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    z-index: 3;
 }
 
+/* Cockpit Canopy Windows */
 .cockpit-nose {
     text-align: center;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.2em;
-    color: var(--text-subtle);
     padding-bottom: 1.5rem;
     border-bottom: 2px dashed var(--border-subtle);
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
 }
 
+.cockpit-windows {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 0.85rem;
+}
+
+.cockpit-glass {
+    height: 20px;
+    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+    border: 1.5px solid #64748B;
+    box-shadow: inset 0 1px 4px rgba(255, 255, 255, 0.35);
+}
+
+.cockpit-glass.glass-1 { width: 20px; border-radius: 12px 2px 2px 6px; transform: skewX(10deg); }
+.cockpit-glass.glass-2 { width: 32px; border-radius: 3px; }
+.cockpit-glass.glass-3 { width: 32px; border-radius: 3px; }
+.cockpit-glass.glass-4 { width: 20px; border-radius: 2px 12px 6px 2px; transform: skewX(-10deg); }
+
+.aircraft-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+}
+
+/* Cabin Amenity Stations (Galleys & Lavatories) */
+.cabin-amenity-station {
+    background: var(--bg-surface-subtle);
+    border: 1px dashed var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 1rem;
+    margin: 1.25rem 0 1.5rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-subtle);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.cabin-amenity-station i {
+    color: var(--primary);
+    margin-right: 0.35rem;
+}
+
+.station-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-subtle);
+}
+
+/* Cabin Class Dividers */
 .cabin-class-block {
     margin-bottom: 2rem;
 }
@@ -1021,7 +1480,7 @@ select.form-control {
     letter-spacing: 0.1em;
     color: var(--primary);
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
     position: relative;
 }
 
@@ -1029,7 +1488,7 @@ select.form-control {
     content: '';
     position: absolute;
     top: 50%;
-    width: 25%;
+    width: 22%;
     height: 1px;
     background: var(--border-subtle);
 }
@@ -1042,11 +1501,19 @@ select.form-control {
     gap: 0.65rem;
 }
 
+.cabin-row-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .cabin-row {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    position: relative;
 }
 
 .row-number {
@@ -1066,43 +1533,91 @@ select.form-control {
     width: 28px;
     border-left: 1px dashed var(--border-subtle);
     border-right: 1px dashed var(--border-subtle);
-    height: 36px;
+    height: 38px;
     margin: 0 0.25rem;
+}
+
+/* Emergency Exit Markers flanking Row 10 */
+.emergency-exit-marker {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #059669;
+    color: #FFFFFF;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.45rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    z-index: 4;
+}
+
+.emergency-exit-marker.exit-left {
+    left: -50px;
+}
+
+.emergency-exit-marker.exit-right {
+    right: -50px;
+}
+
+@media (max-width: 600px) {
+    .emergency-exit-marker.exit-left { left: -36px; padding: 0.15rem 0.25rem; font-size: 0.55rem; }
+    .emergency-exit-marker.exit-right { right: -36px; padding: 0.15rem 0.25rem; font-size: 0.55rem; }
 }
 
 /* Seat Buttons */
 .seat-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
+    width: 38px;
+    height: 38px;
+    border-radius: 7px;
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
     border: 1.5px solid var(--border-card);
     background: #FFFFFF;
     color: var(--text-main);
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative;
     box-shadow: var(--shadow-xs);
 }
 
 .seat-btn:hover:not(:disabled) {
-    transform: scale(1.12);
+    transform: scale(1.15) translateY(-2px);
     border-color: var(--primary);
     color: var(--primary);
-    background: var(--primary-light);
-    box-shadow: 0 4px 10px var(--primary-glow);
+    background: #EFF6FF;
+    box-shadow: 0 6px 14px var(--primary-glow);
+    z-index: 5;
+}
+
+.seat-btn.inspected-seat:not(:disabled) {
+    border-color: var(--primary);
+    outline: 2px solid var(--primary-glow);
 }
 
 .seat-btn.selected {
     background: var(--primary) !important;
     color: #FFFFFF !important;
     border-color: var(--primary) !important;
-    box-shadow: 0 0 12px var(--primary-glow);
+    box-shadow: 0 0 14px var(--primary-glow);
     font-weight: 800;
     transform: scale(1.08);
+    animation: seatPulse 2s infinite ease-in-out;
+}
+
+@keyframes seatPulse {
+    0% { box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(30, 64, 175, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(30, 64, 175, 0); }
 }
 
 .seat-btn.booked {
@@ -1110,7 +1625,7 @@ select.form-control {
     color: #94A3B8 !important;
     border-color: #CBD5E1 !important;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.55;
     box-shadow: none;
 }
 
@@ -1121,13 +1636,84 @@ select.form-control {
     cursor: not-allowed;
 }
 
+.seat-btn.dimmed-seat {
+    opacity: 0.22;
+    filter: grayscale(0.85);
+}
+
+.seat-btn.is-exit-row {
+    border-color: #10B981;
+}
+
+.seat-btn.is-exit-row::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    width: 14px;
+    height: 2px;
+    background: #10B981;
+    border-radius: 2px;
+}
+
 .seat-btn.class-first {
     border-color: var(--accent-gold);
-    width: 42px;
+    width: 44px;
+    height: 40px;
+    border-radius: 9px;
+    background: #FFFBEB;
+}
+
+.seat-btn.class-first .seat-sub-icon {
+    font-size: 0.55rem;
+    color: #D97706;
+    margin-bottom: -1px;
 }
 
 .seat-btn.class-business {
-    border-color: #7C3AED;
+    border-color: #8B5CF6;
+    background: #FAF5FF;
+}
+
+.seat-btn.class-business .seat-sub-icon {
+    font-size: 0.55rem;
+    color: #8B5CF6;
+    margin-bottom: -1px;
+}
+
+/* Passenger form meta tags */
+.passenger-seat-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.passenger-seat-meta .meta-item {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-subtle);
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.passenger-seat-meta .meta-item i {
+    color: var(--primary);
+    font-size: 0.68rem;
+}
+
+.passenger-seat-meta .meta-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
+    background: #EFF6FF;
+    color: var(--primary);
 }
 
 /* Order Summary */

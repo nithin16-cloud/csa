@@ -118,3 +118,85 @@ def test_flights_filter_view(client):
     assert b"Filter Flights" in resp.data
     assert b"Departure Time" in resp.data
     assert b"Aircraft Fleet" in resp.data
+
+def test_seat_amenities_metadata(client):
+    """Test that /api/flights/<id>/seats returns enriched seat amenity metadata."""
+    resp = client.get("/api/flights/1/seats")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "seats" in data
+    assert "aircraft_model" in data
+    assert "total_seats" in data
+    assert len(data["seats"]) > 0
+
+    first_class_seats = [s for s in data["seats"] if s["cabin_class"] == "First"]
+    business_seats = [s for s in data["seats"] if s["cabin_class"] == "Business"]
+    exit_row_seats = [s for s in data["seats"] if s["seat_type"] == "Exit Row"]
+    economy_std_seats = [s for s in data["seats"] if s["cabin_class"] == "Economy" and s["seat_type"] != "Exit Row"]
+
+    # First Class: 78" pitch, 180° recline, extra legroom, universal AC/USB-C
+    assert len(first_class_seats) > 0
+    for s in first_class_seats:
+        assert s["seat_pitch"] == '78"'
+        assert s["recline_deg"] == 180
+        assert s["has_extra_legroom"] == 1
+        assert s["has_power"] == 1
+        assert "features_list" in s
+        assert len(s["features_list"]) > 0
+
+    # Business Class: 42" pitch, 150° recline
+    assert len(business_seats) > 0
+    for s in business_seats:
+        assert s["seat_pitch"] == '42"'
+        assert s["recline_deg"] == 150
+        assert s["has_extra_legroom"] == 1
+        assert s["has_power"] == 1
+
+    # Exit Row: 34" pitch, extra legroom
+    assert len(exit_row_seats) > 0
+    for s in exit_row_seats:
+        assert s["seat_pitch"] == '34"'
+        assert s["has_extra_legroom"] == 1
+
+    # Economy Standard: 31" pitch
+    assert len(economy_std_seats) > 0
+    for s in economy_std_seats:
+        assert s["seat_pitch"] == '31"'
+        assert s["has_extra_legroom"] == 0
+
+def test_seat_query_filters(client):
+    """Test query parameter filtering on /api/flights/<id>/seats."""
+    resp_first = client.get("/api/flights/1/seats?cabin_class=First")
+    assert resp_first.status_code == 200
+    seats_first = resp_first.get_json()["seats"]
+    assert len(seats_first) > 0
+    assert all(s["cabin_class"] == "First" for s in seats_first)
+
+    resp_win = client.get("/api/flights/1/seats?seat_type=Window")
+    assert resp_win.status_code == 200
+    seats_win = resp_win.get_json()["seats"]
+    assert len(seats_win) > 0
+    assert all(s["seat_type"] == "Window" for s in seats_win)
+
+    resp_leg = client.get("/api/flights/1/seats?extra_legroom=1")
+    assert resp_leg.status_code == 200
+    seats_leg = resp_leg.get_json()["seats"]
+    assert len(seats_leg) > 0
+    assert all(s["has_extra_legroom"] == 1 for s in seats_leg)
+
+def test_cabin_ui_elements(client):
+    """Test that booking page renders interactive inspector, wings, emergency exits, and filters."""
+    resp = client.get("/booking/1")
+    assert resp.status_code == 200
+    html = resp.data.decode("utf-8")
+
+    assert "seat-inspector-card" in html
+    assert "Interactive Seat Inspector" in html
+    assert "cabin-filters-toolbar" in html
+    assert "fuselage-outer-stage" in html
+    assert "airplane-wing wing-left" in html
+    assert "airplane-wing wing-right" in html
+    assert "cockpit-windows" in html
+    assert "emergency-exit-marker" in html
+    assert "cabin-amenity-station" in html
+

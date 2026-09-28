@@ -31,6 +31,11 @@ def get_airports():
 
 @api_bp.route("/flights/<int:flight_id>/seats", methods=["GET"])
 def get_flight_seats(flight_id):
+    """
+    Returns complete live aircraft cabin seats enriched with
+    rich amenity metadata (seat pitch, power outlets, extra legroom flags, recline angle, features list).
+    Supports optional query filters: ?cabin_class=First|Business|Economy & ?seat_type=Window|Aisle|Exit Row & ?extra_legroom=1
+    """
     db = get_db()
     clean_expired_holds(db)
 
@@ -39,10 +44,16 @@ def get_flight_seats(flight_id):
         return jsonify({"error": "Flight not found"}), 404
 
     client_token = request.args.get("lock_token", "")
+    cabin_class_filter = request.args.get("cabin_class", "").strip()
+    seat_type_filter = request.args.get("seat_type", "").strip()
+    extra_legroom_filter = request.args.get("extra_legroom", "").strip()
+
     now_iso = datetime.datetime.now().isoformat()
 
     seats = db.execute("""
-        SELECT id, flight_id, seat_number, cabin_class, seat_type, price_multiplier, is_booked, locked_until, lock_token
+        SELECT id, flight_id, seat_number, cabin_class, seat_type, price_multiplier,
+               seat_pitch, has_power, has_extra_legroom, recline_deg, features,
+               is_booked, locked_until, lock_token
         FROM seats 
         WHERE flight_id = ?
         ORDER BY 
@@ -58,6 +69,7 @@ def get_flight_seats(flight_id):
     seat_list = []
     for s in seats:
         seat_dict = dict(s)
+
         # Check if held by someone else
         is_held = False
         if not seat_dict["is_booked"] and seat_dict["locked_until"]:
@@ -66,14 +78,30 @@ def get_flight_seats(flight_id):
 
         seat_dict["is_held"] = is_held
         seat_dict["price_inr"] = round(flight["base_price"] * seat_dict["price_multiplier"])
+        
+        # Format feature tags as a clean list
+        feat_str = seat_dict.get("features") or ""
+        seat_dict["features_list"] = [f.strip() for f in feat_str.split(",") if f.strip()]
+
         # Don't expose other people's lock tokens
         seat_dict.pop("lock_token", None)
+
+        # Optional query filters
+        if cabin_class_filter and seat_dict["cabin_class"].lower() != cabin_class_filter.lower():
+            continue
+        if seat_type_filter and seat_dict["seat_type"].lower() != seat_type_filter.lower():
+            continue
+        if extra_legroom_filter in ("1", "true", "True") and not seat_dict.get("has_extra_legroom"):
+            continue
+
         seat_list.append(seat_dict)
 
     return jsonify({
         "flight_id": flight_id,
         "flight_number": flight["flight_number"],
+        "aircraft_model": flight["aircraft_model"],
         "base_price_inr": flight["base_price"],
+        "total_seats": len(seat_list),
         "seats": seat_list
     })
 
@@ -341,7 +369,7 @@ def get_booking(pnr):
         return jsonify({"error": "Booking not found"}), 404
 
     seats = db.execute("""
-        SELECT bs.*, s.cabin_class, s.seat_type
+        SELECT bs.*, s.cabin_class, s.seat_type, s.seat_pitch, s.has_power, s.has_extra_legroom, s.recline_deg, s.features
         FROM booking_seats bs
         JOIN seats s ON bs.seat_id = s.id
         WHERE bs.booking_id = ?
