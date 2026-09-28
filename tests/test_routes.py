@@ -518,4 +518,70 @@ def test_flights_search_fallback(client):
     assert res.status_code == 200
     assert b"flight-list-row" in res.data
 
+def test_logged_in_user_booking_view_and_seat_selection(client):
+    """Test that a registered/logged-in user can access booking view and seats are reactive."""
+    import uuid
+    unique_email = f"user_{uuid.uuid4().hex[:8]}@example.com"
+    # 1. Register a new user
+    reg_resp = client.post("/register", data={
+        "name": "Kavita Rao",
+        "email": unique_email,
+        "phone": "+91 91234 56789",
+        "password": "Password123",
+        "confirm_password": "Password123"
+    }, follow_redirects=True)
+    assert reg_resp.status_code == 200
+
+    # 2. Access booking view for flight 1
+    booking_resp = client.get("/booking/1")
+    assert booking_resp.status_code == 200
+    html = booking_resp.data.decode("utf-8")
+
+    # Verify user details are populated in the template
+    assert unique_email in html
+    assert "Kavita Rao" in html
+
+    # Verify reactive array implementation for seat selection
+    assert "const selectedSeatIds = ref([]);" in html
+    assert "selectedSeatIds.value.includes(seatId)" in html
+
+    # 3. Test holding a seat as this user
+    app = create_app()
+    with app.app_context():
+        from app.db import get_db
+        db = get_db()
+        seat = db.execute("SELECT id FROM seats WHERE flight_id = 1 AND is_booked = 0 LIMIT 1").fetchone()
+        assert seat is not None
+        seat_id = seat["id"]
+
+    hold_resp = client.post("/api/seats/hold", json={
+        "flight_id": 1,
+        "seat_ids": [seat_id],
+        "lock_token": "token-test-kavita"
+    })
+    assert hold_resp.status_code == 200
+    hold_data = hold_resp.get_json()
+    assert hold_data["success"] is True
+
+    # 4. Complete booking with passenger name pre-filled
+    book_resp = client.post("/api/bookings", json={
+        "flight_id": 1,
+        "passenger_name": "Kavita Rao",
+        "passenger_email": "kavita.rao@example.com",
+        "passenger_phone": "+91 91234 56789",
+        "seat_ids": [seat_id],
+        "lock_token": "token-test-kavita",
+        "passengers": [{
+            "seat_id": seat_id,
+            "name": "Kavita Rao",
+            "age": 30,
+            "gender": "Female"
+        }]
+    })
+    assert book_resp.status_code == 201
+    book_data = book_resp.get_json()
+    assert book_data["success"] is True
+    assert book_data["booking"]["pnr"].startswith("CS-")
+
+
 

@@ -370,7 +370,8 @@
                 return list;
             });
 
-            const selectFlight = (flight) => {
+            const selectFlight = (flight, e) => {
+                if (e && e.preventDefault) e.preventDefault();
                 if (!flight || !flight.id) return;
                 window.location.href = `/booking/${flight.id}`;
             };

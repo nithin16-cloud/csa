@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.db import get_db
 
 main_bp = Blueprint("main", __name__)
@@ -143,7 +143,13 @@ def booking_view(flight_id):
         flash("Flight not found", "error")
         return redirect(url_for("main.index"))
 
-    return render_template("booking.html", flight=flight)
+    user_dict = session.get("user")
+    if not user_dict and "user_id" in session:
+        u = db.execute("SELECT id, name, email, phone FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+        if u:
+            user_dict = dict(u)
+
+    return render_template("booking.html", flight=flight, user_json=user_dict)
 
 @main_bp.route("/manage", methods=["GET", "POST"])
 def manage():

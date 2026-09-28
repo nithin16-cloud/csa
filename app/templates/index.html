@@ -740,7 +740,8 @@
                     window.location.href = `/flights?origin=${orig}&destination=${dest}&date=${dt}`;
                 };
 
-                const openSeatModal = (flight) => {
+                const openSeatModal = (flight, e) => {
+                    if (e && e.preventDefault) e.preventDefault();
                     if (!flight || !flight.id) return;
                     window.location.href = `/booking/${flight.id}`;
                 };
@@ -755,11 +756,13 @@
 
                 const toggleSeat = (seatNum, multiplier) => {
                     if (occupiedSeats.value.has(seatNum)) return;
-                    if (selectedSeats.value[seatNum]) {
-                        delete selectedSeats.value[seatNum];
+                    const next = { ...selectedSeats.value };
+                    if (next[seatNum]) {
+                        delete next[seatNum];
                     } else {
-                        selectedSeats.value[seatNum] = multiplier;
+                        next[seatNum] = multiplier;
                     }
+                    selectedSeats.value = next;
                 };
 
                 const selectedSeatsList = computed(() => {

@@ -861,7 +861,7 @@
 <script>
     const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
-    const loggedInUser = {{ session.get('user') | tojson | safe if session.get('user') else 'null' }};
+    const loggedInUser = {{ (user_json or session.get('user')) | tojson | safe if (user_json or session.get('user')) else 'null' }};
 
     createApp({
         delimiters: ['[[', ']]'],
@@ -870,7 +870,7 @@
             const basePrice = {{ flight.base_price }};
             
             const seats = ref([]);
-            const selectedSeatIds = ref(new Set());
+            const selectedSeatIds = ref([]);
             const loadingSeats = ref(true);
             const isSubmitting = ref(false);
             const conflictError = ref("");
@@ -946,7 +946,7 @@
                     } else {
                         clearInterval(timerInterval);
                         conflictError.value = "Your 5-minute seat reservation has expired. Please re-select your seats.";
-                        selectedSeatIds.value.clear();
+                        selectedSeatIds.value = [];
                         syncPassengers();
                         loadSeats();
                     }
@@ -997,14 +997,14 @@
             };
 
             const isSeatSelected = (seatId) => {
-                return selectedSeatIds.value.has(seatId);
+                return selectedSeatIds.value.includes(seatId);
             };
 
             // Synchronize passenger form objects with selected seats
             const syncPassengers = () => {
                 const currentList = [...passengers.value];
                 const newList = [];
-                const selectedList = seats.value.filter(s => selectedSeatIds.value.has(s.id));
+                const selectedList = seats.value.filter(s => selectedSeatIds.value.includes(s.id));
 
                 selectedList.forEach((seat, idx) => {
                     const existing = currentList.find(p => p.seat_id === seat.id);
@@ -1037,27 +1037,27 @@
             };
 
             const toggleSeat = async (seat) => {
-                if (seat.is_booked || seat.is_held) return;
+                if (!seat || seat.is_booked || seat.is_held) return;
                 conflictError.value = "";
                 inspectedSeat.value = seat;
                 
-                if (selectedSeatIds.value.has(seat.id)) {
-                    selectedSeatIds.value.delete(seat.id);
+                if (selectedSeatIds.value.includes(seat.id)) {
+                    selectedSeatIds.value = selectedSeatIds.value.filter(id => id !== seat.id);
                 } else {
-                    selectedSeatIds.value.add(seat.id);
+                    selectedSeatIds.value = [...selectedSeatIds.value, seat.id];
                 }
 
                 syncPassengers();
 
                 // If seats are selected, apply 5-minute hold lock
-                if (selectedSeatIds.value.size > 0) {
+                if (selectedSeatIds.value.length > 0) {
                     try {
                         const holdResp = await fetch("/api/seats/hold", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 flight_id: flightId,
-                                seat_ids: Array.from(selectedSeatIds.value),
+                                seat_ids: selectedSeatIds.value,
                                 lock_token: lockToken.value
                             })
                         });
@@ -1066,7 +1066,7 @@
                             startHoldTimer(holdData.hold_seconds || 300);
                         } else {
                             conflictError.value = holdData.error || "Could not reserve seat.";
-                            selectedSeatIds.value.delete(seat.id);
+                            selectedSeatIds.value = selectedSeatIds.value.filter(id => id !== seat.id);
                             syncPassengers();
                             await loadSeats();
                         }
@@ -1086,7 +1086,7 @@
             };
 
             const selectedSeats = computed(() => {
-                return seats.value.filter(s => selectedSeatIds.value.has(s.id));
+                return seats.value.filter(s => selectedSeatIds.value.includes(s.id));
             });
 
             // Itemized Fare Calculator
@@ -1279,7 +1279,7 @@
                     } else if (resp.status === 409) {
                         showPaymentModal.value = false;
                         conflictError.value = data.error || "Seat conflict detected. Please select another seat.";
-                        selectedSeatIds.value.clear();
+                        selectedSeatIds.value = [];
                         syncPassengers();
                         await loadSeats();
                     } else {
@@ -1300,7 +1300,7 @@
 
             onUnmounted(() => {
                 if (timerInterval) clearInterval(timerInterval);
-                if (selectedSeatIds.value.size > 0) {
+                if (selectedSeatIds.value.length > 0) {
                     fetch("/api/seats/release", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },

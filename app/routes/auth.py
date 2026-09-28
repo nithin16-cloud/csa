@@ -121,6 +121,12 @@ def api_login():
     session['user_id'] = user["id"]
     session['user_name'] = user["name"]
     session['user_email'] = user["email"]
+    session['user'] = {
+        "id": user["id"],
+        "name": user["name"],
+        "email": user["email"],
+        "phone": user["phone"]
+    }
 
     return jsonify({
         "success": True,
@@ -163,6 +169,12 @@ def api_register():
     session['user_id'] = user_id
     session['user_name'] = name
     session['user_email'] = email
+    session['user'] = {
+        "id": user_id,
+        "name": name,
+        "email": email,
+        "phone": phone
+    }
 
     return jsonify({
         "success": True,
