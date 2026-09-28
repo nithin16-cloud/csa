@@ -1,5 +1,6 @@
 -- CloudSky Airways Database Schema
 
+DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS booking_seats;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS seats;
