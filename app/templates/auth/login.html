@@ -113,13 +113,8 @@
                     </a>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-login-submit" style="margin-bottom: 1rem;">
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-login-submit" style="margin-bottom: 1.5rem;">
                     <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
-                </button>
-
-                <!-- Quick Demo Login Button for Instant Testing -->
-                <button type="button" class="btn btn-block btn-demo-fill" id="btn-demo-fill" style="margin-bottom: 1.75rem; padding: 0.65rem 1rem;">
-                    <i class="fa-solid fa-key"></i> Quick Fill Demo Account (Rohan Sharma)
                 </button>
 
                 <div style="text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
@@ -137,21 +132,7 @@
 {% block extra_scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        // Quick Fill Demo Account
-        const demoBtn = document.getElementById("btn-demo-fill");
-        const emailInput = document.getElementById("login-email");
         const passwordInput = document.getElementById("login-password");
-
-        if (demoBtn && emailInput && passwordInput) {
-            demoBtn.addEventListener("click", () => {
-                emailInput.value = "rohan.sharma@example.in";
-                passwordInput.value = "Password@123";
-                demoBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #059669;"></i> Credentials Loaded!';
-                setTimeout(() => {
-                    demoBtn.innerHTML = '<i class="fa-solid fa-key"></i> Quick Fill Demo Account (Rohan Sharma)';
-                }, 1800);
-            });
-        }
 
         // Show/Hide Password Eye Toggle
         const toggleBtn = document.getElementById("toggle-login-pass");
