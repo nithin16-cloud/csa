@@ -80,3 +80,52 @@ def test_api_auth_login(client):
     data = response.get_json()
     assert data["success"] is True
     assert data["user"]["name"] == "Rohan Sharma"
+
+def test_register_then_login_cycle(client):
+    """Verify newly registered user can log out and log back in with exact credentials."""
+    import uuid
+    unique_email = f"signup_test_{uuid.uuid4().hex[:6]}@gmail.com"
+    raw_password = "SecretPassword123"
+
+    # Step 1: Register
+    reg_resp = client.post("/register", data={
+        "name": "Pooja Hegde",
+        "email": f"  {unique_email.upper()}  ",  # Test mixed case and whitespace
+        "phone": "+91 98888 77777",
+        "password": raw_password,
+        "confirm_password": raw_password
+    }, follow_redirects=True)
+    assert reg_resp.status_code == 200
+    assert b"Welcome to CloudSky Airways, Pooja Hegde!" in reg_resp.data
+
+    # Step 2: Logout
+    logout_resp = client.get("/logout", follow_redirects=True)
+    assert logout_resp.status_code == 200
+
+    # Step 3: Login with same credentials
+    login_resp = client.post("/login", data={
+        "email": unique_email,
+        "password": raw_password,
+        "remember": "on"
+    }, follow_redirects=True)
+    assert login_resp.status_code == 200
+    assert b"Welcome back, Pooja Hegde!" in login_resp.data
+
+def test_login_with_mobile_autocomplete_space_in_password(client):
+    """Verify login succeeds even if phone keyboard autofill appended a trailing space."""
+    login_resp = client.post("/login", data={
+        "email": "rohan.sharma@example.in",
+        "password": "Password@123   "  # Trailing space from virtual keyboard
+    }, follow_redirects=True)
+    assert login_resp.status_code == 200
+    assert b"Welcome back, Rohan Sharma!" in login_resp.data
+
+def test_login_non_existent_account_feedback(client):
+    """Verify proper feedback when email is not registered in the database."""
+    login_resp = client.post("/login", data={
+        "email": "non_existent_user_9999@gmail.com",
+        "password": "SomePassword123"
+    }, follow_redirects=True)
+    assert login_resp.status_code == 200
+    assert b"No account found with this email" in login_resp.data
+

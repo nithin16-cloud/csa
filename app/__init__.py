@@ -106,6 +106,26 @@ def create_app(config_class=Config):
         seed_database()
         click.echo("Database seeded successfully.")
 
+    @app.cli.command("list-users")
+    def list_users_command():
+        """List all registered users stored in the SQLite database."""
+        db_conn = db.get_db()
+        users = db_conn.execute("SELECT id, name, email, phone, created_at FROM users ORDER BY id ASC").fetchall()
+        if not users:
+            click.echo("No registered users found in database.")
+            return
+        click.echo(f"\nFound {len(users)} user(s) in SQLite database:")
+        click.echo("=" * 80)
+        click.echo(f"{'ID':<4} {'Name':<22} {'Gmail / Email':<32} {'Created At'}")
+        click.echo("-" * 80)
+        for u in users:
+            click.echo(f"{u['id']:<4} {u['name']:<22} {u['email']:<32} {u['created_at']}")
+        click.echo("=" * 80 + "\n")
+
+    # Apply ProxyFix so Flask trusts X-Forwarded-Proto and X-Forwarded-For from Render reverse proxy
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # Register Blueprints
     from app.routes.main import main_bp
     from app.routes.api import api_bp

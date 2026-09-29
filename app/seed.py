@@ -184,6 +184,19 @@ def seed_database():
         VALUES ('Rohan Sharma', 'rohan.sharma@example.in', '+91 98765 43210', ?)
     """, (demo_pw,))
 
+    # 1b. Insert Custom Admin / Account from Environment Variables (survives Render restarts)
+    import os
+    custom_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    custom_password = os.getenv("ADMIN_PASSWORD", "").strip()
+    custom_name = os.getenv("ADMIN_NAME", "CloudSky Member").strip()
+    custom_phone = os.getenv("ADMIN_PHONE", "+91 98765 00000").strip()
+    if custom_email and custom_password:
+        custom_pw_hash = generate_password_hash(custom_password)
+        cursor.execute("""
+            INSERT OR IGNORE INTO users (name, email, phone, password_hash)
+            VALUES (?, ?, ?, ?)
+        """, (custom_name, custom_email, custom_phone, custom_pw_hash))
+
     # 2. Insert Airports
     cursor.executemany("""
         INSERT OR IGNORE INTO airports (code, name, city, country)

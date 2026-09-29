@@ -551,6 +551,11 @@ def test_logged_in_user_booking_view_and_seat_selection(client):
         from app.db import get_db
         db = get_db()
         seat = db.execute("SELECT id FROM seats WHERE flight_id = 1 AND is_booked = 0 LIMIT 1").fetchone()
+        if not seat:
+            db.execute("DELETE FROM booking_seats WHERE flight_id = 1")
+            db.execute("UPDATE seats SET is_booked = 0, locked_until = NULL, lock_token = NULL WHERE flight_id = 1")
+            db.commit()
+            seat = db.execute("SELECT id FROM seats WHERE flight_id = 1 AND is_booked = 0 LIMIT 1").fetchone()
         assert seat is not None
         seat_id = seat["id"]
 
