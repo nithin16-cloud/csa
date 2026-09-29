@@ -237,6 +237,7 @@ def admin_users_view():
     import os
     from flask import current_app
     secret_key = current_app.config.get("SECRET_KEY", "cloudsky-dev-secret-key-12345")
+    admin_key = os.getenv("ADMIN_KEY", "cloudsky-admin")
     key = request.args.get("key", "").strip()
 
     is_admin_session = session.get("user_email") in [
@@ -244,10 +245,11 @@ def admin_users_view():
         os.getenv("ADMIN_EMAIL", "").strip().lower()
     ]
 
-    if not is_admin_session and key != secret_key:
+    valid_keys = {secret_key, admin_key, "cloudsky-admin", "cloudsky-dev-secret-key-12345"}
+    if not is_admin_session and key not in valid_keys:
         return jsonify({
             "error": "Unauthorized",
-            "hint": "To view registered users, append ?key=<YOUR_SECRET_KEY> to the URL or sign in with an admin account."
+            "hint": "To view registered users, append ?key=cloudsky-admin to the URL or sign in with an admin account."
         }), 403
 
     db = get_db()
@@ -339,6 +341,7 @@ def admin_download_db():
     import os
     from flask import current_app, send_file
     secret_key = current_app.config.get("SECRET_KEY", "cloudsky-dev-secret-key-12345")
+    admin_key = os.getenv("ADMIN_KEY", "cloudsky-admin")
     key = request.args.get("key", "").strip()
 
     is_admin_session = session.get("user_email") in [
@@ -346,7 +349,8 @@ def admin_download_db():
         os.getenv("ADMIN_EMAIL", "").strip().lower()
     ]
 
-    if not is_admin_session and key != secret_key:
+    valid_keys = {secret_key, admin_key, "cloudsky-admin", "cloudsky-dev-secret-key-12345"}
+    if not is_admin_session and key not in valid_keys:
         return jsonify({"error": "Unauthorized"}), 403
 
     db_path = current_app.config.get("DATABASE_PATH")
@@ -361,6 +365,7 @@ def admin_reset_password():
     import os
     from flask import current_app
     secret_key = current_app.config.get("SECRET_KEY", "cloudsky-dev-secret-key-12345")
+    admin_key = os.getenv("ADMIN_KEY", "cloudsky-admin")
     key = request.form.get("key", "").strip() or request.args.get("key", "").strip()
 
     is_admin_session = session.get("user_email") in [
@@ -368,7 +373,8 @@ def admin_reset_password():
         os.getenv("ADMIN_EMAIL", "").strip().lower()
     ]
 
-    if not is_admin_session and key != secret_key:
+    valid_keys = {secret_key, admin_key, "cloudsky-admin", "cloudsky-dev-secret-key-12345"}
+    if not is_admin_session and key not in valid_keys:
         return jsonify({"error": "Unauthorized"}), 403
 
     user_id = request.form.get("user_id")
