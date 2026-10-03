@@ -4771,12 +4771,320 @@ html.dark .seat-detail-card,
 html.dark .booking-summary-bar,
 html.dark .passenger-card,
 html.dark .summary-card,
+html.dark .cabin-card,
+html.dark .seat-inspector-card,
+html.dark .flight-filters-sidebar,
+html.dark .results-top-bar,
+html.dark .flight-list-row,
+html.dark .empty-state-card,
 html.dark .auth-card-split,
 html.dark .info-card,
-html.dark .faq-card {
-    background: var(--bg-surface);
-    border-color: var(--border-subtle);
-    color: var(--text-main);
+html.dark .faq-card,
+html.dark .booking-detail-card,
+html.dark .passenger-manifest-item {
+    background: var(--bg-surface) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-main) !important;
+}
+
+/* Flight Schedules Page Dark Mode */
+html.dark .flight-list-row:hover {
+    background: var(--bg-surface-elevated) !important;
+    border-color: rgba(0, 180, 216, 0.35) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .filter-sidebar-header {
+    border-bottom-color: var(--border-subtle) !important;
+}
+
+html.dark .time-slot-btn {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-muted) !important;
+}
+
+html.dark .time-slot-btn:hover {
+    background: var(--primary-light) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .time-slot-btn.active {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px var(--primary-glow) !important;
+}
+
+html.dark .time-slot-btn.active i {
+    color: #FFFFFF !important;
+}
+
+html.dark .btn-reset-filters {
+    color: var(--primary) !important;
+}
+
+html.dark .btn-reset-filters:hover {
+    background: var(--primary-light) !important;
+    color: var(--primary-hover) !important;
+}
+
+html.dark .filter-badge-val {
+    background: var(--primary-light) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .range-slider {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark .range-slider::-webkit-slider-thumb {
+    border-color: var(--bg-surface) !important;
+}
+
+html.dark .duration-line .line {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark .duration-line i {
+    color: var(--primary) !important;
+}
+
+html.dark .flight-row-pricing {
+    border-left-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .airline-icon-circle {
+    background: var(--primary-light) !important;
+    color: var(--primary) !important;
+}
+
+/* Cabin Map & Booking Page Dark Mode */
+html.dark .cabin-filters-toolbar {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+html.dark .filter-pill {
+    background: var(--bg-surface-elevated) !important;
+    border-color: var(--border-card) !important;
+    color: var(--text-muted) !important;
+}
+
+html.dark .filter-pill:hover {
+    background: var(--primary-light) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .filter-pill.active {
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary) !important;
+}
+
+html.dark .filter-pill .pill-badge {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-main) !important;
+}
+
+html.dark .seat-legend {
+    background: var(--bg-surface-subtle) !important;
+}
+
+html.dark .spec-item {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+html.dark .price-breakdown {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+html.dark .inspector-empty-icon {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-card) !important;
+}
+
+html.dark .feature-chip {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-muted) !important;
+}
+
+html.dark .seat-sample.available {
+    background: #111827 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html.dark .seat-sample.booked {
+    background: #1E293B !important;
+    border-color: #334155 !important;
+}
+
+html.dark .wing-body {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #162036 100%) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Boarding Pass & Manage Booking Dark Mode */
+html.dark .boarding-pass-card {
+    background: #0A0F1D !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #F1F5F9 !important;
+}
+
+html.dark .bp-body {
+    background: #0A0F1D !important;
+    border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark .bp-stub {
+    background: #080D1A !important;
+    border-left-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark .route-row {
+    background: #111827 !important;
+}
+
+html.dark .bp-actions {
+    background: #080D1A !important;
+}
+
+html.dark .barcode-lines {
+    background: repeating-linear-gradient(
+        90deg,
+        #F1F5F9,
+        #F1F5F9 2px,
+        transparent 2px,
+        transparent 5px,
+        #F1F5F9 5px,
+        #F1F5F9 9px,
+        transparent 9px,
+        transparent 11px
+    ) !important;
+}
+
+/* Authentication Pages Dark Mode */
+html.dark .auth-page-wrapper {
+    background: radial-gradient(circle at 50% 20%, rgba(0, 180, 216, 0.08) 0%, #05070D 100%) !important;
+}
+
+html.dark .auth-card-split {
+    background: var(--bg-surface) !important;
+    border-color: var(--border-subtle) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .auth-form-panel {
+    background: var(--bg-surface) !important;
+}
+
+html.dark .password-toggle-btn {
+    color: var(--text-subtle) !important;
+}
+
+html.dark .password-toggle-btn:hover {
+    color: var(--primary) !important;
+}
+
+/* Info & Policy Pages Dark Mode */
+html.dark .info-page-wrapper {
+    background: var(--bg-page) !important;
+}
+
+html.dark .info-nav-bar {
+    background: var(--bg-surface) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+html.dark .info-nav-tab {
+    color: var(--text-muted) !important;
+}
+
+html.dark .info-nav-tab:hover {
+    background: var(--bg-surface-subtle) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .info-nav-tab.active {
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px var(--primary-glow) !important;
+}
+
+html.dark .dietary-tag {
+    background: var(--bg-surface-subtle) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-main) !important;
+}
+
+html.dark .dietary-tag strong {
+    background: rgba(0, 180, 216, 0.15) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .info-table th {
+    background: var(--bg-surface-subtle) !important;
+    color: var(--accent-navy) !important;
+    border-bottom-color: var(--border-subtle) !important;
+}
+
+html.dark .info-table td {
+    border-bottom-color: var(--border-subtle) !important;
+    color: var(--text-main) !important;
+}
+
+html.dark .info-table tr:hover td {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* User Dropdown, Toast & Controls Dark Mode */
+html.dark .user-pill-btn {
+    background: rgba(0, 180, 216, 0.14) !important;
+    border-color: rgba(0, 180, 216, 0.3) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .user-pill-btn:hover {
+    background: rgba(0, 180, 216, 0.22) !important;
+}
+
+html.dark .user-dropdown-card {
+    background: #0A0F1D !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .user-dropdown-header strong {
+    color: var(--accent-navy) !important;
+}
+
+html.dark .user-dropdown-header small {
+    color: var(--text-subtle) !important;
+}
+
+html.dark .user-dropdown-divider {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .dropdown-item {
+    color: var(--text-main) !important;
+}
+
+html.dark .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--primary) !important;
+}
+
+html.dark .toast-card {
+    background: #0F172A !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #F1F5F9 !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6) !important;
 }
 
 html.dark .form-control {
