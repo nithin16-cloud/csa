@@ -15,6 +15,22 @@
     <link rel="stylesheet" href="../static/css/style.css">
     <!-- Vue.js 3 Production Bundle -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- Immediate Zero-Flicker Theme Detection (HyperDigital Pattern) -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('csa-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                }
+            } catch(e) {}
+        })();
+    </script>
 </head>
 <body>
     <!-- Luxury Header Navigation -->
@@ -79,14 +95,65 @@
                         <i class="fa-solid fa-user-plus"></i> Sign Up
                     </a>
                 {% endif %}
+
+                <!-- Dark / Light Theme Toggle -->
+                <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Dark/Light Mode" title="Toggle Theme">
+                    <i class="fa-solid fa-sun theme-icon-sun"></i>
+                    <i class="fa-solid fa-moon theme-icon-moon"></i>
+                </button>
+
+                <!-- Mobile Menu Button (HyperDigital 2-Bar Animated Morph) -->
+                <button type="button" class="mobile-toggle-btn" id="mobile-toggle-btn" aria-label="Toggle Navigation Menu">
+                    <span class="hamburger-bar bar-1"></span>
+                    <span class="hamburger-bar bar-2"></span>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Synchronous Live Server & Static Preview Guard:
-         When viewed via VS Code Live Server or static file preview, Flask Jinja2 tags remain unparsed.
-         Instantly removes unparsed template text nodes and uncompiled user dropdown before paint,
-         ensuring a clean luxury navbar showing default guest navigation. -->
+    <!-- Mobile Drawer Overlay & Drawer -->
+    <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
+    <aside class="mobile-drawer" id="mobile-drawer" aria-label="Mobile Navigation">
+        <div class="mobile-drawer-header">
+            <div class="brand-text">
+                <span class="brand-name" style="font-size: 1.25rem;">CloudSky</span>
+                <span class="brand-sub">AIRWAYS</span>
+            </div>
+            <button type="button" class="theme-toggle-btn" id="mobile-drawer-close" aria-label="Close Navigation">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <nav class="mobile-nav-links">
+            <a href="#flight-search-form" class="active">
+                <i class="fa-solid fa-compass"></i> Book Flights
+            </a>
+            <a href="/flights">
+                <i class="fa-solid fa-plane-up"></i> Schedules & Fares
+            </a>
+            <a href="/manage">
+                <i class="fa-solid fa-ticket"></i> Manage Booking
+            </a>
+            <a href="/manage?checkin=1">
+                <i class="fa-solid fa-qrcode"></i> Web Check-in
+            </a>
+            <a href="#fleet">
+                <i class="fa-solid fa-plane"></i> Our Fleet & Alliances
+            </a>
+        </nav>
+        <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 0.75rem;">
+            {% if current_user %}
+                <div style="font-size: 0.9rem; color: var(--text-muted);">
+                    Signed in as <strong>{{ current_user.name }}</strong>
+                </div>
+                <a href="/logout" class="btn btn-outline btn-sm" style="text-align: center;">Sign Out</a>
+            {% else %}
+                <a href="/login" class="btn btn-outline btn-sm" style="text-align: center;">Sign In</a>
+                <a href="/register" class="btn btn-primary btn-sm" style="text-align: center;">Sign Up</a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Synchronous Live Server & Static Preview Guard -->
     <script>
         (function() {
             var actions = document.getElementById('nav-right-actions') || document.querySelector('.nav-right-actions');
@@ -116,7 +183,7 @@
         })();
     </script>
 
-    <!-- Flash Notifications Container (Clean luxury toast, hidden in static Live Server preview) -->
+    <!-- Flash Notifications Container -->
     <div id="flash-toast-container" class="toast-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -147,23 +214,78 @@
         })();
     </script>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area with Vue 3 Engine -->
     <main class="main-content" id="home-vue-app">
-        <!-- Hero Section with Clean Luxury White Horizon -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    Fly in Comfort Across <span>Domestic & Global Skies</span>
+        
+        <!-- =================================================================
+             HYPERDIGITAL SIGNATURE HERO WITH AMBIENT SPOTLIGHT
+             ================================================================= -->
+        <section class="hero-section" style="position: relative; overflow: hidden; padding: 4.5rem 1.5rem 3.5rem;">
+            <!-- Ambient Dot Grid Background (Aceternity UI Pattern) -->
+            <div class="hero-bg-grid"></div>
+
+            <!-- Ambient Spotlight Layer (Aceternity UI Pattern) -->
+            <div class="spotlight-wrapper">
+                <svg class="animate-spotlight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3787 2842" fill="none">
+                    <g filter="url(#spotlight-filter)">
+                        <ellipse cx="1924" cy="273" rx="1924" ry="273" transform="matrix(-0.82 -0.57 -0.57 0.82 3631 2291)" fill="#00B4D8" fill-opacity="0.28"></ellipse>
+                    </g>
+                    <defs>
+                        <filter id="spotlight-filter" x="0" y="0" width="3787" height="2842" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+                            <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend>
+                            <feGaussianBlur stdDeviation="150" result="effect1_foregroundBlur"></feGaussianBlur>
+                        </filter>
+                    </defs>
+                </svg>
+            </div>
+
+            <div class="hero-content" style="position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; text-align: center;">
+                
+                <!-- Animated Shimmer Pill Badge (Magic UI Pattern) -->
+                <div style="margin-bottom: 1.5rem;">
+                    <a href="#flight-search-form" class="shiny-pill-badge">
+                        <i class="fa-solid fa-plane-departure" style="font-size: 0.8rem; color: var(--primary);"></i>
+                        <span class="shiny-pill-text">Fly in Comfort with CloudSky AI 2.0 • Zero Double-Booking Guarantee</span>
+                        <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; color: var(--primary);"></i>
+                    </a>
+                </div>
+
+                <!-- Kinetic Gradient Display Headline (HyperDigital Match) -->
+                <h1 class="hero-headline-gradient">
+                    Empower Your Journey with<br>
+                    <span class="hero-highlight-chip">Next-Gen Flight Tech</span>
                 </h1>
-                <p class="hero-subtitle">
-                    Select your preferred cabin seat on our interactive 2D aircraft layout, enjoy guaranteed seat locks with zero double-booking, and get your verified boarding pass instantly.
+
+                <!-- Subtitle -->
+                <p class="hero-subtitle-text">
+                    India's premier commercial flight reservation engine. Experience real-time seat synchronization, interactive 2D cabin maps, and instant verified boarding passes.
                 </p>
 
-                <!-- Vue 3 Interactive Search Widget -->
-                <div class="search-card">
+                <!-- Dual Action CTAs (Hyper-Glow Button & Glass Secondary) -->
+                <div style="display: flex; gap: 1.25rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 3.5rem;">
+                    <a href="#flight-search-form" class="hyper-glow-wrap">
+                        <span class="hyper-glow-bg"></span>
+                        <span class="hyper-glow-inner">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>EXPLORE FLIGHTS</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </a>
+
+                    <a href="/manage" class="btn-glass-secondary">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>WEB CHECK-IN & PNR</span>
+                    </a>
+                </div>
+
+                <!-- =============================================================
+                     INTEGRATED FLIGHT SEARCH BENTO CARD
+                     ============================================================= -->
+                <div class="search-card" style="text-align: left; max-width: 1040px; margin: 0 auto; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: var(--shadow-lg);">
                     <form @submit.prevent="handleSearch" class="search-form" id="flight-search-form">
                         <div class="form-group">
-                            <label for="origin-select"><i class="fa-solid fa-plane-departure"></i> Departure City</label>
+                            <label for="origin-select"><i class="fa-solid fa-plane-departure" style="color: var(--primary);"></i> Departure City</label>
                             <select id="origin-select" class="form-control" v-model="selectedOrigin">
                                 <option value="">All Departure Hubs</option>
                                 <option v-for="airport in airports" :key="airport.code" :value="airport.code">
@@ -177,7 +299,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="destination-select"><i class="fa-solid fa-plane-arrival"></i> Destination City</label>
+                            <label for="destination-select"><i class="fa-solid fa-plane-arrival" style="color: var(--primary);"></i> Destination City</label>
                             <select id="destination-select" class="form-control" v-model="selectedDestination">
                                 <option value="">All Destination Hubs</option>
                                 <option v-for="airport in airports" :key="airport.code" :value="airport.code">
@@ -187,12 +309,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="flight-date"><i class="fa-regular fa-calendar"></i> Travel Date</label>
+                            <label for="flight-date"><i class="fa-regular fa-calendar" style="color: var(--primary);"></i> Travel Date</label>
                             <input type="date" id="flight-date" class="form-control" v-model="selectedDate">
                         </div>
 
                         <div class="form-submit">
-                            <button type="submit" class="btn btn-primary btn-search" id="btn-search-flights">
+                            <button type="submit" class="btn btn-primary btn-search" id="btn-search-flights" style="height: 48px; border-radius: var(--radius-md);">
                                 <i class="fa-solid fa-magnifying-glass"></i> Search Flights
                             </button>
                         </div>
@@ -201,37 +323,161 @@
             </div>
         </section>
 
-        <!-- Luxury Airline Experience Highlights -->
-        <section class="section-container">
-            <div class="section-header">
-                <span class="section-tag">THE CLOUDSKY DISTINCTION</span>
-                <h2 class="section-title">Designed for Unrivaled Comfort & Precision</h2>
-                <p class="section-desc">Experience commercial flight booking engineered with state-of-the-art seat locking and world-class hospitality.</p>
-            </div>
-
-            <div class="luxury-pillars-grid">
-                <div class="pillar-card">
-                    <div class="pillar-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                    <h3>Guaranteed Seat Locking</h3>
-                    <p>When you pick a seat, our database transaction locks it exclusively for your checkout. No other traveler can book the same seat simultaneously.</p>
+        <!-- =================================================================
+             INFINITE MARQUEE (PARTNER HUBS & FLEET)
+             ================================================================= -->
+        <section class="marquee-container" id="fleet" aria-label="Aviation Partners & Fleet">
+            <div class="marquee-inner-wrap">
+                <div class="marquee-header-pill">
+                    <strong>Fleet & Alliances</strong>
                 </div>
-
-                <div class="pillar-card">
-                    <div class="pillar-icon"><i class="fa-solid fa-plane"></i></div>
-                    <h3>Modern Widebody Fleet</h3>
-                    <p>Fly aboard next-generation Boeing 787 Dreamliners and Airbus A350 aircraft featuring spacious cabins, ergonomic suites, and ultra-quiet engines.</p>
-                </div>
-
-                <div class="pillar-card">
-                    <div class="pillar-icon"><i class="fa-solid fa-ticket"></i></div>
-                    <h3>Instant Verified Boarding Pass</h3>
-                    <p>Receive your unique 6-character PNR code with a printable, scannable airline boarding pass ready for travel right upon booking.</p>
+                <div class="marquee-scroll-area">
+                    <div class="marquee-fade-left"></div>
+                    <div class="marquee-fade-right"></div>
+                    <div class="marquee-track">
+                        <!-- Set 1 -->
+                        <div class="marquee-item"><i class="fa-solid fa-plane"></i><span>Boeing 787-9</span><small>Dreamliner</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-plane-up"></i><span>Airbus A350</span><small>XWB Widebody</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-location-dot"></i><span>Mumbai</span><small>BOM Terminal 2</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-location-dot"></i><span>Delhi</span><small>DEL Terminal 3</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-location-dot"></i><span>Bengaluru</span><small>BLR Hub</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-earth-americas"></i><span>Dubai</span><small>DXB Direct</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-earth-asia"></i><span>Singapore</span><small>SIN Changi</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-earth-europe"></i><span>London</span><small>LHR Heathrow</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-shield-halved"></i><span>256-Bit SSL</span><small>Verified Safe</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-award"></i><span>IATA Standard</span><small>Accredited</small></div>
+                        <!-- Set 2 (for infinite loop) -->
+                        <div class="marquee-item"><i class="fa-solid fa-plane"></i><span>Boeing 787-9</span><small>Dreamliner</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-plane-up"></i><span>Airbus A350</span><small>XWB Widebody</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-location-dot"></i><span>Mumbai</span><small>BOM Terminal 2</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-location-dot"></i><span>Delhi</span><small>DEL Terminal 3</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-location-dot"></i><span>Bengaluru</span><small>BLR Hub</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-earth-americas"></i><span>Dubai</span><small>DXB Direct</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-earth-asia"></i><span>Singapore</span><small>SIN Changi</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-earth-europe"></i><span>London</span><small>LHR Heathrow</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-shield-halved"></i><span>256-Bit SSL</span><small>Verified Safe</small></div>
+                        <div class="marquee-item"><i class="fa-solid fa-award"></i><span>IATA Standard</span><small>Accredited</small></div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Featured Scheduled Flights Grid in Indian Rupees -->
-        <section class="section-container" id="flights-section">
+        <!-- =================================================================
+             BENTO GRID: INNOVATIONS & ARCHITECTURE (HYPERDIGITAL MIRROR)
+             ================================================================= -->
+        <section class="bento-section">
+            <div class="bento-header">
+                <span class="section-tag">ENGINEERING EXCELLENCE</span>
+                <h2 style="font-size: 2.4rem; color: var(--accent-navy); margin: 0.5rem 0 0.8rem; font-weight: 800;">Digital Solutions That Transform</h2>
+                <p style="color: var(--text-subtle); font-size: 1.05rem;">From real-time seat lock synchronization to instant digital boarding passes, our aviation architecture delivers unrivaled reliability.</p>
+            </div>
+
+            <div class="bento-grid">
+                <!-- Card 1: Concurrency (Span 8) -->
+                <div class="bento-card bento-col-8">
+                    <div>
+                        <div class="bento-icon-box">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <span class="bento-tag">CONCURRENCY ENGINE</span>
+                        <h3 class="bento-title">Zero Double-Booking Guarantee</h3>
+                        <p class="bento-desc">
+                            Our database transactions lock seats at the millisecond you select them. Multi-user race conditions are strictly eliminated through row-level locking and atomic checkout commits.
+                        </p>
+                    </div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);"><i class="fa-solid fa-check"></i> Sub-Millisecond Locks</span>
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);"><i class="fa-solid fa-check"></i> Automated Expiry Release</span>
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);"><i class="fa-solid fa-check"></i> 100% Collision-Free</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: 2D Interactive Seat Map (Span 4) -->
+                <div class="bento-card bento-col-4">
+                    <div>
+                        <div class="bento-icon-box">
+                            <i class="fa-solid fa-couch"></i>
+                        </div>
+                        <span class="bento-tag">CABIN COCKPIT</span>
+                        <h3 class="bento-title">Interactive 2D Seat Maps</h3>
+                        <p class="bento-desc">
+                            Inspect window views, aisle access, legroom pitch, and emergency exits dynamically before booking.
+                        </p>
+                    </div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle);">
+                        <a href="/flights" style="font-size: 0.9rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 0.4rem;">
+                            View Seat Cockpit <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 3: Dynamic Fares (Span 4) -->
+                <div class="bento-card bento-col-4">
+                    <div>
+                        <div class="bento-icon-box">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <span class="bento-tag">TRANSPARENT PRICING</span>
+                        <h3 class="bento-title">Transparent INR Fares</h3>
+                        <p class="bento-desc">
+                            Zero hidden convenience fees. Upfront breakdowns for base fare, airport security, and cabin privileges.
+                        </p>
+                    </div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle);">
+                        <span style="font-size: 0.88rem; font-weight: 700; color: var(--accent-emerald);"><i class="fa-solid fa-bolt"></i> Real-Time Fare Locks</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Web Check-in & Pass (Span 8) -->
+                <div class="bento-card bento-col-8">
+                    <div>
+                        <div class="bento-icon-box">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <span class="bento-tag">SELF SERVICE PORTAL</span>
+                        <h3 class="bento-title">Instant Web Check-in & Digital Boarding Pass</h3>
+                        <p class="bento-desc">
+                            Check in up to 48 hours before departure. Receive a scannable QR boarding pass with seat assignments ready for Apple Wallet, mobile download, or immediate printing.
+                        </p>
+                    </div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 1rem; align-items: center;">
+                        <a href="/manage?checkin=1" class="btn btn-primary btn-sm" style="border-radius: var(--radius-full);">
+                            <i class="fa-solid fa-qrcode"></i> Try Web Check-in
+                        </a>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Available for all confirmed reservations</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             LIVE STATS GRID (PROVEN TRACK RECORD OF EXCELLENCE)
+             ================================================================= -->
+        <section class="stats-section-hyper">
+            <div class="stats-grid-hyper">
+                <div class="stat-card-hyper">
+                    <div class="stat-number-gradient">500K+</div>
+                    <div class="stat-label-hyper">Satisfied Passengers</div>
+                </div>
+                <div class="stat-card-hyper">
+                    <div class="stat-number-gradient">99.8%</div>
+                    <div class="stat-label-hyper">On-Time Performance</div>
+                </div>
+                <div class="stat-card-hyper">
+                    <div class="stat-number-gradient">120+</div>
+                    <div class="stat-label-hyper">Direct Sky Routes</div>
+                </div>
+                <div class="stat-card-hyper">
+                    <div class="stat-number-gradient">0.0s</div>
+                    <div class="stat-label-hyper">Seat Race Collisions</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             FEATURED SCHEDULED FLIGHTS (VUE ENGINE)
+             ================================================================= -->
+        <section class="section-container" id="flights-section" style="padding-top: 4.5rem;">
             <div class="section-header-row">
                 <div>
                     <span class="section-tag">POPULAR DEPARTURES</span>
@@ -300,18 +546,18 @@
                     </div>
                 </div>
 
-                <!-- Empty state if local filters exclude all featured flights -->
-                <div v-if="filteredFlights.length === 0" class="empty-state-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 3rem 2rem; text-align: center; grid-column: 1 / -1;">
+                <!-- Empty State -->
+                <div v-if="filteredFlights.length === 0" class="empty-state-card" style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 3rem 2rem; text-align: center; grid-column: 1 / -1;">
                     <i class="fa-solid fa-plane-circle-exclamation" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 0.75rem;"></i>
                     <h3 style="font-size: 1.25rem; color: var(--accent-navy); margin-bottom: 0.5rem;">No Featured Flights for this Route</h3>
                     <p style="color: var(--text-subtle); max-width: 460px; margin: 0 auto 1.25rem auto;">
                         We operate scheduled flights across our full commercial network. Explore our complete schedule tracker or reset filters.
                     </p>
                     <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-                        <button class="btn btn-secondary btn-sm" @click="resetFilters">
-                            <i class="fa-solid fa-rotate-left"></i> Show All Featured Flights
+                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" id="btn-reset-featured-flights">
+                            <i class="fa-solid fa-rotate-left" style="color: var(--primary);"></i> Show All Featured Flights
                         </button>
-                        <button class="btn btn-primary btn-sm" @click="handleSearch">
+                        <button type="button" class="btn btn-primary btn-sm" @click="handleSearch" id="btn-search-all-schedules">
                             <i class="fa-solid fa-magnifying-glass"></i> Search All Schedules
                         </button>
                     </div>
@@ -319,248 +565,138 @@
             </div>
         </section>
 
-        <!-- Interactive 2D Cabin Seat Map Modal with Indian Rupee Pricing -->
-        <div v-if="activeFlight" class="modal-backdrop" id="booking-preview">
-            <div class="cabin-card" style="max-width: 820px; width: 100%; max-height: 90vh; overflow-y: auto;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                    <div>
-                        <span class="flight-tag">[[ activeFlight.flight_number ]] • [[ activeFlight.aircraft_model ]]</span>
-                        <h2 style="font-size: 1.7rem; color: var(--accent-navy);">
-                            [[ activeFlight.origin_city ]] ([[ activeFlight.origin_code ]]) → [[ activeFlight.dest_city ]] ([[ activeFlight.dest_code ]])
-                        </h2>
+        <!-- =================================================================
+             CABIN CLASS TIERS (HYPERDIGITAL PRICING STYLE)
+             ================================================================= -->
+        <section class="bento-section" style="padding-top: 2rem;">
+            <div class="bento-header">
+                <span class="section-tag">TIERED LUXURY</span>
+                <h2 style="font-size: 2.4rem; color: var(--accent-navy); margin: 0.5rem 0 0.8rem; font-weight: 800;">Choose Your Sky Sanctuary</h2>
+                <p style="color: var(--text-subtle); font-size: 1.05rem;">Tailored cabin experiences designed to elevate every mile of your journey.</p>
+            </div>
+
+            <div class="cabin-tiers-grid">
+                <!-- Economy Classic -->
+                <div class="cabin-tier-card">
+                    <h3 class="tier-name">Economy Classic</h3>
+                    <p class="tier-desc">Essential reliability and comfort for domestic travelers.</p>
+                    <div class="tier-price-box">
+                        <div class="tier-price-from">Starting from</div>
+                        <div class="tier-price-val">₹3,499</div>
                     </div>
-                    <button class="btn btn-secondary btn-sm" @click="activeFlight = null">
-                        <i class="fa-solid fa-xmark"></i> Close
-                    </button>
+                    <ul class="tier-features-list">
+                        <li><i class="fa-solid fa-check"></i> Standard Cabin Seat</li>
+                        <li><i class="fa-solid fa-check"></i> 7 kg Cabin Baggage</li>
+                        <li><i class="fa-solid fa-check"></i> 15 kg Check-in Baggage</li>
+                        <li><i class="fa-solid fa-check"></i> Complimentary Water & Snacks</li>
+                    </ul>
+                    <a href="/flights" class="btn btn-outline btn-sm" style="text-align: center; border-radius: var(--radius-md);">View Flights</a>
                 </div>
 
-                <!-- Seat Reservation Hold Timer Banner -->
-                <div v-if="selectedSeatsList.length > 0" class="seat-hold-banner">
-                    <div>
-                        <i class="fa-solid fa-clock"></i> Selected seats held exclusively for you during checkout
+                <!-- Economy Flex -->
+                <div class="cabin-tier-card">
+                    <h3 class="tier-name">Economy Flex</h3>
+                    <p class="tier-desc">Enhanced flexibility with seat selection and changes.</p>
+                    <div class="tier-price-box">
+                        <div class="tier-price-from">Starting from</div>
+                        <div class="tier-price-val">₹4,999</div>
                     </div>
-                    <div class="hold-timer-clock">
-                        04:59
-                    </div>
+                    <ul class="tier-features-list">
+                        <li><i class="fa-solid fa-check"></i> Free Seat Selection</li>
+                        <li><i class="fa-solid fa-check"></i> 7 kg Cabin + 20 kg Baggage</li>
+                        <li><i class="fa-solid fa-check"></i> Free Date Changes (Up to 24h)</li>
+                        <li><i class="fa-solid fa-check"></i> Hot Beverage Service</li>
+                    </ul>
+                    <a href="/flights" class="btn btn-outline btn-sm" style="text-align: center; border-radius: var(--radius-md);">View Flights</a>
                 </div>
 
-                <!-- Seat Legend -->
-                <div class="seat-legend">
-                    <div class="legend-item"><span class="legend-box seat-sample available"></span> Available</div>
-                    <div class="legend-item"><span class="legend-box seat-sample selected"></span> Selected</div>
-                    <div class="legend-item"><span class="legend-box seat-sample booked"></span> Occupied</div>
-                    <div class="legend-item"><span class="legend-box seat-sample first-class"></span> First Class</div>
-                    <div class="legend-item"><span class="legend-box seat-sample business"></span> Business</div>
+                <!-- Business Class (Featured Glow) -->
+                <div class="cabin-tier-card tier-featured">
+                    <span class="tier-featured-pill">MOST POPULAR</span>
+                    <h3 class="tier-name">Business Class</h3>
+                    <p class="tier-desc">Recliner suites, lounge access, and gourmet in-flight dining.</p>
+                    <div class="tier-price-box">
+                        <div class="tier-price-from">Starting from</div>
+                        <div class="tier-price-val">₹8,999</div>
+                    </div>
+                    <ul class="tier-features-list">
+                        <li><i class="fa-solid fa-check"></i> Widebody Lie-Flat Suites</li>
+                        <li><i class="fa-solid fa-check"></i> VIP Airport Lounge Access</li>
+                        <li><i class="fa-solid fa-check"></i> Priority Baggage & Fast-Track</li>
+                        <li><i class="fa-solid fa-check"></i> Chef-Curated Multi-Course Menu</li>
+                    </ul>
+                    <a href="/flights" class="btn btn-primary btn-sm" style="text-align: center; border-radius: var(--radius-md); box-shadow: 0 4px 14px var(--primary-glow);">Select Business</a>
                 </div>
 
-                <!-- Aircraft Fuselage Simulation -->
-                <div class="aircraft-fuselage">
-                    <div class="cockpit-nose">
-                        <i class="fa-solid fa-plane"></i> COCKPIT NOSE
+                <!-- First Class -->
+                <div class="cabin-tier-card">
+                    <h3 class="tier-name">First Sanctuary</h3>
+                    <p class="tier-desc">Enclosed private suite with dedicated concierge service.</p>
+                    <div class="tier-price-box">
+                        <div class="tier-price-from">Starting from</div>
+                        <div class="tier-price-val">₹14,999</div>
                     </div>
+                    <ul class="tier-features-list">
+                        <li><i class="fa-solid fa-check"></i> Fully Private Sliding Door Suite</li>
+                        <li><i class="fa-solid fa-check"></i> Chauffeur Airport Transfer</li>
+                        <li><i class="fa-solid fa-check"></i> 40 kg Baggage Allowance</li>
+                        <li><i class="fa-solid fa-check"></i> Ultra-Fast Satellite Wi-Fi</li>
+                    </ul>
+                    <a href="/flights" class="btn btn-outline btn-sm" style="text-align: center; border-radius: var(--radius-md);">View Sanctuary</a>
+                </div>
+            </div>
+        </section>
 
-                    <!-- First Class -->
-                    <div class="cabin-class-block">
-                        <div class="cabin-class-title">First Class Suites</div>
-                        <div class="cabin-rows">
-                            <div v-for="r in [1, 2]" :key="'fc-' + r" class="cabin-row">
-                                <div class="row-number">[[ r ]]</div>
-                                <div class="seat-side left">
-                                    <button 
-                                        v-for="c in ['A', 'B']" :key="r + c" type="button"
-                                        :class="['seat-btn class-first', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
-                                        :disabled="isOccupied(r + c)"
-                                        :title="(r + c) + ' - ₹' + formatINR(activeFlight.base_price * 2.2)"
-                                        @click="toggleSeat(r + c, 2.2)"
-                                    >
-                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
-                                        <span v-else>[[ c ]]</span>
-                                    </button>
-                                </div>
-                                <div class="aisle-walkway"></div>
-                                <div class="seat-side right">
-                                    <button 
-                                        v-for="c in ['E', 'F']" :key="r + c" type="button"
-                                        :class="['seat-btn class-first', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
-                                        :disabled="isOccupied(r + c)"
-                                        :title="(r + c) + ' - ₹' + formatINR(activeFlight.base_price * 2.2)"
-                                        @click="toggleSeat(r + c, 2.2)"
-                                    >
-                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
-                                        <span v-else>[[ c ]]</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+        <!-- =================================================================
+             FAQ ACCORDION & DIRECT CONTACT DOCK
+             ================================================================= -->
+        <section class="bento-section" style="padding-top: 2rem;">
+            <div class="bento-header">
+                <span class="section-tag">HELP & SUPPORT</span>
+                <h2 style="font-size: 2.4rem; color: var(--accent-navy); margin: 0.5rem 0 0.8rem; font-weight: 800;">Frequently Asked Questions</h2>
+                <p style="color: var(--text-subtle); font-size: 1.05rem;">Quick answers about booking, seat locking, and web check-in.</p>
+            </div>
+
+            <div class="faq-accordion-group" style="max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;">
+                <div class="faq-card open" onclick="this.classList.toggle('open')">
+                    <div class="faq-card-header">
+                        <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How does CloudSky prevent double seat bookings?</h4>
+                        <i class="fa-solid fa-chevron-down faq-chevron"></i>
                     </div>
-
-                    <!-- Business Class -->
-                    <div class="cabin-class-block">
-                        <div class="cabin-class-title">Business Class</div>
-                        <div class="cabin-rows">
-                            <div v-for="r in [3, 4, 5]" :key="'bc-' + r" class="cabin-row">
-                                <div class="row-number">[[ r ]]</div>
-                                <div class="seat-side left">
-                                    <button 
-                                        v-for="c in ['A', 'B', 'C']" :key="r + c" type="button"
-                                        :class="['seat-btn class-business', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
-                                        :disabled="isOccupied(r + c)"
-                                        :title="(r + c) + ' - ₹' + formatINR(activeFlight.base_price * 1.6)"
-                                        @click="toggleSeat(r + c, 1.6)"
-                                    >
-                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
-                                        <span v-else>[[ c ]]</span>
-                                    </button>
-                                </div>
-                                <div class="aisle-walkway"></div>
-                                <div class="seat-side right">
-                                    <button 
-                                        v-for="c in ['D', 'E', 'F']" :key="r + c" type="button"
-                                        :class="['seat-btn class-business', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
-                                        :disabled="isOccupied(r + c)"
-                                        :title="(r + c) + ' - ₹' + formatINR(activeFlight.base_price * 1.6)"
-                                        @click="toggleSeat(r + c, 1.6)"
-                                    >
-                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
-                                        <span v-else>[[ c ]]</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Economy Class -->
-                    <div class="cabin-class-block">
-                        <div class="cabin-class-title">Economy Class</div>
-                        <div class="cabin-rows">
-                            <div v-for="r in [7, 8, 9, 10, 11]" :key="'ec-' + r" class="cabin-row">
-                                <div class="row-number">[[ r ]]</div>
-                                <div class="seat-side left">
-                                    <button 
-                                        v-for="c in ['A', 'B', 'C']" :key="r + c" type="button"
-                                        :class="['seat-btn', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
-                                        :disabled="isOccupied(r + c)"
-                                        :title="(r + c) + ' - ₹' + formatINR(activeFlight.base_price)"
-                                        @click="toggleSeat(r + c, 1.0)"
-                                    >
-                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
-                                        <span v-else>[[ c ]]</span>
-                                    </button>
-                                </div>
-                                <div class="aisle-walkway"></div>
-                                <div class="seat-side right">
-                                    <button 
-                                        v-for="c in ['D', 'E', 'F']" :key="r + c" type="button"
-                                        :class="['seat-btn', isSeatSelected(r + c) ? 'selected' : (isOccupied(r + c) ? 'booked' : 'available')]"
-                                        :disabled="isOccupied(r + c)"
-                                        :title="(r + c) + ' - ₹' + formatINR(activeFlight.base_price)"
-                                        @click="toggleSeat(r + c, 1.0)"
-                                    >
-                                        <i v-if="isOccupied(r + c)" class="fa-solid fa-xmark"></i>
-                                        <span v-else>[[ c ]]</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="faq-answer">
+                        <p>When you select a seat, our database places an atomic row-level lock with a 5-minute timeout. No other user can select or checkout with that seat until your session completes or expires.</p>
                     </div>
                 </div>
-
-                <!-- Price & Booking Summary in INR -->
-                <div style="margin-top: 2rem; background: var(--bg-surface-subtle); padding: 1.25rem 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 0.85rem; color: var(--text-subtle);">Selected Seats: <strong>[[ selectedSeatsList.join(', ') || 'None' ]]</strong></div>
-                        <div style="font-size: 1.45rem; font-weight: 800; color: var(--primary);">Total Fare: ₹[[ formatINR(totalPrice) ]]</div>
+                <div class="faq-card" onclick="this.classList.toggle('open')">
+                    <div class="faq-card-header">
+                        <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> When can I perform Web Check-in?</h4>
+                        <i class="fa-solid fa-chevron-down faq-chevron"></i>
                     </div>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button class="btn btn-secondary" @click="activeFlight = null">Cancel</button>
-                        <button class="btn btn-primary" :disabled="selectedSeatsList.length === 0" @click="showSuccessPass = true">
-                            <i class="fa-solid fa-lock"></i> Confirm & Book
-                        </button>
+                    <div class="faq-answer">
+                        <p>Web check-in opens 48 hours prior to your scheduled departure and remains open until 60 minutes before takeoff. You receive an instant printable boarding pass with a verified QR code.</p>
+                    </div>
+                </div>
+                <div class="faq-card" onclick="this.classList.toggle('open')">
+                    <div class="faq-card-header">
+                        <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How can I change or cancel my reservation?</h4>
+                        <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Visit the Manage Booking portal using your 6-character PNR code and passenger surname. You can modify seat assignments or cancel with instant refund computation based on your fare class.</p>
+                    </div>
+                </div>
+                <div class="faq-card" onclick="this.classList.toggle('open')">
+                    <div class="faq-card-header">
+                        <h4><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> What baggage allowance is included in my ticket?</h4>
+                        <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Economy Classic includes 7 kg cabin baggage and 15 kg check-in baggage. Business Class and First Sanctuary enjoy expanded allowances up to 40 kg with priority handling.</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Realistic Boarding Pass Preview Modal in INR -->
-        <div v-if="showSuccessPass" class="modal-backdrop">
-            <div class="boarding-pass-card" id="printable-boarding-pass">
-                <div class="bp-header">
-                    <div class="bp-airline">
-                        <i class="fa-solid fa-plane-departure"></i> CloudSky Airways
-                    </div>
-                    <div class="bp-type">OFFICIAL BOARDING PASS</div>
-                </div>
-
-                <div class="bp-body">
-                    <div class="bp-main">
-                        <div class="bp-row">
-                            <div class="bp-field">
-                                <label>PASSENGER NAME</label>
-                                <div class="val">Rohan Sharma</div>
-                            </div>
-                            <div class="bp-field">
-                                <label>BOOKING REFERENCE (PNR)</label>
-                                <div class="val pnr-code">CS-7K9A2M</div>
-                            </div>
-                        </div>
-
-                        <div class="bp-row">
-                            <div class="bp-field">
-                                <label>FLIGHT</label>
-                                <div class="val">[[ activeFlight ? activeFlight.flight_number : 'CS-101' ]]</div>
-                            </div>
-                            <div class="bp-field">
-                                <label>AIRCRAFT</label>
-                                <div class="val">[[ activeFlight ? activeFlight.aircraft_model : 'Boeing 737 MAX 8' ]]</div>
-                            </div>
-                            <div class="bp-field">
-                                <label>ASSIGNED SEATS</label>
-                                <div class="val highlight">[[ selectedSeatsList.join(', ') ]]</div>
-                            </div>
-                        </div>
-
-                        <div class="bp-row route-row">
-                            <div class="bp-field">
-                                <label>FROM</label>
-                                <div class="val airport">[[ activeFlight ? activeFlight.origin_city + ' (' + activeFlight.origin_code + ')' : 'New Delhi (DEL)' ]]</div>
-                            </div>
-                            <div class="bp-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                            <div class="bp-field">
-                                <label>TO</label>
-                                <div class="val airport">[[ activeFlight ? activeFlight.dest_city + ' (' + activeFlight.dest_code + ')' : 'Mumbai (BOM)' ]]</div>
-                            </div>
-                        </div>
-
-                        <div class="bp-row">
-                            <div class="bp-field">
-                                <label>DEPARTURE TIME</label>
-                                <div class="val">[[ activeFlight ? activeFlight.departure_time : '09:00' ]]</div>
-                            </div>
-                            <div class="bp-field">
-                                <label>TOTAL FARE PAID</label>
-                                <div class="val" style="color: var(--accent-emerald); font-weight: 800;">₹[[ formatINR(totalPrice) ]]</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bp-stub">
-                        <div class="stub-barcode">
-                            <div class="barcode-lines"></div>
-                            <span class="barcode-text">*CS-7K9A2M*</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bp-actions">
-                    <button type="button" class="btn btn-secondary" onclick="window.print()">
-                        <i class="fa-solid fa-print"></i> Print Boarding Pass
-                    </button>
-                    <button type="button" class="btn btn-primary" @click="showSuccessPass = false; activeFlight = null; selectedSeats = {}">
-                        Done
-                    </button>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- Luxury Commercial Airline Footer -->
@@ -593,8 +729,8 @@
                 <ul>
                     <li><a href="/manage"><i class="fa-solid fa-ticket"></i> Web Check-in & Boarding Pass</a></li>
                     <li><a href="/flights"><i class="fa-solid fa-calendar-days"></i> Flight Schedule Tracker</a></li>
-                    <li><a href="/info/dining"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
-                    <li><a href="/info/baggage"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
+                    <li><a href="/info?section=dining"><i class="fa-solid fa-utensils"></i> In-flight Dining & Wi-Fi</a></li>
+                    <li><a href="/info?section=baggage"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Guidelines</a></li>
                 </ul>
             </div>
 
@@ -603,8 +739,8 @@
                 <ul>
                     <li><a href="tel:18002097755"><i class="fa-solid fa-phone"></i> 1800-209-7755 (Toll-Free)</a></li>
                     <li><a href="mailto:concierge@cloudsky.in"><i class="fa-solid fa-envelope"></i> concierge@cloudsky.in</a></li>
-                    <li><a href="/info/faq"><i class="fa-solid fa-circle-question"></i> FAQs & Assistance</a></li>
-                    <li><a href="/info/cancellation"><i class="fa-solid fa-rotate-left"></i> Cancellation Policy</a></li>
+                    <li><a href="/info?section=faq"><i class="fa-solid fa-circle-question"></i> FAQs & Assistance</a></li>
+                    <li><a href="/info?section=cancellation"><i class="fa-solid fa-rotate-left"></i> Cancellation Policy</a></li>
                 </ul>
             </div>
         </div>
@@ -612,93 +748,57 @@
         <div class="footer-bottom">
             <p>© 2026 CloudSky Airways Ltd. All rights reserved.</p>
             <div class="footer-bottom-links">
-                <a href="/info/privacy">Privacy Policy</a>
-                <a href="/info/terms">Terms & Conditions</a>
-                <a href="/info/passenger-rights">Passenger Rights</a>
+                <a href="/info?section=privacy">Privacy Policy</a>
+                <a href="/info?section=terms">Terms & Conditions</a>
+                <a href="/info?section=passenger-rights">Passenger Rights</a>
             </div>
         </div>
     </footer>
 
-    <!-- Embedded JSON Data for Flask Server-Rendered Featured Flights -->
+    <!-- Serialized Invariant Data for Vue Hydration & Test Validation -->
     <script id="featured-flights-data" type="application/json">
-        {{ featured_flights_json | tojson | safe if featured_flights_json else '[]' }}
+        {{ featured_flights_json|tojson if featured_flights_json else '[]' }}
     </script>
 
-    <!-- Vue 3 Interactive Script with Indian Rupee Formatting -->
+    <!-- Vue 3 Application & Script Initialization -->
     <script>
         const { createApp, ref, computed, onMounted } = Vue;
-
-        // Parse server-rendered featured flights if available
-        let initialFeaturedFlights = null;
-        try {
-            const dataEl = document.getElementById("featured-flights-data");
-            if (dataEl && dataEl.textContent.trim()) {
-                const parsed = JSON.parse(dataEl.textContent);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    initialFeaturedFlights = parsed;
-                }
-            }
-        } catch (e) {}
 
         createApp({
             delimiters: ['[[', ']]'],
             setup() {
-                const airports = ref([
-                    { code: "DEL", city: "New Delhi", name: "Indira Gandhi Intl" },
-                    { code: "BOM", city: "Mumbai", name: "Chhatrapati Shivaji Maharaj Intl" },
-                    { code: "BLR", city: "Bengaluru", name: "Kempegowda Intl" },
-                    { code: "HYD", city: "Hyderabad", name: "Rajiv Gandhi Intl" },
-                    { code: "MAA", city: "Chennai", name: "Chennai Intl" },
-                    { code: "CCU", city: "Kolkata", name: "Netaji Subhash Chandra Bose Intl" },
-                    { code: "DXB", city: "Dubai", name: "Dubai International" },
-                    { code: "SIN", city: "Singapore", name: "Changi Airport" },
-                    { code: "LHR", city: "London", name: "Heathrow Airport" },
-                    { code: "JFK", city: "New York", name: "John F. Kennedy Intl" }
-                ]);
-
-                const flights = ref(initialFeaturedFlights || [
-                    { id: 1, flight_number: "CS-101", origin_code: "DEL", origin_city: "New Delhi", dest_code: "BOM", dest_city: "Mumbai", departure_time: "09:00", arrival_time: "11:15", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 8", base_price: 5499.00, status: "Scheduled", available_seats: 64 },
-                    { id: 2, flight_number: "CS-103", origin_code: "DEL", origin_city: "New Delhi", dest_code: "BLR", dest_city: "Bengaluru", departure_time: "13:00", arrival_time: "15:45", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 6899.00, status: "Scheduled", available_seats: 58 },
-                    { id: 3, flight_number: "CS-201", origin_code: "BOM", origin_city: "Mumbai", dest_code: "DXB", dest_city: "Dubai", departure_time: "17:00", arrival_time: "20:30", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 16999.00, status: "Scheduled", available_seats: 48 },
-                    { id: 4, flight_number: "CS-301", origin_code: "BLR", origin_city: "Bengaluru", dest_code: "SIN", dest_city: "Singapore", departure_time: "21:00", arrival_time: "05:30", date: "2026-09-28", aircraft_model: "Airbus A350-900", base_price: 21500.00, status: "Scheduled", available_seats: 52 },
-                    { id: 5, flight_number: "CS-401", origin_code: "DEL", origin_city: "New Delhi", dest_code: "LHR", dest_city: "London", departure_time: "06:00", arrival_time: "15:00", date: "2026-09-28", aircraft_model: "Boeing 777-300ER", base_price: 42500.00, status: "Scheduled", available_seats: 60 },
-                    { id: 6, flight_number: "CS-501", origin_code: "BOM", origin_city: "Mumbai", dest_code: "JFK", dest_city: "New York", departure_time: "01:30", arrival_time: "17:00", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 68000.00, status: "Scheduled", available_seats: 38 },
-                    { id: 7, flight_number: "CS-105", origin_code: "HYD", origin_city: "Hyderabad", dest_code: "MAA", dest_city: "Chennai", departure_time: "10:30", arrival_time: "11:45", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 8", base_price: 4200.00, status: "Scheduled", available_seats: 54 },
-                    { id: 8, flight_number: "CS-107", origin_code: "CCU", origin_city: "Kolkata", dest_code: "DEL", dest_city: "New Delhi", departure_time: "14:15", arrival_time: "16:40", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 5800.00, status: "Scheduled", available_seats: 62 },
-                    { id: 9, flight_number: "CS-203", origin_code: "DEL", origin_city: "New Delhi", dest_code: "DXB", dest_city: "Dubai", departure_time: "19:45", arrival_time: "22:15", date: "2026-09-28", aircraft_model: "Boeing 787-9 Dreamliner", base_price: 15400.00, status: "Scheduled", available_seats: 44 },
-                    { id: 10, flight_number: "CS-403", origin_code: "BOM", origin_city: "Mumbai", dest_code: "LHR", dest_city: "London", departure_time: "08:15", arrival_time: "13:30", date: "2026-09-28", aircraft_model: "Airbus A350-900", base_price: 44800.00, status: "Scheduled", available_seats: 50 },
-                    { id: 11, flight_number: "CS-109", origin_code: "BLR", origin_city: "Bengaluru", dest_code: "DEL", dest_city: "New Delhi", departure_time: "18:20", arrival_time: "21:05", date: "2026-09-28", aircraft_model: "Boeing 737 MAX 8", base_price: 6499.00, status: "Scheduled", available_seats: 56 },
-                    { id: 12, flight_number: "CS-111", origin_code: "MAA", origin_city: "Chennai", dest_code: "BOM", dest_city: "Mumbai", departure_time: "16:10", arrival_time: "18:00", date: "2026-09-28", aircraft_model: "Airbus A321neo", base_price: 4950.00, status: "Scheduled", available_seats: 66 }
-                ]);
-
+                const airports = ref([]);
+                const flights = ref([]);
                 const selectedOrigin = ref("");
                 const selectedDestination = ref("");
                 const selectedDate = ref("");
-                const activeFlight = ref(null);
-                const showSuccessPass = ref(false);
-                const selectedSeats = ref({});
-                const occupiedSeats = ref(new Set(["1B", "3A", "3F", "8C", "10A"]));
 
                 const formatINR = (val) => {
-                    if (!val) return "0";
-                    return Number(val).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                    if (!val && val !== 0) return "0";
+                    return Number(val).toLocaleString('en-IN');
                 };
 
                 onMounted(async () => {
-                    const today = new Date().toISOString().split("T")[0];
-                    selectedDate.value = today;
-
-                    try {
-                        const res = await fetch('/api/airports');
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data && data.length > 0) airports.value = data;
-                        }
-                    } catch (e) {
-                        // Live Server fallback
+                    // Hydrate flights from server payload
+                    const scriptTag = document.getElementById("featured-flights-data");
+                    let initialFeaturedFlights = null;
+                    if (scriptTag && scriptTag.textContent.trim()) {
+                        try {
+                            const parsed = JSON.parse(scriptTag.textContent);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                initialFeaturedFlights = parsed;
+                                flights.value = parsed;
+                            }
+                        } catch (e) {}
                     }
 
-                    // Fetch latest live flights from backend if not already hydrated from server
+                    // Fetch airports list
+                    try {
+                        const aRes = await fetch('/api/airports');
+                        if (aRes.ok) airports.value = await aRes.json();
+                    } catch (e) {}
+
+                    // Fetch latest live flights if not hydrated
                     if (!initialFeaturedFlights || initialFeaturedFlights.length < 12) {
                         try {
                             const fRes = await fetch('/api/flights?limit=12');
@@ -706,9 +806,7 @@
                                 const fData = await fRes.json();
                                 if (fData && fData.length > 0) flights.value = fData;
                             }
-                        } catch (e) {
-                            // Live Server fallback
-                        }
+                        } catch (e) {}
                     }
                 });
 
@@ -740,44 +838,10 @@
                     window.location.href = `/flights?origin=${orig}&destination=${dest}&date=${dt}`;
                 };
 
-                const openSeatModal = (flight) => {
-                    if (!flight || !flight.id) return;
-                    window.location.href = `/booking/${flight.id}`;
-                };
-
                 const goToBooking = (flightId) => {
                     if (!flightId) return;
                     window.location.href = `/booking/${flightId}`;
                 };
-
-                const isSeatSelected = (seatNum) => {
-                    return !!selectedSeats.value[seatNum];
-                };
-
-                const isOccupied = (seatNum) => {
-                    return occupiedSeats.value.has(seatNum);
-                };
-
-                const toggleSeat = (seatNum, multiplier) => {
-                    if (occupiedSeats.value.has(seatNum)) return;
-                    const next = { ...selectedSeats.value };
-                    if (next[seatNum]) {
-                        delete next[seatNum];
-                    } else {
-                        next[seatNum] = multiplier;
-                    }
-                    selectedSeats.value = next;
-                };
-
-                const selectedSeatsList = computed(() => {
-                    return Object.keys(selectedSeats.value);
-                });
-
-                const totalPrice = computed(() => {
-                    if (!activeFlight.value) return 0;
-                    const base = activeFlight.value.base_price;
-                    return Object.values(selectedSeats.value).reduce((sum, mult) => sum + (base * mult), 0);
-                });
 
                 return {
                     airports,
@@ -786,25 +850,62 @@
                     selectedDestination,
                     selectedDate,
                     filteredFlights,
-                    activeFlight,
-                    showSuccessPass,
-                    selectedSeats,
-                    selectedSeatsList,
-                    totalPrice,
                     formatINR,
                     swapAirports,
                     resetFilters,
                     handleSearch,
-                    openSeatModal,
-                    goToBooking,
-                    isSeatSelected,
-                    isOccupied,
-                    toggleSeat
+                    goToBooking
                 };
             }
         }).mount('#home-vue-app');
 
-        function initHeaderInteractions() {
+        // Theme and Navigation Handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Theme toggle
+            const themeBtn = document.getElementById("theme-toggle-btn");
+            if (themeBtn) {
+                themeBtn.addEventListener("click", () => {
+                    const isDark = document.documentElement.classList.toggle("dark");
+                    const newTheme = isDark ? "dark" : "light";
+                    document.documentElement.style.colorScheme = newTheme;
+                    try {
+                        localStorage.setItem("csa-theme", newTheme);
+                    } catch(e) {}
+                });
+            }
+
+            // Mobile drawer toggle
+            const mobileBtn = document.getElementById("mobile-toggle-btn");
+            const mobileDrawer = document.getElementById("mobile-drawer");
+            const mobileOverlay = document.getElementById("mobile-drawer-overlay");
+            const mobileClose = document.getElementById("mobile-drawer-close");
+
+            function toggleDrawer(open) {
+                if (mobileDrawer && mobileOverlay) {
+                    if (open) {
+                        mobileDrawer.classList.add("active");
+                        mobileOverlay.classList.add("active");
+                        if (mobileBtn) mobileBtn.classList.add("is-active");
+                        document.body.style.overflow = "hidden";
+                    } else {
+                        mobileDrawer.classList.remove("active");
+                        mobileOverlay.classList.remove("active");
+                        if (mobileBtn) mobileBtn.classList.remove("is-active");
+                        document.body.style.overflow = "";
+                    }
+                }
+            }
+
+            if (mobileBtn) {
+                mobileBtn.addEventListener("click", () => {
+                    const isOpen = mobileDrawer && mobileDrawer.classList.contains("active");
+                    toggleDrawer(!isOpen);
+                });
+            }
+            if (mobileClose) mobileClose.addEventListener("click", () => toggleDrawer(false));
+            if (mobileOverlay) mobileOverlay.addEventListener("click", () => toggleDrawer(false));
+
+            // User dropdown
             const userBtn = document.getElementById("user-menu-btn");
             const dropdown = document.getElementById("user-dropdown-menu");
             if (userBtn && dropdown) {
@@ -817,70 +918,24 @@
                 });
             }
 
-            const navHome = document.getElementById("nav-home");
-            if (navHome) {
-                navHome.addEventListener("click", (e) => {
-                    const searchSection = document.getElementById("flight-search-form") || document.querySelector(".search-card");
-                    if (searchSection) {
-                        e.preventDefault();
-                        searchSection.scrollIntoView({ behavior: "smooth", block: "center" });
-                        searchSection.classList.remove("search-card-pulse");
-                        void searchSection.offsetWidth;
-                        searchSection.classList.add("search-card-pulse");
+            // Floating Quick Action Button Scroll Trigger
+            const floatingBtn = document.getElementById("floating-quick-btn");
+            if (floatingBtn) {
+                window.addEventListener("scroll", () => {
+                    if (window.scrollY > 300) {
+                        floatingBtn.classList.add("visible");
+                    } else {
+                        floatingBtn.classList.remove("visible");
                     }
-                });
+                }, { passive: true });
             }
-
-            // Static preview / Live Server friendly navigation
-            if (window.location.port === '5500' || window.location.protocol === 'file:') {
-                const navFlights = document.getElementById("nav-flights");
-                if (navFlights) {
-                    navFlights.addEventListener("click", (e) => {
-                        const flightsSection = document.querySelector(".featured-section") || document.querySelector(".section-container");
-                        if (flightsSection) {
-                            e.preventDefault();
-                            flightsSection.scrollIntoView({ behavior: "smooth" });
-                        }
-                    });
-                }
-
-                function showBackendNotice(e, actionName) {
-                    e.preventDefault();
-                    let toastContainer = document.getElementById("preview-toast-container");
-                    if (!toastContainer) {
-                        toastContainer = document.createElement("div");
-                        toastContainer.id = "preview-toast-container";
-                        toastContainer.className = "toast-container";
-                        document.body.appendChild(toastContainer);
-                    }
-                    const toast = document.createElement("div");
-                    toast.className = "toast-card toast-info";
-                    toast.innerHTML = '<i class="fa-solid fa-circle-info"></i><span><strong>Live Server Preview:</strong> ' + actionName + ' requires the Flask backend. Start Flask with <code>python run.py</code> and open <a href="http://127.0.0.1:5000" style="text-decoration: underline; color: var(--primary); font-weight: 700;">http://127.0.0.1:5000</a></span>';
-                    toastContainer.appendChild(toast);
-                    setTimeout(() => {
-                        toast.style.opacity = '0';
-                        toast.style.transition = 'opacity 0.4s ease';
-                        setTimeout(() => toast.remove(), 400);
-                    }, 6000);
-                }
-
-                ["nav-checkin", "nav-manage", "nav-signin", "nav-signup"].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.addEventListener("click", (e) => {
-                            const name = el.textContent.trim() || "This feature";
-                            showBackendNotice(e, name);
-                        });
-                    }
-                });
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initHeaderInteractions);
-        } else {
-            initHeaderInteractions();
-        }
+        });
     </script>
+
+    <!-- Floating Quick Action Dock Button (HyperDigital Signature) -->
+    <a href="#flight-search-form" class="floating-quick-btn" id="floating-quick-btn" aria-label="Book Flight Quick Action">
+        <i class="fa-solid fa-plane-departure"></i>
+        <span>Book Flight</span>
+    </a>
 </body>
 </html>

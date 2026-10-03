@@ -14,6 +14,21 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- Luxury Airline Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Immediate Zero-Flicker Theme Detection (HyperDigital Pattern) -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('csa-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                }
+            } catch(e) {}
+        })();
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -79,9 +94,63 @@
                         <i class="fa-solid fa-user-plus"></i> Sign Up
                     </a>
                 {% endif %}
+
+                <!-- Dark / Light Theme Toggle -->
+                <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Dark/Light Mode" title="Toggle Theme">
+                    <i class="fa-solid fa-sun theme-icon-sun"></i>
+                    <i class="fa-solid fa-moon theme-icon-moon"></i>
+                </button>
+
+                <!-- Mobile Menu Button (HyperDigital 2-Bar Animated Morph) -->
+                <button type="button" class="mobile-toggle-btn" id="mobile-toggle-btn" aria-label="Toggle Navigation Menu">
+                    <span class="hamburger-bar bar-1"></span>
+                    <span class="hamburger-bar bar-2"></span>
+                </button>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Drawer Overlay & Drawer -->
+    <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
+    <aside class="mobile-drawer" id="mobile-drawer" aria-label="Mobile Navigation">
+        <div class="mobile-drawer-header">
+            <div class="brand-text">
+                <span class="brand-name" style="font-size: 1.25rem;">CloudSky</span>
+                <span class="brand-sub">AIRWAYS</span>
+            </div>
+            <button type="button" class="theme-toggle-btn" id="mobile-drawer-close" aria-label="Close Navigation">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <nav class="mobile-nav-links">
+            <a href="{{ url_for('main.index') }}#flight-search-form" class="{% if request.endpoint == 'main.index' %}active{% endif %}">
+                <i class="fa-solid fa-compass"></i> Book Flights
+            </a>
+            <a href="{{ url_for('main.flights_search') }}" class="{% if request.endpoint == 'main.flights_search' %}active{% endif %}">
+                <i class="fa-solid fa-plane-up"></i> Schedules & Fares
+            </a>
+            <a href="{{ url_for('main.manage') }}" class="{% if request.endpoint == 'main.manage' and not request.args.get('checkin') %}active{% endif %}">
+                <i class="fa-solid fa-ticket"></i> Manage Booking
+            </a>
+            <a href="{{ url_for('main.manage') }}?checkin=1" class="{% if request.args.get('checkin') %}active{% endif %}">
+                <i class="fa-solid fa-qrcode"></i> Web Check-in
+            </a>
+            <a href="{{ url_for('main.index') }}#fleet">
+                <i class="fa-solid fa-plane"></i> Our Fleet & Alliances
+            </a>
+        </nav>
+        <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 0.75rem;">
+            {% if current_user %}
+                <div style="font-size: 0.9rem; color: var(--text-muted);">
+                    Signed in as <strong>{{ current_user.name }}</strong>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm" style="text-align: center;">Sign Out</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm" style="text-align: center;">Sign In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm" style="text-align: center;">Sign Up</a>
+            {% endif %}
+        </div>
+    </aside>
 
     <!-- Flash Notifications Container -->
     <div class="toast-container">
@@ -160,6 +229,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // User dropdown
             const userBtn = document.getElementById("user-menu-btn");
             const dropdown = document.getElementById("user-dropdown-menu");
             if (userBtn && dropdown) {
@@ -171,8 +241,74 @@
                     dropdown.classList.remove("show");
                 });
             }
+
+            // Dark / Light Theme Toggle Handler (HyperDigital Match)
+            const themeBtn = document.getElementById("theme-toggle-btn");
+            if (themeBtn) {
+                themeBtn.addEventListener("click", () => {
+                    const isDark = document.documentElement.classList.toggle("dark");
+                    const newTheme = isDark ? "dark" : "light";
+                    document.documentElement.style.colorScheme = newTheme;
+                    try {
+                        localStorage.setItem("csa-theme", newTheme);
+                    } catch(e) {}
+                });
+            }
+
+            // Mobile Navigation Drawer Toggle
+            const mobileBtn = document.getElementById("mobile-toggle-btn");
+            const mobileDrawer = document.getElementById("mobile-drawer");
+            const mobileOverlay = document.getElementById("mobile-drawer-overlay");
+            const mobileClose = document.getElementById("mobile-drawer-close");
+
+            function toggleDrawer(open) {
+                if (mobileDrawer && mobileOverlay) {
+                    if (open) {
+                        mobileDrawer.classList.add("active");
+                        mobileOverlay.classList.add("active");
+                        if (mobileBtn) mobileBtn.classList.add("is-active");
+                        document.body.style.overflow = "hidden";
+                    } else {
+                        mobileDrawer.classList.remove("active");
+                        mobileOverlay.classList.remove("active");
+                        if (mobileBtn) mobileBtn.classList.remove("is-active");
+                        document.body.style.overflow = "";
+                    }
+                }
+            }
+
+            if (mobileBtn) {
+                mobileBtn.addEventListener("click", () => {
+                    const isOpen = mobileDrawer && mobileDrawer.classList.contains("active");
+                    toggleDrawer(!isOpen);
+                });
+            }
+            if (mobileClose) {
+                mobileClose.addEventListener("click", () => toggleDrawer(false));
+            }
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener("click", () => toggleDrawer(false));
+            }
+
+            // Floating Quick Action Button Scroll Trigger
+            const floatingBtn = document.getElementById("floating-quick-btn");
+            if (floatingBtn) {
+                window.addEventListener("scroll", () => {
+                    if (window.scrollY > 300) {
+                        floatingBtn.classList.add("visible");
+                    } else {
+                        floatingBtn.classList.remove("visible");
+                    }
+                }, { passive: true });
+            }
         });
     </script>
     {% block extra_scripts %}{% endblock %}
+
+    <!-- Floating Quick Action Dock Button (HyperDigital Signature) -->
+    <a href="{{ url_for('main.index') }}#flight-search-form" class="floating-quick-btn" id="floating-quick-btn" aria-label="Book Flight Quick Action">
+        <i class="fa-solid fa-plane-departure"></i>
+        <span>Book Flight</span>
+    </a>
 </body>
 </html>

@@ -105,7 +105,7 @@
             </div>
 
             <!-- Route & Flight Information Card -->
-            <div class="booking-detail-card" style="box-shadow: var(--shadow-sm); border: 1.5px solid var(--border-card); border-radius: var(--radius-lg); background: #FFFFFF; padding: 2rem;">
+            <div class="booking-detail-card" style="box-shadow: var(--shadow-sm); border: 1.5px solid var(--border-card); border-radius: var(--radius-lg); background: var(--bg-surface); color: var(--text-main); padding: 2rem;">
                 <div class="route-display" style="padding: 1rem 0 1.5rem 0;">
                     <div class="route-point">
                         <div class="route-code">[[ booking.origin_code ]]</div>
@@ -175,7 +175,7 @@
                             </div>
 
                             <div style="display: flex; align-items: center; gap: 1rem;">
-                                <span class="seat-pill-tag" style="background: #FFFFFF; border: 1.5px solid var(--border-card); padding: 0.4rem 0.85rem; border-radius: 999px; font-weight: 800; font-size: 0.9rem; color: var(--primary);">
+                                <span class="seat-pill-tag" style="background: var(--bg-surface); color: var(--primary); border: 1.5px solid var(--border-card); padding: 0.4rem 0.85rem; border-radius: 999px; font-weight: 800; font-size: 0.9rem;">
                                     <i class="fa-solid fa-chair"></i> [[ s.seat_number ]] ([[ s.cabin_class ]])
                                 </span>
                                 <button 
@@ -393,7 +393,7 @@
     <!-- Seat Swap Modal -->
     <div v-if="showSeatModal && targetSeatToChange" class="modal-backdrop">
         <div class="modal-dialog" style="max-width: 600px;">
-            <div style="background: #FFFFFF; border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-xl); border: 1px solid var(--border-card);">
+            <div style="background: var(--bg-surface); color: var(--text-main); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-xl); border: 1px solid var(--border-card);">
                 <div style="background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%); color: #FFFFFF; padding: 1.25rem 1.75rem; display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 1.15rem; font-weight: 800;">
                         <i class="fa-solid fa-arrows-rotate"></i> Change Passenger Seat
@@ -467,7 +467,7 @@
     <!-- Cancellation Confirmation Modal -->
     <div v-if="showCancelModal && booking" class="modal-backdrop">
         <div class="modal-dialog" style="max-width: 520px;">
-            <div style="background: #FFFFFF; border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-xl); border: 1px solid var(--border-card);">
+            <div style="background: var(--bg-surface); color: var(--text-main); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-xl); border: 1px solid var(--border-card);">
                 <div style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); color: #FFFFFF; padding: 1.25rem 1.75rem; display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 1.15rem; font-weight: 800;">
                         <i class="fa-solid fa-triangle-exclamation"></i> Cancel Flight Reservation
