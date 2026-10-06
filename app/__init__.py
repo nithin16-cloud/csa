@@ -69,12 +69,14 @@ def create_app(config_class=Config):
                 "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
             }), 503
 
+        engine = "MongoDB" if db.is_mongo_enabled() else "SQLite"
         return jsonify({
             "status": "healthy",
             "service": "CloudSky Airways Flight Reservation System",
             "version": "1.0.0",
             "environment": app.config.get("FLASK_ENV", "production"),
             "database": db_status,
+            "database_engine": engine,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }), 200
 

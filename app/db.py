@@ -106,22 +106,36 @@ def migrate_db(db):
     except Exception:
         pass
 
-def get_db():
-    """Opens a new database connection if there is none yet for the current application context."""
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE_PATH'],
-            timeout=10.0  # Wait up to 10 seconds for locks to clear in concurrent writes
-        )
-        g.db.row_factory = sqlite3.Row
-        # Enable foreign key constraint enforcement
-        g.db.execute("PRAGMA foreign_keys = ON;")
-        # Enable WAL mode for better concurrency (readers do not block writers, writers do not block readers)
-        g.db.execute("PRAGMA journal_mode = WAL;")
+def is_mongo_enabled():
+    """Checks whether MongoDB is configured as the active database engine."""
+    db_type = current_app.config.get("DB_TYPE", "sqlite").lower()
+    mongo_uri = (current_app.config.get("MONGO_URI") or "").strip()
+    return db_type == "mongodb" or (bool(mongo_uri) and db_type != "sqlite")
 
-        if not getattr(current_app, '_db_migrated', False):
-            migrate_db(g.db)
-            current_app._db_migrated = True
+def get_db():
+    """Opens a new database connection (MongoDB or SQLite) for the current application context."""
+    if 'db' not in g:
+        if is_mongo_enabled():
+            from app.mongo import MongoAdapter
+            mongo_uri = current_app.config.get("MONGO_URI") or "mongodb://localhost:27017/cloudsky"
+            mongo_db_name = current_app.config.get("MONGO_DB_NAME", "cloudsky")
+            adapter = MongoAdapter(uri=mongo_uri, db_name=mongo_db_name)
+            adapter.ensure_indexes()
+            g.db = adapter
+        else:
+            g.db = sqlite3.connect(
+                current_app.config['DATABASE_PATH'],
+                timeout=10.0  # Wait up to 10 seconds for locks to clear in concurrent writes
+            )
+            g.db.row_factory = sqlite3.Row
+            # Enable foreign key constraint enforcement
+            g.db.execute("PRAGMA foreign_keys = ON;")
+            # Enable WAL mode for better concurrency (readers do not block writers, writers do not block readers)
+            g.db.execute("PRAGMA journal_mode = WAL;")
+
+            if not getattr(current_app, '_db_migrated', False):
+                migrate_db(g.db)
+                current_app._db_migrated = True
 
     return g.db
 
@@ -132,11 +146,20 @@ def close_db(e=None):
         db.close()
 
 def init_db():
-    """Initializes database schema from schema.sql."""
-    db = get_db()
-    with current_app.open_resource('schema.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
-    db.commit()
+    """Initializes database schema (clears and re-indexes MongoDB collections or runs schema.sql)."""
+    if is_mongo_enabled():
+        db = get_db()
+        for col_name in ["users", "airports", "flights", "seats", "bookings", "booking_seats", "payments", "counters"]:
+            try:
+                db.db.drop_collection(col_name)
+            except Exception:
+                pass
+        db.ensure_indexes()
+    else:
+        db = get_db()
+        with current_app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
 
 def init_app(app):
     """Register database functions with the Flask app."""
