@@ -14,6 +14,55 @@ def generate_pnr():
     chars = string.ascii_uppercase + string.digits
     return "CS-" + "".join(random.choices(chars, k=6))
 
+# ---------------------------------------------------------------------------
+# Dynamic Pricing Engine — Yield Management (Threshold-Based Surge Pricing)
+# ---------------------------------------------------------------------------
+# Inspired by real airline yield management: as a flight fills up, price
+# rises in discrete tiers to maximise revenue from remaining scarce seats.
+#
+# Tiers (seat occupancy %):
+#   < 30% filled  → BASE PRICE     (no surge — encourage early bookings)
+#   30% – 59%     → 1.20x SURGE    (low surge label)
+#   60% – 84%     → 1.45x SURGE    (medium surge label)
+#   ≥ 85% filled  → 1.75x SURGE    (high surge — near-sold-out premium)
+# ---------------------------------------------------------------------------
+_PRICE_TIERS = [
+    (0.85, 1.75, "🔥 High Demand"),
+    (0.60, 1.45, "📈 Filling Fast"),
+    (0.30, 1.20, "💺 Limited Seats"),
+]
+
+def apply_dynamic_pricing(flight_dict):
+    """
+    Compute surge-adjusted price for a flight dict.
+    Adds keys: dynamic_price, original_price, price_surge_pct, price_surge_label.
+    Mutates and returns the dict.
+    """
+    total = flight_dict.get("total_seats") or 0
+    available = flight_dict.get("available_seats") or 0
+    base_price = flight_dict.get("base_price", 0)
+
+    if total > 0:
+        occupancy = (total - available) / total
+    else:
+        occupancy = 0.0
+
+    multiplier = 1.0
+    label = None
+    for threshold, mult, lbl in _PRICE_TIERS:
+        if occupancy >= threshold:
+            multiplier = mult
+            label = lbl
+            break
+
+    dynamic_price = round(base_price * multiplier)
+    flight_dict["original_price"] = base_price
+    flight_dict["dynamic_price"] = dynamic_price
+    flight_dict["price_surge_pct"] = round((multiplier - 1.0) * 100)
+    flight_dict["price_surge_label"] = label
+    flight_dict["occupancy_pct"] = round(occupancy * 100)
+    return flight_dict
+
 def clean_expired_holds(db):
     """Releases seats whose temporary reservation holds have passed."""
     now_iso = datetime.datetime.now().isoformat()
@@ -115,6 +164,8 @@ def get_flights():
         d["date"] = d["departure_date"]
         d["departure_hour"] = dep[11:16] if len(dep) >= 16 else dep
         d["arrival_hour"] = arr[11:16] if len(arr) >= 16 else arr
+        # Apply yield-management dynamic pricing
+        apply_dynamic_pricing(d)
         result.append(d)
 
     return jsonify(result)

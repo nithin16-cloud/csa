@@ -1,0 +1,591 @@
+{% extends "base.html" %}
+{% block title %}My Bookings — CloudSky Airways{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Dashboard Layout ─────────────────────────────────────── */
+.dashboard-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #1a1a6e 100%);
+    padding: 3rem 2rem 2.5rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.dashboard-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    pointer-events: none;
+}
+.dashboard-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 10%;
+    width: 400px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    pointer-events: none;
+}
+.dashboard-hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+.dashboard-greeting {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.dashboard-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+.dashboard-greeting-text h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+}
+.dashboard-greeting-text p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.75;
+}
+
+/* Stats Cards */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.stat-card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    transition: transform 0.2s, background 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.18); }
+.stat-card-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+    font-weight: 600;
+}
+.stat-card-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.stat-card-sub {
+    font-size: 0.75rem;
+    opacity: 0.65;
+}
+.stat-card-icon {
+    font-size: 1.2rem;
+    opacity: 0.55;
+    margin-bottom: 0.15rem;
+}
+
+/* ── Bookings Section ─────────────────────────────────────── */
+.bookings-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.filter-tabs {
+    display: flex;
+    gap: 0.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 4px;
+}
+.filter-tab {
+    padding: 0.35rem 0.85rem;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.18s;
+}
+.filter-tab.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+}
+
+/* Booking Cards */
+.booking-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.booking-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+.booking-card-header {
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+}
+.booking-pnr {
+    font-family: 'Outfit', monospace;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 0.04em;
+    background: rgba(59,130,246,0.1);
+    padding: 0.3rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(59,130,246,0.2);
+}
+.booking-status-badge {
+    padding: 0.28rem 0.85rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.status-confirmed {
+    background: rgba(16,185,129,0.12);
+    color: #10b981;
+    border: 1px solid rgba(16,185,129,0.25);
+}
+.status-cancelled {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.2);
+}
+.booking-date-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Route Display */
+.booking-card-body {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: stretch;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.route-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 220px;
+}
+.route-city-block { text-align: center; }
+.route-iata {
+    font-family: 'Outfit', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+.route-city-name {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+.route-line-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+.route-line {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary) 0%, rgba(59,130,246,0.2) 100%);
+    border-radius: 2px;
+    position: relative;
+}
+.route-line::after {
+    content: '\2708';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card);
+    padding: 0 4px;
+    font-size: 0.85rem;
+    color: var(--primary);
+}
+.route-flight-info {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Time & Details */
+.booking-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 200px;
+}
+.detail-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.detail-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.detail-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Passengers */
+.booking-card-footer {
+    padding: 1rem 1.5rem;
+    background: rgba(0,0,0,0.02);
+    border-top: 1px solid var(--border-subtle);
+}
+.passengers-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+}
+.passengers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.passenger-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 30px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+.passenger-chip .cabin-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dot-first    { background: #f59e0b; }
+.dot-business { background: #8b5cf6; }
+.dot-economy  { background: #10b981; }
+
+/* Footer actions */
+.booking-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+.btn-xs {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s;
+    font-weight: 500;
+}
+.btn-xs:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.35;
+}
+.empty-state h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero / Profile ──────────────────────────────────────── -->
+<section class="dashboard-hero">
+    <div class="dashboard-hero-inner">
+        <div class="dashboard-greeting">
+            <div class="dashboard-avatar">{{ user.name[0] if user else '?' }}</div>
+            <div class="dashboard-greeting-text">
+                <h1>Welcome back, {{ user.name.split()[0] if user else 'Traveller' }}!</h1>
+                <p>{{ user.email }} &nbsp;&middot;&nbsp; Member since {{ user.created_at[:10] if user and user.created_at else 'N/A' }}</p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fa-solid fa-ticket"></i></div>
+                <div class="stat-card-label">Total Bookings</div>
+                <div class="stat-card-value">{{ stats.total_bookings }}</div>
+                <div class="stat-card-sub">all time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="stat-card-label">Confirmed</div>
+                <div class="stat-card-value">{{ stats.confirmed }}</div>
+                <div class="stat-card-sub">active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fa-solid fa-ban"></i></div>
+                <div class="stat-card-label">Cancelled</div>
+                <div class="stat-card-value">{{ stats.cancelled }}</div>
+                <div class="stat-card-sub">refunded</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <div class="stat-card-label">Total Spent</div>
+                <div class="stat-card-value">&#8377;{{ "{:,.0f}".format(stats.total_spent) }}</div>
+                <div class="stat-card-sub">confirmed only</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="stat-card-label">Passengers</div>
+                <div class="stat-card-value">{{ stats.total_passengers }}</div>
+                <div class="stat-card-sub">across all trips</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Bookings List ───────────────────────────────────────── -->
+<section class="bookings-section">
+    <div class="section-header">
+        <span class="section-title">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary); margin-right: 0.4rem;"></i>
+            Booking History
+        </span>
+        <div class="filter-tabs" id="filter-tabs">
+            <button class="filter-tab active" onclick="filterBookings('all',this)">All</button>
+            <button class="filter-tab"        onclick="filterBookings('confirmed',this)">Confirmed</button>
+            <button class="filter-tab"        onclick="filterBookings('cancelled',this)">Cancelled</button>
+        </div>
+    </div>
+
+    {% if bookings %}
+        <div id="bookings-list">
+        {% for b in bookings %}
+        {% set dep = b.departure_time[:16] if b.departure_time and b.departure_time|length >= 16 else (b.departure_time or 'N/A') %}
+        {% set arr = b.arrival_time[:16]   if b.arrival_time   and b.arrival_time|length   >= 16 else (b.arrival_time or 'N/A') %}
+
+        <article class="booking-card" data-status="{{ b.payment_status }}" id="booking-{{ b.booking_reference }}">
+
+            <!-- Card Header -->
+            <div class="booking-card-header">
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                    <span class="booking-pnr">{{ b.booking_reference }}</span>
+                    <span class="booking-status-badge {% if b.payment_status == 'Confirmed' %}status-confirmed{% else %}status-cancelled{% endif %}">
+                        <i class="fa-solid {% if b.payment_status == 'Confirmed' %}fa-circle-check{% else %}fa-ban{% endif %}"></i>
+                        {{ b.payment_status }}
+                    </span>
+                </div>
+                <div class="booking-date-meta">
+                    <i class="fa-regular fa-calendar"></i>
+                    Booked {{ b.created_at[:10] if b.created_at else 'N/A' }}
+                </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="booking-card-body">
+
+                <!-- Route -->
+                <div class="route-display">
+                    <div class="route-city-block">
+                        <div class="route-iata">{{ b.origin_code }}</div>
+                        <div class="route-city-name">{{ b.origin_city }}</div>
+                    </div>
+                    <div class="route-line-wrap">
+                        <div class="route-line"></div>
+                        <div class="route-flight-info">{{ b.flight_number }} &middot; {{ b.aircraft_model }}</div>
+                    </div>
+                    <div class="route-city-block">
+                        <div class="route-iata">{{ b.dest_code }}</div>
+                        <div class="route-city-name">{{ b.dest_city }}</div>
+                    </div>
+                </div>
+
+                <!-- Details -->
+                <div class="booking-details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-plane-departure"></i> Departure</span>
+                        <span class="detail-value">{{ dep.replace('T',' ') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-plane-arrival"></i> Arrival</span>
+                        <span class="detail-value">{{ arr.replace('T',' ') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-users"></i> Passengers</span>
+                        <span class="detail-value">{{ b.seat_count }} pax</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Total Fare</span>
+                        <span class="detail-value" style="color: var(--primary);">&#8377;{{ "{:,.0f}".format(b.total_amount) }}</span>
+                    </div>
+                    {% if b.payment_status == 'Cancelled' and b.refund_amount %}
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-rotate-left"></i> Refund</span>
+                        <span class="detail-value" style="color:#10b981;">&#8377;{{ "{:,.0f}".format(b.refund_amount) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Passengers & Actions -->
+            <div class="booking-card-footer">
+                {% if b.seats %}
+                <div class="passengers-label"><i class="fa-solid fa-user-group"></i> Passenger Manifest</div>
+                <div class="passengers-list">
+                    {% for seat in b.seats %}
+                    <div class="passenger-chip">
+                        <div class="cabin-dot
+                            {% if seat.cabin_class == 'First' %}dot-first
+                            {% elif seat.cabin_class == 'Business' %}dot-business
+                            {% else %}dot-economy{% endif %}">
+                        </div>
+                        <strong>{{ seat.seat_number }}</strong>
+                        {{ seat.passenger_name or b.passenger_name }}
+                        <span style="opacity:0.55;">&middot; {{ seat.cabin_class }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="booking-actions">
+                    {% if b.payment_status == 'Confirmed' %}
+                        <a href="{{ url_for('main.manage') }}?pnr={{ b.booking_reference }}" class="btn-xs">
+                            <i class="fa-solid fa-pen-to-square"></i> Manage
+                        </a>
+                        <a href="{{ url_for('main.manage') }}?pnr={{ b.booking_reference }}&checkin=1" class="btn-xs">
+                            <i class="fa-solid fa-qrcode"></i> Check-in
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.manage') }}?pnr={{ b.booking_reference }}" class="btn-xs">
+                        <i class="fa-solid fa-receipt"></i> View Details
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+        </div>
+
+        <div id="no-results-msg" style="display:none;" class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+            <h3>No bookings match this filter</h3>
+            <p>Try switching to "All" to see everything.</p>
+        </div>
+
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-ticket"></i></div>
+            <h3>No bookings yet</h3>
+            <p>Book your first CloudSky flight and it will appear here.</p>
+            <a href="{{ url_for('main.index') }}#flight-search-form" class="btn btn-primary"
+               style="margin-top: 1.25rem; display:inline-flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-magnifying-glass"></i> Search Flights
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<script>
+function filterBookings(filter, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const cards = document.querySelectorAll('#bookings-list .booking-card');
+    let visible = 0;
+    cards.forEach(card => {
+        const status = card.dataset.status || '';
+        let show = false;
+        if (filter === 'all') show = true;
+        else if (filter === 'confirmed' && status === 'Confirmed') show = true;
+        else if (filter === 'cancelled' && status === 'Cancelled') show = true;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const noResults = document.getElementById('no-results-msg');
+    if (noResults) noResults.style.display = visible === 0 ? '' : 'none';
+}
+</script>
+{% endblock %}

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.db import get_db
+from app.routes.api import apply_dynamic_pricing
 
 main_bp = Blueprint("main", __name__)
 
@@ -115,6 +116,7 @@ def flights_search():
     flights_data = [dict(f) for f in flights]
     for d in flights_data:
         d["dest_code"] = d.get("destination_code", "")
+        apply_dynamic_pricing(d)
 
     return render_template(
         "flights.html",
@@ -215,4 +217,76 @@ def info_default():
 @main_bp.route("/services/<section>")
 def services_redirect(section):
     return redirect(url_for("main.info_page", section=section))
+
+
+# ---------------------------------------------------------------------------
+# Booking History Dashboard — Logged-in Users
+# ---------------------------------------------------------------------------
+@main_bp.route("/dashboard")
+def dashboard():
+    """Personal booking history page for authenticated users."""
+    if "user_id" not in session:
+        flash("Please sign in to view your booking history.", "error")
+        return redirect(url_for("auth.login", next=url_for("main.dashboard")))
+
+    user_id = session["user_id"]
+    db = get_db()
+
+    # Fetch the user's full profile
+    user = db.execute(
+        "SELECT id, name, email, phone, created_at FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+
+    # Fetch ALL bookings with flight & route details
+    bookings_raw = db.execute("""
+        SELECT b.*,
+               f.flight_number, f.aircraft_model,
+               f.departure_time, f.arrival_time,
+               orig.city  AS origin_city,  orig.code  AS origin_code,
+               dest.city  AS dest_city,    dest.code  AS dest_code
+        FROM bookings b
+        JOIN flights  f    ON b.flight_id      = f.id
+        JOIN airports orig ON f.origin_code    = orig.code
+        JOIN airports dest ON f.destination_code = dest.code
+        WHERE b.user_id = ?
+        ORDER BY b.created_at DESC
+    """, (user_id,)).fetchall()
+
+    bookings = []
+    for b in bookings_raw:
+        bd = dict(b)
+        # Fetch passenger seats for this booking
+        seats = db.execute("""
+            SELECT bs.seat_number, bs.passenger_name, bs.passenger_age,
+                   bs.passenger_gender, bs.price_paid, s.cabin_class, s.seat_type
+            FROM booking_seats bs
+            JOIN seats s ON bs.seat_id = s.id
+            WHERE bs.booking_id = ?
+        """, (bd["id"],)).fetchall()
+        bd["seats"] = [dict(s) for s in seats]
+        bd["seat_count"] = len(seats)
+        bookings.append(bd)
+
+    # Summary stats
+    total_bookings   = len(bookings)
+    confirmed        = sum(1 for b in bookings if b["payment_status"] == "Confirmed")
+    cancelled        = total_bookings - confirmed
+    total_spent      = sum(b["total_amount"] for b in bookings if b["payment_status"] == "Confirmed")
+    total_passengers = sum(b["seat_count"] for b in bookings)
+
+    stats = {
+        "total_bookings":   total_bookings,
+        "confirmed":        confirmed,
+        "cancelled":        cancelled,
+        "total_spent":      round(total_spent, 2),
+        "total_passengers": total_passengers,
+    }
+
+    return render_template(
+        "dashboard.html",
+        user=user,
+        bookings=bookings,
+        stats=stats
+    )
 
