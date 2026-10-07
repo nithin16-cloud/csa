@@ -62,7 +62,7 @@
                                     <i class="fa-solid fa-arrows-up-down-left-right"></i> Extra Legroom <span class="pill-badge">[[ extraLegroomCount ]]</span>
                                 </button>
                                 <button type="button" :class="['filter-pill', { active: seatFilter === 'premium' }]" @click="seatFilter = 'premium'">
-                                    <i class="fa-solid fa-crown"></i> First & Business <span class="pill-badge">[[ premiumSeatsCount ]]</span>
+                                    <i class="fa-solid fa-star"></i> First & Business <span class="pill-badge">[[ premiumSeatsCount ]]</span>
                                 </button>
                             </div>
                         </div>
@@ -248,7 +248,7 @@
                                                         <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
                                                         <i v-else-if="isSeatSelected(seat.id)" class="fa-solid fa-check"></i>
                                                         <template v-else>
-                                                            <i v-if="seat.cabin_class === 'First'" class="fa-solid fa-crown seat-sub-icon"></i>
+                                                            <i v-if="seat.cabin_class === 'First'" class="fa-solid fa-star seat-sub-icon"></i>
                                                             <i v-else-if="seat.cabin_class === 'Business'" class="fa-solid fa-gem seat-sub-icon"></i>
                                                             <span>[[ seat.seat_number.slice(-1) ]]</span>
                                                         </template>
@@ -282,7 +282,7 @@
                                                         <i v-else-if="seat.is_held" class="fa-solid fa-hourglass-half" style="font-size: 0.65rem;"></i>
                                                         <i v-else-if="isSeatSelected(seat.id)" class="fa-solid fa-check"></i>
                                                         <template v-else>
-                                                            <i v-if="seat.cabin_class === 'First'" class="fa-solid fa-crown seat-sub-icon"></i>
+                                                            <i v-if="seat.cabin_class === 'First'" class="fa-solid fa-star seat-sub-icon"></i>
                                                             <i v-else-if="seat.cabin_class === 'Business'" class="fa-solid fa-gem seat-sub-icon"></i>
                                                             <span>[[ seat.seat_number.slice(-1) ]]</span>
                                                         </template>
@@ -333,12 +333,12 @@
                             </div>
                             <div class="form-group" style="margin-bottom: 0.85rem;">
                                 <label for="passenger-email"><i class="fa-solid fa-envelope"></i> Email (for e-ticket & boarding pass)</label>
-                                <input type="email" id="passenger-email" v-model="passengerEmail" class="form-control" placeholder="e.g. rohan.sharma@example.in" required>
+                                <input type="email" id="passenger-email" v-model="passengerEmail" class="form-control" placeholder="Enter contact email address" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="passenger-phone"><i class="fa-solid fa-phone"></i> Mobile Phone (India)</label>
-                                <input type="tel" id="passenger-phone" v-model="passengerPhone" class="form-control" placeholder="+91 98765 43210" required>
+                                <input type="tel" id="passenger-phone" v-model="passengerPhone" class="form-control" placeholder="Enter 10-digit mobile number" required>
                             </div>
                         </div>
 
@@ -372,7 +372,7 @@
                                         :id="'p-name-' + p.seat_id" 
                                         v-model="p.name" 
                                         class="form-control" 
-                                        :placeholder="pIdx === 0 ? 'e.g. Rohan Sharma' : 'e.g. Priya Sharma'" 
+                                        placeholder="Enter full name as per Govt ID" 
                                         required
                                     >
                                 </div>
@@ -594,17 +594,11 @@
                             type="text" 
                             v-model="upiVpa" 
                             class="form-control" 
-                            placeholder="e.g. rohan.sharma@okhdfcbank"
+                            placeholder="Enter UPI ID (e.g. username@bank)"
                             style="font-weight: 600;"
                         >
-                        <div style="margin-top: 0.65rem; font-size: 0.75rem; color: var(--text-subtle); font-weight: 600;">
-                            Quick-test verified UPI handles:
-                        </div>
-                        <div class="vpa-chips">
-                            <span class="vpa-chip" @click="upiVpa = 'rohan@okhdfcbank'">rohan@okhdfcbank</span>
-                            <span class="vpa-chip" @click="upiVpa = 'priya@okaxis'">priya@okaxis</span>
-                            <span class="vpa-chip" @click="upiVpa = 'traveler@paytm'">traveler@paytm</span>
-                            <span class="vpa-chip" @click="upiVpa = 'passenger@sbi'">passenger@sbi</span>
+                        <div style="margin-top: 0.65rem; font-size: 0.75rem; color: var(--text-subtle); font-weight: 500;">
+                            Supports all major UPI apps: BHIM, Google Pay, PhonePe, Paytm, and bank UPI.
                         </div>
                     </div>
                 </div>
@@ -641,7 +635,7 @@
                                 v-model="cardNumber" 
                                 maxlength="19" 
                                 class="form-control form-control-sm" 
-                                placeholder="4532 0123 4567 8910"
+                                placeholder="Enter 16-digit card number"
                                 @input="onCardNumberInput"
                                 style="font-family: monospace; font-weight: 700;"
                             >
@@ -1152,11 +1146,11 @@
             const paymentTab = ref('upi');
             const paymentError = ref('');
             
-            const upiVpa = ref('rohan.sharma@okhdfcbank');
-            const cardNumber = ref('4532 8821 9012 3456');
+            const upiVpa = ref('');
+            const cardNumber = ref('');
             const cardHolder = ref('');
-            const cardExpiry = ref('12/28');
-            const cardCvv = ref('345');
+            const cardExpiry = ref('');
+            const cardCvv = ref('');
             const selectedBank = ref('HDFC');
 
             const indianBanks = [

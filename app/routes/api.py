@@ -777,7 +777,7 @@ def simulate_payment():
     if method == "UPI":
         vpa = data.get("vpa", "").strip()
         if not vpa or "@" not in vpa:
-            return jsonify({"success": False, "error": "Invalid UPI ID. Format should be username@bank (e.g. rohan@okhdfcbank)"}), 400
+            return jsonify({"success": False, "error": "Invalid UPI ID. Format should be username@bank"}), 400
     elif method in ("CreditCard", "DebitCard", "Card"):
         card_num = str(data.get("card_number", "")).replace(" ", "")
         if len(card_num) < 15 or not card_num.isdigit():
