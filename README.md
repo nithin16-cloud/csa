@@ -1,42 +1,41 @@
-# CloudSky Airways — Flight Reservation & Cabin Management Platform
+﻿# CloudSky Airways - Flight Reservation & Cabin Management Platform
 
 [![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL_Engine-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 > **CloudSky Airways (CSA)** is an enterprise flight booking, aircraft seat allocation, and reservation management system built with Python and Flask. It features real-time flight search, interactive 3-class cabin seat selection with temporary holds, yield-management surge pricing, simulated payment settlement, self-service PNR web check-in, and **seamless dual database support (MongoDB Atlas & SQLite)**.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### ✈️ 1. Passenger Booking & Discovery
+### 1. Passenger Booking & Discovery
 * **Real-Time Flight Search**: Discover scheduled flights across major domestic and international hubs (DEL, BOM, BLR, HYD, MAA, CCU, DXB, SIN, LHR, JFK) by route and date.
 * **Smart Route Fallback**: Gracefully suggests flights on alternative dates when specific queries yield no direct matches.
 * **Interactive 3-Class Cabin Map**: Visual aircraft layout spanning **First Class** (lie-flat suites), **Business Class**, and **Economy Class** with live amenity indicators (seat pitch, power ports, recline angles).
 * **Multi-Passenger Manifest**: Book single or group tickets with custom names, ages, and assigned cabin seats.
 * **Checkout Simulation**: Generates an airline-standard 6-character PNR (e.g., `CS-9X4A8B`) and instant digital boarding passes.
 
-### 🎫 2. Self-Service Management (`/manage`)
+### 2. Self-Service Management (`/manage`)
 * **PNR Lookup**: Retrieve existing reservations using the unique PNR reference code and passenger email.
 * **Live Seat Swap**: Switch seats before departure with real-time inventory reallocation.
 * **Digital Web Check-in**: One-click flight check-in and boarding pass download.
 * **Instant Cancellation & Refund**: Transparent cancellation fee deduction with automated simulated refunds.
 
-### 📈 3. Dynamic Pricing & Concurrency Locks
-* **Yield Management Pricing**: Automatically applies surge pricing based on flight occupancy tiers (<30% standard, 30–60% limited, 60–85% filling fast, ≥85% high demand).
+### 3. Dynamic Pricing & Concurrency Locks
+* **Yield Management Pricing**: Automatically applies surge pricing based on flight occupancy tiers (<30% standard, 30-60% limited, 60-85% filling fast, >85% high demand).
 * **Double-Booking Prevention**: Optimistic concurrency locks with an automated 5-minute seat hold window to prevent duplicate bookings during checkout.
 
-### 🔄 4. Dual Database Architecture
+### 4. Dual Database Architecture
 * **MongoDB Atlas (Cloud)**: Full native document store with collections for `airports`, `flights`, `seats`, `users`, `bookings`, and `payments`.
 * **SQLite (Local Fallback)**: Zero-configuration local database with Write-Ahead Logging (WAL) and foreign keys.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```plaintext
 csa/
@@ -77,7 +76,7 @@ csa/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Setup Environment
 ```powershell
@@ -121,13 +120,13 @@ DATABASE_PATH=cloudsky.db
 python run.py
 ```
 Open your browser and navigate to:
-👉 **[http://localhost:5000](http://localhost:5000)**
+**http://localhost:5000**
 
 *(The application automatically connects, verifies collections, and seeds flight data on first startup!)*
 
 ---
 
-## 🔑 Demo Account Credentials
+## Demo Account Credentials
 
 | Role | Username / PNR | Password | Capabilities |
 | :--- | :--- | :--- | :--- |
@@ -136,7 +135,7 @@ Open your browser and navigate to:
 
 ---
 
-## 🔌 API Reference
+## API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -153,7 +152,7 @@ Open your browser and navigate to:
 
 ---
 
-## 🛠️ CLI Database Commands
+## CLI Database Commands
 
 Manage your database directly from the terminal:
 
@@ -170,7 +169,7 @@ flask --app run.py list-users
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 Run CloudSky in a containerized production environment:
 
@@ -184,8 +183,3 @@ docker run -d -p 5000:5000 \
   -e SECRET_KEY="your-secret-key" \
   cloudsky-airways:latest
 ```
-
----
-
-## 📄 License
-This project is licensed under the [MIT License](LICENSE).
