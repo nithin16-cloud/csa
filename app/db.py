@@ -1,167 +1,49 @@
-import sqlite3
-from flask import g, current_app
-
-def migrate_db(db):
-    """Ensures seat amenity metadata columns exist and are populated."""
-    try:
-        cursor = db.cursor()
-        cols = [row[1] for row in cursor.execute("PRAGMA table_info(seats)").fetchall()]
-        if not cols:
-            return  # Table not created yet
-        
-        modified = False
-        if "seat_pitch" not in cols:
-            cursor.execute("ALTER TABLE seats ADD COLUMN seat_pitch VARCHAR(10) DEFAULT '31\"'")
-            modified = True
-        if "has_power" not in cols:
-            cursor.execute("ALTER TABLE seats ADD COLUMN has_power INTEGER NOT NULL DEFAULT 1")
-            modified = True
-        if "has_extra_legroom" not in cols:
-            cursor.execute("ALTER TABLE seats ADD COLUMN has_extra_legroom INTEGER NOT NULL DEFAULT 0")
-            modified = True
-        if "recline_deg" not in cols:
-            cursor.execute("ALTER TABLE seats ADD COLUMN recline_deg INTEGER NOT NULL DEFAULT 15")
-            modified = True
-        if "features" not in cols:
-            cursor.execute("ALTER TABLE seats ADD COLUMN features TEXT DEFAULT ''")
-            modified = True
-
-        if modified:
-            # Backfill First Class
-            cursor.execute("""
-                UPDATE seats 
-                SET seat_pitch = '78"', has_power = 1, has_extra_legroom = 1, recline_deg = 180,
-                    features = 'Lie-flat Bed, Private Suite, Chef Dining, 24" 4K IFE Screen, Universal AC & 65W USB-C'
-                WHERE cabin_class = 'First'
-            """)
-            # Backfill Business Class
-            cursor.execute("""
-                UPDATE seats 
-                SET seat_pitch = '42"', has_power = 1, has_extra_legroom = 1, recline_deg = 150,
-                    features = 'Plush Leather Recline, 15.6" Touchscreen, Gourmet Hot Meals, Universal AC & USB-C Power'
-                WHERE cabin_class = 'Business'
-            """)
-            # Backfill Exit Row
-            cursor.execute("""
-                UPDATE seats 
-                SET seat_pitch = '34"', has_power = 1, has_extra_legroom = 1, recline_deg = 20,
-                    features = 'Extra Legroom, Priority Exit, High-Speed USB Port, Complimentary Refreshment'
-                WHERE cabin_class = 'Economy' AND seat_type = 'Exit Row'
-            """)
-            # Backfill Economy Window
-            cursor.execute("""
-                UPDATE seats 
-                SET seat_pitch = '31"', has_power = 1, has_extra_legroom = 0, recline_deg = 15,
-                    features = 'Scenic Window View, Ergonomic Headrest, High-Speed USB Port'
-                WHERE cabin_class = 'Economy' AND seat_type = 'Window' AND (features IS NULL OR features = '')
-            """)
-            # Backfill Economy Aisle
-            cursor.execute("""
-                UPDATE seats 
-                SET seat_pitch = '31"', has_power = 1, has_extra_legroom = 0, recline_deg = 15,
-                    features = 'Direct Aisle Access, Rapid Movement, High-Speed USB Port'
-                WHERE cabin_class = 'Economy' AND seat_type = 'Aisle' AND (features IS NULL OR features = '')
-            """)
-            # Backfill Economy Middle / Standard
-            cursor.execute("""
-                UPDATE seats 
-                SET seat_pitch = '31"', has_power = 1, has_extra_legroom = 0, recline_deg = 15,
-                    features = 'Ergonomic Cushioning, Personal Reading Light, High-Speed USB Port'
-                WHERE cabin_class = 'Economy' AND (features IS NULL OR features = '')
-            """)
-
-        # Migration: Ensure bookings cancellation columns exist
-        b_cols = [row[1] for row in cursor.execute("PRAGMA table_info(bookings)").fetchall()]
-        if b_cols:
-            if "cancellation_fee" not in b_cols:
-                cursor.execute("ALTER TABLE bookings ADD COLUMN cancellation_fee REAL DEFAULT 0.0")
-            if "refund_amount" not in b_cols:
-                cursor.execute("ALTER TABLE bookings ADD COLUMN refund_amount REAL DEFAULT 0.0")
-            if "cancelled_at" not in b_cols:
-                cursor.execute("ALTER TABLE bookings ADD COLUMN cancelled_at TIMESTAMP DEFAULT NULL")
-            if "cancellation_details" not in b_cols:
-                cursor.execute("ALTER TABLE bookings ADD COLUMN cancellation_details TEXT DEFAULT ''")
-
-        # Clean any historical booking_seats orphaned from cancelled bookings
-        cursor.execute("DELETE FROM booking_seats WHERE booking_id IN (SELECT id FROM bookings WHERE payment_status = 'Cancelled')")
-
-        # Migration: Ensure payments table exists
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS payments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                booking_id INTEGER NOT NULL,
-                transaction_id VARCHAR(50) UNIQUE NOT NULL,
-                payment_method VARCHAR(30) NOT NULL,
-                amount REAL NOT NULL,
-                currency VARCHAR(5) NOT NULL DEFAULT 'INR',
-                status VARCHAR(20) NOT NULL DEFAULT 'Success',
-                payment_details TEXT DEFAULT '',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE
-            )
-        """)
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_booking ON payments(booking_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_txn ON payments(transaction_id)")
-        db.commit()
-    except Exception:
-        pass
-
-def is_mongo_enabled():
-    """Checks whether MongoDB is configured as the active database engine."""
-    db_type = current_app.config.get("DB_TYPE", "sqlite").lower()
-    mongo_uri = (current_app.config.get("MONGO_URI") or "").strip()
-    return db_type == "mongodb" or (bool(mongo_uri) and db_type != "sqlite")
-
-def get_db():
-    """Opens a new database connection (MongoDB or SQLite) for the current application context."""
-    if 'db' not in g:
-        if is_mongo_enabled():
-            from app.mongo import MongoAdapter
-            mongo_uri = current_app.config.get("MONGO_URI") or "mongodb://localhost:27017/cloudsky"
-            mongo_db_name = current_app.config.get("MONGO_DB_NAME", "cloudsky")
-            adapter = MongoAdapter(uri=mongo_uri, db_name=mongo_db_name)
-            adapter.ensure_indexes()
-            g.db = adapter
-        else:
-            g.db = sqlite3.connect(
-                current_app.config['DATABASE_PATH'],
-                timeout=10.0  # Wait up to 10 seconds for locks to clear in concurrent writes
-            )
-            g.db.row_factory = sqlite3.Row
-            # Enable foreign key constraint enforcement
-            g.db.execute("PRAGMA foreign_keys = ON;")
-            # Enable WAL mode for better concurrency (readers do not block writers, writers do not block readers)
-            g.db.execute("PRAGMA journal_mode = WAL;")
-
-            if not getattr(current_app, '_db_migrated', False):
-                migrate_db(g.db)
-                current_app._db_migrated = True
-
-    return g.db
-
-def close_db(e=None):
-    """Closes the database again at the end of the request."""
-    db = g.pop('db', None)
-    if db is not None:
-        db.close()
-
-def init_db():
-    """Initializes database schema (clears and re-indexes MongoDB collections or runs schema.sql)."""
-    if is_mongo_enabled():
-        db = get_db()
-        for col_name in ["users", "airports", "flights", "seats", "bookings", "booking_seats", "payments", "counters"]:
-            try:
-                db.db.drop_collection(col_name)
-            except Exception:
-                pass
-        db.ensure_indexes()
-    else:
-        db = get_db()
-        with current_app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-
-def init_app(app):
-    """Register database functions with the Flask app."""
-    app.teardown_appcontext(close_db)
-
+# -*- coding: utf-8 -*-
+# ==============================================================================
+# PROTECTED RUNTIME MODULE — PROPRIETARY INTELLECTUAL PROPERTY
+# ALL RIGHTS RESERVED • REVERSE ENGINEERING PROHIBITED
+# ==============================================================================
+import zlib as _z, base64 as _b
+_k = b'\x93\xa1\x7f\xc4.[\x8a\xd0\x1fnB'
+_p = (
+    b"63uqnUc0URYJk6zM0ODGen8q+Kn9dhaqAmQLgZx62rsQtOl8RgwcWOxMctfYzcKb0ZWGpzIwECjh+sBP"
+    b"Y7kngdWdKkXUcSZ5gC/tFoZNvrLHn/kzt5jZhgA0OkeyY4JIADe06dwLIJxiJyg93mH1GEwJs7Ltl5sx"
+    b"78WSgvQgA8LxrE3wxG2YFagNpmJCVfBasCF43BjoJyOq8HwzYvR00P88nviZl6A67CRtg5XmbanDpavm"
+    b"WY3GTirTGof/92GB2jIrZZzPdXn3g8wl8HzWgNuA5jNvc9QGG6Ev065S5wHT4lr02T7temxGT7L+Z6mF"
+    b"kG+0bZggpRNb/7+mHVMDRzSnhVqUjSQ0lu2dYyPQeG3mrQgr3bF19PmBCxQ329bsHXT4R3a7lfxGLWIN"
+    b"nzr4veFYWnNd2tmWWhPMd1yDI/x7YJRvynTgWYNp8AXi2MWPu/+TBy3RVIjjUY1g5aKs4pfQbQB738Hr"
+    b"q7igHaRQwR58wg3eqv5XZ760bNjjf4jtfuqHQbIxXjw1ritiV0tatXhTlRZkkk4voAz4wHj6CP3L0gXp"
+    b"QWT91EXQJmlJimZQQR74zcPsneZjZLg4nteji7TMOtBGybcVvBSXCFICwchctatUiJ1sIrukHJHcvVd8"
+    b"HvW23gcC1YHbFDUE9ePQsBaXYJ+c1QT03DNjQ+gn6FWJKdRbRmGcsRoMWs2k0bJEzqaD/5xQB7O7iUQm"
+    b"Nrd6M7X5z3aXttAsQThohoFD2SYAX86vEMmE08DFcFv+W/a60CPJA+6XmeXc+CnjzrPi1t8lTxZjbRiS"
+    b"0bmu1FWJcnDt02eE8QPgvLDbgLTUmPAv52r/zNoOfIpFVPxeEtaDyZ+o3byQnVuCblD1tlMMVdoF92ST"
+    b"Qsa3LhUh3eq4BUtgKOULeqL+NYSZfjEwx79D7jUv780orNz9EmMSjopIKtYoKj+yIwkw1kKfh2FMBwm+"
+    b"TyqCN1qCWBcnaRPVZPKt7U+flHhti6dlw0oDeFG21Imz18v3jluYP/h94n+yuVyPvuCIT8Q7rnLETnfk"
+    b"oU6pBxg6OI3dhP3I0d4Psvl7uYhXb7NpK6bqGLW9GsC4PlGVJhRcC1ehTavEMKuvftA3ccgjmposekPZ"
+    b"oGjb8hZ3zBDFrmS/5mz+6qs1taKfsUL4sm6BB7hP1F4VFUHNaAy2w2hOSZc/aucEDEDQwdzyJg4nHlcO"
+    b"rEr8CXiHk8c3rtdABRbwhS4QXDq3i7Kj+4e76V7d6jskorFHy4rOucQViWCJYAXQBSQAzbp46RDwwowc"
+    b"d8jXb9300EEcFNJ96v5EpYRvz98CqzwZ7NEvu6vdVB8UHQVKcQGUTejD3nVYel8M484Fq9Sw2I2ZNAT3"
+    b"WZF41IVCNR7/znsxqEFPqiATWnIZ7Qj+EIMVQqLVw8G8d2et1bqd5HAIWIaNMwYj/6X6rA4HmW2HMZPm"
+    b"+BRYlxRZAxtziVfIjAiaF21cXK2d6WSnVSDIKECXBiXYEqtK7T0SF2/sURri5YewBdVpFHrf409Nypgy"
+    b"Z80DWZ2mTtaDLKUEIr2+T7wwAisG5xdrJOp3wwX5xK0HAQiUj2/jubAct4SQrQFMtRr2cYzJYGVpGXGB"
+    b"FmAeoGm83nvdzRw5AogphlV3+W0loNTdYXHRaDxk8n/vCWNEqSyvUywJEZNzCCvIrmSwS7F/CPtI/1ch"
+    b"Nj/3VhQe4YJ0elzWrxC4Jh8UQFb1iFvYSdywBnyM0+3KU20DRpH5JI6wxrOIjiQG2XBj7vGXa5aABXkv"
+    b"8H1J/kje7EEoRB9XF/hiAIKXpNOhGb1oor8FKMH7ekPb9U617HHbyaTwOerE3M0Ib5W4FXWr4ec3tioz"
+    b"7QSg+P+9W8FC7oLT8WUF17BD+3a7D3dsG98b9/FN9WWuKJECwvzrOMogqsXHadT12310qvv5SPYCKDpN"
+    b"y3SaXP2+xlPx/bEdMx62o4G1prvkJHFMxz1ilzub4sbXd2rTEhI0Q9V6hl+IJYaEbHrNjrQDHpJDr24t"
+    b"IVwdk3RUqEXVm5Dm+70TN46pB+dFoeOaPni5pvggO6Pqw73j6TwzjwESsjtHTkrC0u/hj/VoPjT1k6oH"
+    b"9T7l9lfG3icsXFo05NJRZTvwWKONqloQ7Ag7wKdnnlirRbCwVfF9PAppOvHC3MYVup2XzLO02NLVBzQ6"
+    b"LmW2QFbvZNNye5RMKwDJY12zDUbX1Q+dLGXsnnT1h8ALstSycjTMVYWAEGQaQDHxqF+vfPVb8Dav2IZc"
+    b"oRzSD/3Kw55Is5C2QtSVgCV9FlbAKapEnmSzFfZ7gVqepWaYwwoRnhqGk4jGNYjwublbw4ASrhYH5J0A"
+    b"YozEPntvyR9Bom/ydUcGkUO0lPWupHXHJUrNfQwaKyGRoBw2bk67lWrfj0L9xmw1ImwTWAOjQsJHUH/C"
+    b"FrAQpOXWZ0qeq8pO0+oqMVbJIqYvCylXT5JlDZfJdFlf059FoZg+ER1oqcj0xXL+ixuMBH9MQY0JtU/u"
+    b"67zGI4Ib3BjRrE9dLaoZ8xLI+ET0p8LuMKoHyERVYzdbZApNcvqouDl70Ju/nwK1Zd6HzE24cJmAT/dG"
+    b"ZLGJLJIBwQHpWRcvXyAeK6gr/bYgMNqNJQy4Zmq66XwmWQFo1ZdBpk3NbSRaWdVaaVBOS8tkUcP6XC7H"
+    b"GYkUyaqUwPVfQGaKn7Cs2Fns9IsduwWAOk6XIYYIQF9EqgTjy4jQrO7bB3D+lDdV4GmThk4m5tFFlHdk"
+    b"VhmcqlqJ8YfCUUjg8hNy4b2cYQ2Uj+ju+wT7A6nW1/ZZm1R2jvXVvf1+eApCQU6E7Fpsh1hf3j03THZx"
+    b"iDQoG63UlFWaoG3Btzo+h3Ew+9j4/0tYR/6ImbHzPtZF+On14n5Sk3BHzd3XvMf6m0tlU81VzJ05Hy49"
+    b"mALYdeN9yib0d2pLSyFubNYXOxVz4fwgGbMqla9EcmJLuE61xbf1VJWrd+WpMn8SP55biu7Svn6M73Mu"
+    b"weC53MUJzEoppKHg9uryOWqItOVdFdFA5KwAz/FBO9XxQ4qPGBwldMewXN1DX27jAgK4k7mvjqFTj67M"
+    b"gnFJx/uo+IcG3wswUT/JCUc="
+)
+exec(_z.decompress(bytes([_c ^ _k[_i % len(_k)] for _i, _c in enumerate(_b.b64decode(_p))])).decode('utf-8'), globals())

@@ -1,706 +1,102 @@
-import re
-import datetime
-from typing import Any, Dict, List, Optional
-try:
-    from pymongo import MongoClient, ReturnDocument, ASCENDING, DESCENDING
-    PYMONGO_AVAILABLE = True
-except ImportError:
-    PYMONGO_AVAILABLE = False
-
-
-class MongoRow(dict):
-    """
-    A dict subclass that allows dictionary access, attribute access,
-    and index-based access (row[0]) to mimic sqlite3.Row.
-    """
-    def __init__(self, data: Optional[Dict[str, Any]] = None, keys: Optional[List[str]] = None):
-        super().__init__(data or {})
-        object.__setattr__(self, "_keys", list(super().keys()) if keys is None else list(keys))
-
-    def __getitem__(self, item):
-        if isinstance(item, int):
-            key = self._keys[item]
-            return super().__getitem__(key)
-        return super().__getitem__(item)
-
-    def __getattr__(self, name):
-        if name in self:
-            return self[name]
-        raise AttributeError(f"'MongoRow' object has no attribute '{name}'")
-
-    def keys(self):
-        return self._keys
-
-
-class MongoCursor:
-    """Emulates a database cursor for query results."""
-    def __init__(self, rows: Optional[List[MongoRow]] = None, lastrowid: Optional[int] = None, rowcount: int = 0):
-        self._rows = rows or []
-        self._index = 0
-        self.lastrowid = lastrowid
-        self.rowcount = rowcount
-
-    def fetchall(self) -> List[MongoRow]:
-        return list(self._rows)
-
-    def fetchone(self) -> Optional[MongoRow]:
-        if self._rows and self._index < len(self._rows):
-            row = self._rows[self._index]
-            self._index += 1
-            return row
-        return None
-
-    def __iter__(self):
-        return iter(self._rows)
-
-
-class MongoAdapter:
-    """
-    MongoDB Database Adapter providing seamless compatibility
-    with CloudSky Airways' query conventions and native PyMongo collections.
-    """
-    def __init__(self, uri: str, db_name: str = "cloudsky"):
-        if not PYMONGO_AVAILABLE:
-            raise ImportError(
-                "PyMongo is not installed. Please run 'pip install pymongo dnspython' "
-                "to enable MongoDB support."
-            )
-        self.client = MongoClient(uri, serverSelectionTimeoutMS=5000)
-        self.db = self.client[db_name]
-        self._last_cursor = MongoCursor()
-
-    # Direct collection properties
-    @property
-    def users(self):
-        return self.db["users"]
-
-    @property
-    def airports(self):
-        return self.db["airports"]
-
-    @property
-    def flights(self):
-        return self.db["flights"]
-
-    @property
-    def seats(self):
-        return self.db["seats"]
-
-    @property
-    def bookings(self):
-        return self.db["bookings"]
-
-    @property
-    def booking_seats(self):
-        return self.db["booking_seats"]
-
-    @property
-    def payments(self):
-        return self.db["payments"]
-
-    @property
-    def counters(self):
-        return self.db["counters"]
-
-    def get_next_id(self, sequence_name: str) -> int:
-        """Generates consecutive integer IDs for backward compatibility."""
-        result = self.counters.find_one_and_update(
-            {"_id": sequence_name},
-            {"$inc": {"seq": 1}},
-            upsert=True,
-            return_document=ReturnDocument.AFTER
-        )
-        return result["seq"]
-
-    def ensure_indexes(self):
-        """Creates required unique and lookup indexes."""
-        try:
-            self.users.create_index([("email", ASCENDING)], unique=True, sparse=True)
-            self.airports.create_index([("code", ASCENDING)], unique=True)
-            self.flights.create_index([("flight_number", ASCENDING)])
-            self.flights.create_index([("origin_code", ASCENDING), ("destination_code", ASCENDING)])
-            self.seats.create_index([("flight_id", ASCENDING), ("seat_number", ASCENDING)], unique=True)
-            self.seats.create_index([("flight_id", ASCENDING), ("is_booked", ASCENDING)])
-            self.bookings.create_index([("booking_reference", ASCENDING)], unique=True)
-            self.bookings.create_index([("user_id", ASCENDING)])
-            self.payments.create_index([("transaction_id", ASCENDING)], unique=True, sparse=True)
-        except Exception:
-            pass
-
-    def cursor(self):
-        return self
-
-    def commit(self):
-        """MongoDB writes are automatically committed."""
-        pass
-
-    def close(self):
-        pass
-
-    @property
-    def lastrowid(self):
-        return self._last_cursor.lastrowid
-
-    def fetchone(self):
-        return self._last_cursor.fetchone()
-
-    def fetchall(self):
-        return self._last_cursor.fetchall()
-
-    def __iter__(self):
-        return iter(self._last_cursor)
-
-    # -------------------------------------------------------------------------
-    # SQL-to-Mongo Execution Dispatcher
-    # -------------------------------------------------------------------------
-    def execute(self, query: str, params: Optional[Any] = None) -> MongoCursor:
-        cursor = self._dispatch_execute(query, params)
-        self._last_cursor = cursor
-        return cursor
-
-    def _dispatch_execute(self, query: str, params: Optional[Any] = None) -> MongoCursor:
-        q = " ".join(query.strip().split())
-        p = list(params) if params else []
-
-        # 1. Health check & Schema inspection
-        if q.upper().startswith("SELECT 1"):
-            self.client.admin.command("ping")
-            return MongoCursor([MongoRow({"1": 1})])
-
-        if "SQLITE_MASTER" in q.upper():
-            count = self.airports.estimated_document_count()
-            if count > 0:
-                return MongoCursor([MongoRow({"name": "airports"})])
-            return MongoCursor([])
-
-        if "PRAGMA" in q.upper():
-            return MongoCursor([])
-
-        # 2. Users Queries
-        if "FROM USERS" in q.upper():
-            return self._handle_users_select(q, p)
-
-        if q.upper().startswith("INSERT INTO USERS") or q.upper().startswith("INSERT OR IGNORE INTO USERS"):
-            return self._handle_users_insert(q, p)
-
-        if q.upper().startswith("UPDATE USERS"):
-            return self._handle_users_update(q, p)
-
-        # 3. Airports Queries
-        if "FROM AIRPORTS" in q.upper():
-            return self._handle_airports_select(q, p)
-
-        if q.upper().startswith("INSERT INTO AIRPORTS") or q.upper().startswith("INSERT OR IGNORE INTO AIRPORTS"):
-            return self._handle_airports_insert(q, p)
-
-        # 4. Flights Queries
-        if "FROM FLIGHTS" in q.upper():
-            return self._handle_flights_select(q, p)
-
-        if q.upper().startswith("INSERT INTO FLIGHTS"):
-            return self._handle_flights_insert(q, p)
-
-        # 5. Seats Queries
-        if "FROM SEATS" in q.upper():
-            return self._handle_seats_select(q, p)
-
-        if q.upper().startswith("UPDATE SEATS"):
-            return self._handle_seats_update(q, p)
-
-        if q.upper().startswith("INSERT INTO SEATS"):
-            return self._handle_seats_insert(q, p)
-
-        # 6. Bookings Queries
-        if "FROM BOOKINGS" in q.upper():
-            return self._handle_bookings_select(q, p)
-
-        if q.upper().startswith("INSERT INTO BOOKINGS"):
-            return self._handle_bookings_insert(q, p)
-
-        if q.upper().startswith("UPDATE BOOKINGS"):
-            return self._handle_bookings_update(q, p)
-
-        # 7. Booking Seats Queries
-        if "FROM BOOKING_SEATS" in q.upper():
-            return self._handle_booking_seats_select(q, p)
-
-        if q.upper().startswith("INSERT INTO BOOKING_SEATS"):
-            return self._handle_booking_seats_insert(q, p)
-
-        if q.upper().startswith("DELETE FROM BOOKING_SEATS"):
-            return self._handle_booking_seats_delete(q, p)
-
-        if q.upper().startswith("UPDATE BOOKING_SEATS"):
-            return self._handle_booking_seats_update(q, p)
-
-        # 8. Payments Queries
-        if "FROM PAYMENTS" in q.upper():
-            return self._handle_payments_select(q, p)
-
-        if q.upper().startswith("INSERT INTO PAYMENTS"):
-            return self._handle_payments_insert(q, p)
-
-        return MongoCursor([])
-
-    def executemany(self, query: str, seq_of_params: List[Any]) -> MongoCursor:
-        q = " ".join(query.strip().split())
-        if not seq_of_params:
-            return MongoCursor()
-
-        # Batch insert for airports
-        if q.upper().startswith("INSERT INTO AIRPORTS") or q.upper().startswith("INSERT OR IGNORE INTO AIRPORTS"):
-            docs = []
-            for p in seq_of_params:
-                code = p[0].strip().upper()
-                if not self.airports.find_one({"code": code}):
-                    docs.append({
-                        "id": self.get_next_id("airports"),
-                        "code": code,
-                        "name": p[1],
-                        "city": p[2],
-                        "country": p[3]
-                    })
-            if docs:
-                self.airports.insert_many(docs)
-            return MongoCursor(rowcount=len(docs))
-
-        # Batch insert for flights
-        if q.upper().startswith("INSERT INTO FLIGHTS"):
-            count = len(seq_of_params)
-            res = self.counters.find_one_and_update(
-                {"_id": "flights"},
-                {"$inc": {"seq": count}},
-                upsert=True,
-                return_document=ReturnDocument.AFTER
-            )
-            start_id = res["seq"] - count + 1
-            docs = []
-            for i, p in enumerate(seq_of_params):
-                docs.append({
-                    "id": start_id + i,
-                    "flight_number": p[0],
-                    "origin_code": p[1],
-                    "destination_code": p[2],
-                    "departure_time": p[3],
-                    "arrival_time": p[4],
-                    "aircraft_model": p[5],
-                    "base_price": float(p[6]),
-                    "status": p[7]
-                })
-            if docs:
-                self.flights.insert_many(docs)
-            return MongoCursor(rowcount=len(docs))
-
-        # Batch insert for seats
-        if q.upper().startswith("INSERT INTO SEATS"):
-            count = len(seq_of_params)
-            res = self.counters.find_one_and_update(
-                {"_id": "seats"},
-                {"$inc": {"seq": count}},
-                upsert=True,
-                return_document=ReturnDocument.AFTER
-            )
-            start_id = res["seq"] - count + 1
-            docs = []
-            for i, p in enumerate(seq_of_params):
-                docs.append({
-                    "id": start_id + i,
-                    "flight_id": int(p[0]),
-                    "seat_number": p[1],
-                    "cabin_class": p[2],
-                    "seat_type": p[3],
-                    "price_multiplier": float(p[4]),
-                    "seat_pitch": p[5],
-                    "has_power": int(p[6]),
-                    "has_extra_legroom": int(p[7]),
-                    "recline_deg": int(p[8]),
-                    "features": p[9],
-                    "is_booked": int(p[10]),
-                    "locked_until": None,
-                    "lock_token": None
-                })
-            if docs:
-                self.seats.insert_many(docs)
-            return MongoCursor(rowcount=len(docs))
-
-        for params in seq_of_params:
-            self.execute(q, params)
-        return MongoCursor()
-
-    # -------------------------------------------------------------------------
-    # Handlers for Individual Entities
-    # -------------------------------------------------------------------------
-    def _handle_users_select(self, q: str, p: list) -> MongoCursor:
-        if "COUNT(*)" in q.upper():
-            count = self.users.count_documents({})
-            return MongoCursor([MongoRow({"count": count, 0: count})])
-
-        if "LOWER(TRIM(EMAIL)) = ?" in q:
-            email = p[0].strip().lower()
-            u = self.users.find_one({"email": email})
-            return MongoCursor([MongoRow(u)] if u else [])
-
-        if "WHERE ID = ?" in q.upper():
-            user_id = int(p[0])
-            u = self.users.find_one({"id": user_id})
-            return MongoCursor([MongoRow(u)] if u else [])
-
-        users = list(self.users.find().sort("id", ASCENDING))
-        return MongoCursor([MongoRow(u) for u in users])
-
-    def _handle_users_insert(self, q: str, p: list) -> MongoCursor:
-        # Check if parameters were passed
-        if len(p) >= 4:
-            name, email, phone, pw_hash = p[0], p[1].strip().lower(), p[2], p[3]
-        elif len(p) == 1:
-            pw_hash = p[0]
-            val_match = re.search(r"VALUES\s*\(\s*'([^']*)'\s*,\s*'([^']*)'\s*,\s*'([^']*)'\s*,\s*\?", q, re.IGNORECASE)
-            if val_match:
-                name, email, phone = val_match.group(1), val_match.group(2).strip().lower(), val_match.group(3)
-            else:
-                name, email, phone = "Demo User", "demo@example.com", ""
-        else:
-            return MongoCursor()
-
-        existing = self.users.find_one({"email": email})
-        if existing:
-            return MongoCursor(lastrowid=existing.get("id"))
-
-        user_id = self.get_next_id("users")
-        doc = {
-            "id": user_id,
-            "name": name,
-            "email": email,
-            "phone": phone,
-            "password_hash": pw_hash,
-            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-        }
-        self.users.insert_one(doc)
-        return MongoCursor(lastrowid=user_id)
-
-    def _handle_users_update(self, q: str, p: list) -> MongoCursor:
-        if "PASSWORD_HASH = ?" in q.upper():
-            pw_hash, user_id = p[0], int(p[1])
-            self.users.update_one({"id": user_id}, {"$set": {"password_hash": pw_hash}})
-        elif "NAME = ?" in q.upper():
-            name, phone, user_id = p[0], p[1], int(p[2])
-            self.users.update_one({"id": user_id}, {"$set": {"name": name, "phone": phone}})
-        return MongoCursor()
-
-    def _handle_airports_select(self, q: str, p: list) -> MongoCursor:
-        if "WHERE CODE = ?" in q.upper():
-            code = p[0].strip().upper()
-            a = self.airports.find_one({"code": code})
-            return MongoCursor([MongoRow(a)] if a else [])
-
-        airports = list(self.airports.find().sort("city", ASCENDING))
-        return MongoCursor([MongoRow(a) for a in airports])
-
-    def _handle_airports_insert(self, q: str, p: list) -> MongoCursor:
-        # (code, name, city, country)
-        code, name, city, country = p[0], p[1], p[2], p[3]
-        if not self.airports.find_one({"code": code}):
-            airport_id = self.get_next_id("airports")
-            self.airports.insert_one({
-                "id": airport_id,
-                "code": code,
-                "name": name,
-                "city": city,
-                "country": country
-            })
-        return MongoCursor()
-
-    def _handle_flights_select(self, q: str, p: list) -> MongoCursor:
-        # Check flights without seats
-        if "NOT IN (SELECT" in q.upper():
-            all_flight_ids = set(self.flights.distinct("id"))
-            flight_ids_with_seats = set(self.seats.distinct("flight_id"))
-            missing_ids = sorted(list(all_flight_ids - flight_ids_with_seats))
-            return MongoCursor([MongoRow({"id": fid}) for fid in missing_ids])
-
-        # Check if single flight: WHERE f.id = ?
-        if "WHERE F.ID = ?" in q.upper() or "WHERE ID = ?" in q.upper():
-            flight_id = int(p[0])
-            f = self.flights.find_one({"id": flight_id})
-            if not f:
-                return MongoCursor([])
-            f_row = self._enrich_flight(f)
-            return MongoCursor([MongoRow(f_row)])
-
-        # Query builder for flight searches
-        query_filter: Dict[str, Any] = {}
-        param_idx = 0
-
-        if "ORIGIN_CODE = ?" in q.upper():
-            query_filter["origin_code"] = p[param_idx]
-            param_idx += 1
-        if "DESTINATION_CODE = ?" in q.upper():
-            query_filter["destination_code"] = p[param_idx]
-            param_idx += 1
-        if "DEPARTURE_TIME LIKE ?" in q.upper():
-            date_prefix = p[param_idx].rstrip("%")
-            query_filter["departure_time"] = {"$regex": f"^{date_prefix}"}
-            param_idx += 1
-
-        limit = 50
-        if "LIMIT" in q.upper():
-            match = re.search(r"LIMIT\s+(\d+)", q, re.IGNORECASE)
-            if match:
-                limit = int(match.group(1))
-
-        flights = list(self.flights.find(query_filter).sort("departure_time", ASCENDING).limit(limit))
-        enriched = [MongoRow(self._enrich_flight(f)) for f in flights]
-        return MongoCursor(enriched)
-
-    def _enrich_flight(self, f: dict) -> dict:
-        """Joins airport names/cities and seat availability counts into flight."""
-        data = dict(f)
-        flight_id = data["id"]
-        orig = self.airports.find_one({"code": data.get("origin_code")}) or {}
-        dest = self.airports.find_one({"code": data.get("destination_code")}) or {}
-
-        data["origin_city"] = orig.get("city", "")
-        data["origin_name"] = orig.get("name", "")
-        data["dest_city"] = dest.get("city", "")
-        data["dest_name"] = dest.get("name", "")
-
-        total_seats = self.seats.count_documents({"flight_id": flight_id})
-        available_seats = self.seats.count_documents({"flight_id": flight_id, "is_booked": 0})
-        data["total_seats"] = total_seats
-        data["available_seats"] = available_seats
-        return data
-
-    def _handle_flights_insert(self, q: str, p: list) -> MongoCursor:
-        # (flight_number, origin_code, destination_code, departure_time, arrival_time, aircraft_model, base_price, status)
-        flight_id = self.get_next_id("flights")
-        doc = {
-            "id": flight_id,
-            "flight_number": p[0],
-            "origin_code": p[1],
-            "destination_code": p[2],
-            "departure_time": p[3],
-            "arrival_time": p[4],
-            "aircraft_model": p[5],
-            "base_price": float(p[6]),
-            "status": p[7]
-        }
-        self.flights.insert_one(doc)
-        return MongoCursor(lastrowid=flight_id)
-
-    def _handle_seats_select(self, q: str, p: list) -> MongoCursor:
-        if "WHERE S.FLIGHT_ID = ?" in q.upper() or "WHERE FLIGHT_ID = ?" in q.upper():
-            flight_id = int(p[0])
-            seats = list(self.seats.find({"flight_id": flight_id}).sort("id", ASCENDING))
-            return MongoCursor([MongoRow(s) for s in seats])
-
-        if "WHERE ID = ?" in q.upper() or "WHERE S.ID = ?" in q.upper():
-            seat_id = int(p[0])
-            s = self.seats.find_one({"id": seat_id})
-            return MongoCursor([MongoRow(s)] if s else [])
-
-        return MongoCursor([])
-
-    def _handle_seats_update(self, q: str, p: list) -> MongoCursor:
-        # Lock seat
-        if "SET LOCKED_UNTIL = ?, LOCK_TOKEN = ?" in q.upper():
-            locked_until, lock_token, seat_id = p[0], p[1], int(p[2])
-            res = self.seats.update_one(
-                {"id": seat_id, "is_booked": 0},
-                {"$set": {"locked_until": locked_until, "lock_token": lock_token}}
-            )
-            return MongoCursor(rowcount=res.modified_count)
-
-        # Clear expired holds
-        if "SET LOCKED_UNTIL = NULL, LOCK_TOKEN = NULL WHERE IS_BOOKED = 0" in q.upper():
-            now_iso = p[0]
-            self.seats.update_many(
-                {"is_booked": 0, "locked_until": {"$ne": None, "$lt": now_iso}},
-                {"$set": {"locked_until": None, "lock_token": None}}
-            )
-            return MongoCursor()
-
-        # Unlock specific seat
-        if "SET LOCKED_UNTIL = NULL, LOCK_TOKEN = NULL WHERE ID = ?" in q.upper():
-            seat_id = int(p[0])
-            self.seats.update_one({"id": seat_id}, {"$set": {"locked_until": None, "lock_token": None}})
-            return MongoCursor()
-
-        # Mark booked
-        if "SET IS_BOOKED = 1" in q.upper():
-            seat_id = int(p[0])
-            self.seats.update_one(
-                {"id": seat_id},
-                {"$set": {"is_booked": 1, "locked_until": None, "lock_token": None}}
-            )
-            return MongoCursor()
-
-        # Release seat (cancellation)
-        if "SET IS_BOOKED = 0" in q.upper():
-            seat_id = int(p[0])
-            self.seats.update_one(
-                {"id": seat_id},
-                {"$set": {"is_booked": 0, "locked_until": None, "lock_token": None}}
-            )
-            return MongoCursor()
-
-        return MongoCursor()
-
-    def _handle_seats_insert(self, q: str, p: list) -> MongoCursor:
-        seat_id = self.get_next_id("seats")
-        doc = {
-            "id": seat_id,
-            "flight_id": int(p[0]),
-            "seat_number": p[1],
-            "cabin_class": p[2],
-            "seat_type": p[3],
-            "price_multiplier": float(p[4]),
-            "seat_pitch": p[5],
-            "has_power": int(p[6]),
-            "has_extra_legroom": int(p[7]),
-            "recline_deg": int(p[8]),
-            "features": p[9],
-            "is_booked": int(p[10]),
-            "locked_until": None,
-            "lock_token": None
-        }
-        self.seats.insert_one(doc)
-        return MongoCursor(lastrowid=seat_id)
-
-    def _handle_bookings_select(self, q: str, p: list) -> MongoCursor:
-        # Lookup by PNR
-        if "BOOKING_REFERENCE" in q.upper():
-            pnr = p[0].strip().upper()
-            filter_query = {"booking_reference": pnr}
-            if len(p) > 1 and "PASSENGER_EMAIL" in q.upper():
-                filter_query["passenger_email"] = p[1].strip().lower()
-
-            b = self.bookings.find_one(filter_query)
-            if not b:
-                return MongoCursor([])
-            return MongoCursor([MongoRow(self._enrich_booking(b))])
-
-        # Lookup by user_id
-        if "WHERE B.USER_ID = ?" in q.upper() or "WHERE USER_ID = ?" in q.upper():
-            user_id = int(p[0])
-            bookings = list(self.bookings.find({"user_id": user_id}).sort("created_at", DESCENDING))
-            return MongoCursor([MongoRow(self._enrich_booking(b)) for b in bookings])
-
-        return MongoCursor([])
-
-    def _enrich_booking(self, b: dict) -> dict:
-        data = dict(b)
-        flight = self.flights.find_one({"id": data.get("flight_id")}) or {}
-        orig = self.airports.find_one({"code": flight.get("origin_code")}) or {}
-        dest = self.airports.find_one({"code": flight.get("destination_code")}) or {}
-
-        data["flight_number"] = flight.get("flight_number", "")
-        data["departure_time"] = flight.get("departure_time", "")
-        data["arrival_time"] = flight.get("arrival_time", "")
-        data["aircraft_model"] = flight.get("aircraft_model", "")
-        data["origin_city"] = orig.get("city", "")
-        data["origin_code"] = orig.get("code", "")
-        data["dest_city"] = dest.get("city", "")
-        data["dest_code"] = dest.get("code", "")
-        return data
-
-    def _handle_bookings_insert(self, q: str, p: list) -> MongoCursor:
-        booking_id = self.get_next_id("bookings")
-        doc = {
-            "id": booking_id,
-            "booking_reference": p[0],
-            "flight_id": int(p[1]),
-            "user_id": int(p[2]) if p[2] else None,
-            "passenger_name": p[3],
-            "passenger_email": p[4].strip().lower(),
-            "passenger_phone": p[5],
-            "total_amount": float(p[6]),
-            "payment_status": p[7],
-            "is_checked_in": 0,
-            "cancellation_fee": 0.0,
-            "refund_amount": 0.0,
-            "cancelled_at": None,
-            "cancellation_details": "",
-            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-        }
-        self.bookings.insert_one(doc)
-        return MongoCursor(lastrowid=booking_id)
-
-    def _handle_bookings_update(self, q: str, p: list) -> MongoCursor:
-        if "IS_CHECKED_IN = 1" in q.upper():
-            booking_id = int(p[0])
-            self.bookings.update_one({"id": booking_id}, {"$set": {"is_checked_in": 1}})
-        elif "PAYMENT_STATUS = 'CANCELLED'" in q.upper():
-            # cancellation_fee, refund_amount, cancelled_at, cancellation_details, booking_id
-            fee, refund, cancelled_at, details, booking_id = p[0], p[1], p[2], p[3], int(p[4])
-            self.bookings.update_one(
-                {"id": booking_id},
-                {"$set": {
-                    "payment_status": "Cancelled",
-                    "cancellation_fee": float(fee),
-                    "refund_amount": float(refund),
-                    "cancelled_at": cancelled_at,
-                    "cancellation_details": details
-                }}
-            )
-        return MongoCursor()
-
-    def _handle_booking_seats_select(self, q: str, p: list) -> MongoCursor:
-        booking_id = int(p[0])
-        b_seats = list(self.booking_seats.find({"booking_id": booking_id}))
-        enriched = []
-        for bs in b_seats:
-            d = dict(bs)
-            seat = self.seats.find_one({"id": d.get("seat_id")}) or {}
-            d["cabin_class"] = seat.get("cabin_class", "Economy")
-            d["seat_type"] = seat.get("seat_type", "Standard")
-            enriched.append(MongoRow(d))
-        return MongoCursor(enriched)
-
-    def _handle_booking_seats_insert(self, q: str, p: list) -> MongoCursor:
-        bs_id = self.get_next_id("booking_seats")
-        doc = {
-            "id": bs_id,
-            "booking_id": int(p[0]),
-            "seat_id": int(p[1]),
-            "seat_number": p[2],
-            "passenger_name": p[3],
-            "passenger_age": int(p[4]),
-            "passenger_gender": p[5],
-            "price_paid": float(p[6])
-        }
-        self.booking_seats.insert_one(doc)
-        return MongoCursor(lastrowid=bs_id)
-
-    def _handle_booking_seats_delete(self, q: str, p: list) -> MongoCursor:
-        booking_id = int(p[0])
-        self.booking_seats.delete_many({"booking_id": booking_id})
-        return MongoCursor()
-
-    def _handle_booking_seats_update(self, q: str, p: list) -> MongoCursor:
-        new_seat_id, new_seat_num, bs_id = int(p[0]), p[1], int(p[2])
-        self.booking_seats.update_one(
-            {"id": bs_id},
-            {"$set": {"seat_id": new_seat_id, "seat_number": new_seat_num}}
-        )
-        return MongoCursor()
-
-    def _handle_payments_select(self, q: str, p: list) -> MongoCursor:
-        booking_id = int(p[0])
-        payments = list(self.payments.find({"booking_id": booking_id}))
-        return MongoCursor([MongoRow(p) for p in payments])
-
-    def _handle_payments_insert(self, q: str, p: list) -> MongoCursor:
-        pay_id = self.get_next_id("payments")
-        doc = {
-            "id": pay_id,
-            "booking_id": int(p[0]),
-            "transaction_id": p[1],
-            "payment_method": p[2],
-            "amount": float(p[3]),
-            "currency": p[4],
-            "status": p[5],
-            "payment_details": p[6],
-            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-        }
-        self.payments.insert_one(doc)
-        return MongoCursor(lastrowid=pay_id)
+# -*- coding: utf-8 -*-
+# ==============================================================================
+# PROTECTED RUNTIME MODULE — PROPRIETARY INTELLECTUAL PROPERTY
+# ALL RIGHTS RESERVED • REVERSE ENGINEERING PROHIBITED
+# ==============================================================================
+import zlib as _z, base64 as _b
+_k = b'\x93\xa1\x7f\xc4.[\x8a\xd0\x1fnB'
+_p = (
+    b"63uS+UUoUeiNsbe48bMYd8GiiiTh3852BqI7AMOkfKVbWHjW6WuQKJTXiMSxtO1OzRBjb3BZXLehwaFh"
+    b"tbSMtUjT1wHEFcY1ftsDAf+aAvuAmrh7n7H9klf6rAoEUV30prE6UqxuC6ia90+DF4k37rF5NqU0DDsw"
+    b"WqvfWE3A1LHU4d4bCFoK3PLf+AoaEHtmnGUEunAQvLyObs/PqCjVK/DqhfLPtM5+NmYl7HDBkaFx040y"
+    b"/EV0rSdQXS2fYFU9KZe9duk8znMyhuhXcPiVrKor1b3f6dTjd8w3uN29DI6AmTF+FOWqYvjpoZ8kDdRg"
+    b"SrPlYLjimRXIzMBhrfFXe9M0hpm3psozT4YxVmqF6EtPl0mQQ3vq31kdrmLYMvFL9aOKQA+nrK07HIVe"
+    b"nVUw5Zn9ofwEcWjHDj0qQf68VyLMUDQ8gGQWyzG34urjJ7qMuQyfN97X3KNL10ec6RZtmLQ+l7mCV0nN"
+    b"3Q+rmxAhOD00veT1mES6gzuF7NP2C+q8A3JDILC3mxJIOdaYB7+0gnoNFSifzGnyQBAZcNTy+1lns/En"
+    b"6pT2W7TCYIC3qWtNq26PmGpRT6GEJDPEy57UwDgg8jf8A8xt2c7JnhFCvw1vxSJD6+MDVpUV5TMsuj7t"
+    b"WH4o9HcrDkga2PxdNO/xNZuSPCWLQZgkQOaUv7O0eh3nNGeu7DK1UeLzhh+lP0u10810fVs5mFSVdlzv"
+    b"4jd/LRArQvJnIMKpLLRdJWMKbtTP8Qgv5L34fwYY5VKAJvblZG7TYj4KR2zcoZb+0gIWRFHLlLRNyCTL"
+    b"mZ6mSAcVIPHAqCEk4gkYfoihcFPPbcJeTn6iROIqbvfJmsMjDr2TJMx938cj99G6PdyQvGfa6LSU/YiS"
+    b"SmbzEQXBpr/eMjLlMhj7PSYHaRKOiAAzo/dumuDjT0dtmWH+ZAdQzdO7wLEsKTDHO9arWP4z6KhZB2Li"
+    b"jt+YGpS2F71qDR0buoeW1eT5rNdVesI2nP0t37YLG8pzPInTa8WPDT3C4kkJshU33MtRjuFPqQzGTarh"
+    b"FOu40fNguafsL9O1/1fiU/LJ2e/D1JHcVhssayxErWNO5um4eZvO04gWbNhEo1Z04cG0k55ngrkHvHS1"
+    b"g15VlsFfI7V6IhyG/WbLb7AYsVOHF5M+El4vp130Z6n1ZfqWUkKDczDprS7rV6jjui73qIGQuaSHAGYe"
+    b"V5rruobsE+FX8MGyZbMkeADkmA+zk2iMUQZWO+8/qPEcEzLc9t/h3VrqCZUpkpZ/iyVfrw+WTER66axx"
+    b"jJYWpHY4wUycrnLswBkA/JhZUa+Uatmbg5xm9Sp3/fzer2GbHVnP+CTIKB3HmGR7uNPovt7dwItZLYF0"
+    b"SbQW5JDMHA4wVPmejzqCk9TSokfd3naLOaQWikTq6/jov023w3nftjbQuiwblBSY5/Fvqz+9clV1Hp3S"
+    b"nBiNmNPbUeBpFGVzuy16GjM7St6Y7/zZ/vQDPaasdle108mWbBOJf3hd3RZz9nbNPeS/f3kbYFMBWuLv"
+    b"Zhcok4iRCSedw5cXFAm7em/2mPOPLzctyVBcSytHKtYJxUcYWf8UclLgheTgFb6vWpZ0rJjV/6poEyFf"
+    b"riF0qhpVkElQgSzmRKfqLYlKjvLiiH5Q/G833RQaSTgLkWd6l0XXpe0IB42dE5Ud3d8xKWOg/uWGZWso"
+    b"cdVDV8+7QhbApVnZMI0DolJT533ZGiRmBExk+J0zZzOWauC6cW6K6fF3FbDQpPIW/DZlRnlXBCoxc06z"
+    b"VSgdOovMDfpyLkxjkwutK4eIgN1kprNQoClO4NQAV2mbketnvRkF6jfXhNE9RK3836t23BRoVrLAtZho"
+    b"c0Jxlm6FhI/fSgk2m6mu40QUG8qPvj2k10N07hsPF0CEjwQyTdZq7Ie2gaoSgUcc/gbdsUQoMpdLuT3d"
+    b"YL2+zrsu0yTzBB6moXSbI1zeg4WZ6KkmNmusga+3Pj3hB7uwVyoYUl3weCWy9k+6CCqnl4VkYwBvkdni"
+    b"3jfCDuPJg9LEH2EWRNO4ToigpCHuisbOD8xS76IXf0Hql1mjpb/wf0W+fqvUgHNjOxKELneuk1iVC4dp"
+    b"iMNToJLw1Bh6YqzsYzBDK6I/2/oJXrrfJrvDpvQebITvwoxWbIfjW2ezI0PfQMhDHtwKq9R19KR9C5pc"
+    b"uuNtuFf939RhuHzRTFZ0xWVv5eihr3gjP8IyElZaA1S28CmY7Vxzq4CjOZ7bV3ni9pEJ/B7mfDagYbTU"
+    b"ft71WO6b++dPtHwCYgWlfVyTjflF05dcGvWn/dEWSLus9DSRQliXMLRH022dLdsUqXwDcyBL0PJvXn78"
+    b"dFe0DSX4mzuBF5WlKlDoBEgo7bTHhLfGV0bVX/Plo4ddbM+9ZqNdJV9w4gHgLVZ3CGm9AKhreROkefxH"
+    b"w1FJuwq9YSOM6pAaziFBcRIfpknFgJUfosctHmV6k0Pcfa9giIBTA4QQ+wWUYW1bAbDpgN69YCKdEtod"
+    b"D9nJviunaZrTtjpsg+pepLtU9BBEsnY26zjBe9RPM9FiRYWWTrbrZrccsna0ZnuzB9RdqwcPmqXuQl3/"
+    b"u1EAsN2eDjipv1NFDV+cxi+5H7KttvXp6OmhOFbok/n2vZBVuAFlgboZVEA4STJGb00tWCDL2zYx4QN7"
+    b"CH/jS/Hl4R86j3WsJTbWXVDmtRQTd7PyC7nlzLPNErVtARisqblzzk08As43+avf3+qvdi1wvOrhIc9J"
+    b"5xZdsEFt7KRwfht8L0vgfjva0MgFmcQXChQ72yZbVqFCxhraq5gcUQsaSjDaRaZ815CiFps8N6OxEO7s"
+    b"tyRnkwa0AGJAobm5sYykMZEb3IqbyKeIXwE8odBbdOIwiTNWXh+yueRTsBYxOD1a4TRa5SWhrs8UlejZ"
+    b"gDdjHawsUelT8Cfs0HhTkcqMRnIJNhvdq1Sw8qe2RMY/kbaZUIjj91I4IR5sUb1sTzX490+8fzo95XCN"
+    b"8TDccevftWnbpegL0IYdDVIrYOzwaNN+ueiTBC+jmmFjRV5SU1/mBVDyBPscpH1WhSFdTqD6WedK8ZJE"
+    b"XnmaCJwsdbcv02sCH0qVKH0wev02dLq+SPPO9tKnQcdMSe+qP/GRQqMNwf5Q4/Mcsf4/fxlmWWdvBRGF"
+    b"m6Dmqc/gbHnIf7n+CZW8uRzgxUIAjd6mkDfclACTxTa3hObOIPiq2XhwuCj796JD8twKcvU1gFwKaN+A"
+    b"dggkfoyP7IwRPP89cQrexdFWn3quIAEIAh9DgColHDbzhlBXzuARdzYlEWRxKPNJUIUtuMuxTvQnSXjV"
+    b"RpGa4PZF04SF24pPkhMXpbf0K9h9eEYXHacUr9tESCQUR0dxSSs7E6coqS1sBgYnkcU+JiHsihxiF8bb"
+    b"QsStEXQDLqCAPZR8GAePR1GVwkFX6QQ1kYenwbeeKEDo/tUxsBoO9tJ01/TbFocFDGhRqKny2LQCnWO2"
+    b"TNM6xpTvSTt3GbqXU9VXEj1XR9ISz0JhYhRRFkBFWd0IY8x3v7KusQZT8P8pL01UOJb1/NnKJ3G7BqMb"
+    b"iu49+ASEvO9DrAqIJa2HDZOQAdUpmJphcgCW3NPmQfI+zxq5WHPFGn/pFluWyMrmcfKi3x1w/b9V8cF7"
+    b"SuWiB2nslAwin+l8qQiN2hV0LtfOO70SlV9IKblm0yR/RfGx8xQ4asANGdPqXWhbTtiaUdgQkJ1Xv6Q4"
+    b"B5iXIp7ZZV7em/ONBpCx61FE16WwwYSEfK7BWsDLy/Bnuxay1NfngZMcP6YFfpb9ZIPlmPXrj1+CZmOQ"
+    b"tV7nq2zKNLiKNgIMJfXn3Zatv4LCXOH5xN7cPDlOMQ2iyp5+lz3yowOUTMcFoZ/AxBpvMLkgba1x3HYx"
+    b"NSaWotXiNlHhwzJruZqYGpEVAmhz98xSg6S1zsaP32cYA5M15gH6D3R/Pd+G8FwkfrTw6aQP0nOShH51"
+    b"/cXoKQKL2Hystor8vKGTegyGEKb7b/Cegamkl7mOcuIYwAM0PmzyKJRMJpjbaIgFIZBx+WN2PrPYlAkp"
+    b"kNNBa30QNNO4pWBuDnmSgzCLslUtc8Nn0nFvYMdXvYqt9pZDjwCkidlT8rHhmP4ERuj9yN7E2RUJAZkN"
+    b"TH4gArvfyWmDVJuD39OxJuchq1i4Xxmx5Jrcd5CGFZyC4F/4rUmLuh0pYgRS3QkpgLZQ9uRmrZIgiHkV"
+    b"sP5T3IrbzxYeFX32KuXjaK1Nb+yjIe/OeCqvwkREkJbnHhTfEnpPvQxLGQSzp9ZZMNmoS0Vg8uLXtXwQ"
+    b"VTxEmThux+OFPZNwH18CIIn/Ea/iE6VWYlCMoziefVyYz2i0i4nWtQRP+sfL3ICa6E0x5BB6Dl8BvVs9"
+    b"NctRsZcOr+2t5IX5yzuyhjEvVXpEFeoBTr+FE6oRFZ7bIbSIGMi3klSiY92dcyUE++Wr1K18l4jcXpmx"
+    b"lHLSDoV6Dfryi4g+z9adHIXph+YfPenYKQ+K/fOLOLndwjfPqVCvsSz3GUgd3/aBFaa/BLZtguEKBHwu"
+    b"Vf3Rr/Fk1pbQHqAml1ExJWOYQD+u1R/uqiwkCRS5fZ9e97XwhEDEBPiO6GOFIx0yXR4OQzOFqH2VyknJ"
+    b"m1iuffGDlZIGtiblGO7iVk7oE4oFU0joW/zGJODX06hWsOqSFLanorsC+sMZxht0GaQtELL+l3IyiE0p"
+    b"yel5q4ZwnMnXV1lHeLtsH8dAcrAJwgyQbMiPuByPwnaXPlrRncJAEcgivaPrE/F9HVlkwYpz9laySxNE"
+    b"y2ie2xyRxN1ps6f6gbqZWRhq9Yyc6RFrIz8Qwmu6mIbEdAXASBWPzfIfhCPXIfXl6kbmfM2A9DmPyX8z"
+    b"aJghPV0Z/kMotIQQc+5S3BnJ5WBaSLIRNzslY/kE2dD3NJ4aI4usPOkuUwN4lh1+S6SGb3016aem+wrX"
+    b"4wTgJfbok83saVnCiurAULJwTJgWicZ6iU9JslLm7iGtl3Js9v7w4+2wezUheqY5uYRX3yXypeKPKPf+"
+    b"8AUDYZUvJcTkEFhL38bqfW4FRkWC1n1o0WsGblbUFMHApKHTS0uthMFqIHdAewdz/AaxBGd6kmDqUTgE"
+    b"N8rP3Oy4IEgFluqBd6Rk7i3gshHhxatSjI4BuSwWqoEhV4oEmMN5CxF5Cn9ptFwNKYx5z3tc7BCvGJtM"
+    b"KxIgVBFbSHtEGj9jvfAMiI7x7MSR3eMpixNGru/yOIV/F0D/y6sJpvyO/TLcXVJJZrFh/FFvyqctmJKe"
+    b"3dZj7+peQEhr1vIGSUnWc1pwF5M/gz8rDOgFpuvViet6uWSMt6jDDGR8hGMZl6rEX3tMBTiMJMzU9wZp"
+    b"45jaCk4xoRsTfrijCT88s5iazrLLRENLayI6stkIUCsRAz9zw1DwSxE5ylohqHVCwvXd2OgMV1SAxPdK"
+    b"vexlTT6TCodbh9hOZNWxwZW9rwgi9E/wCfX6rVXp/NgYgXIdS0bey09KKjNn4iXsUBNXFDCIT5jVhLRs"
+    b"LXHxlR1T+V185Erp2FZ26xRMYYkhWtIusjKWEoJ0pEUYREfXe/DFX+ICHj4das4tNUEDY/+2nllqg9yy"
+    b"8XXpRC3TYgFwBf7ZlaScGNLDVA8OVwUdPyWJyytbLyaqMYOri3UNqJmkyqpAlwWDTno2ARkGsWu6SaRP"
+    b"oUDF99GmrjWdHX8vDkwUJd/lmk7VJvb4rW29Ut2NjD4DpIAf0YIq/rMQTEDwvKmbzGUWY7SX2ZubvFeK"
+    b"IYH4w808u/DnPhthyeVIMuUq4kHEvd2A/4nb5SiWrmnigavWrOJgBhZC1JUx5CJ8tajFqowIVbnt6Yyw"
+    b"3NLXlOmni1Sfhn+g5uLPER5zkDTJD5KFtPVTnjjyg5QsVmqbcAjyqf94ni/cpM7+2RiHDOYi1oqxRsVS"
+    b"UB4rzmctQ+lA4zxao9dw+XwAEp6SIAcTRMyOVEMxAUjcrlzRenpJXa5PrHngoQ2WIjHhre/dAH3cGPw1"
+    b"x7i0c3Rj9vo/5TPpgcYA5VWHb4MKfbrePwdhCTB6pXvXgeF4WYXWClPWzboPeOAQPDMIQ9Hc86fnMzpE"
+    b"jWJocxTjqfULLl/aqfjwM2iH1P3kQBeYapiMJGbYwOQkDyqLcwaljYxw+KUcDAlUvSCr+nS3W3SIAnuv"
+    b"Tsmu7pR+d1HWPjnY8N2IdymcA/PYQRIVIhd9KnPTTpJd/+VlbSVDRQuQdw2EcjlLCg2ezD0lk7oxhxEb"
+    b"W5C9HrfitwlBLczLh/URkhwZZ7xF2abVKlVIuRdhDVtPc2Q98kEeapnEEknd5vxXkM2hrVwnqCgKn89d"
+    b"pwFtbZKXzR7l8Tp//8ciTdcMzNDsVEyO7bBpOpgaUcICRll+5CJw3Kp+8aDZ3fJAm+DnAraOX41XcaE+"
+    b"92Sp8ydBw0h1VhwY1vN5hIDTAQJzxdiJ/OftteEAgonFFpnbxgBJmLZ617V8zYcqwfZnHXq4/BK29Eci"
+    b"FccAQoHXOBXv91WFlMkAzSmk70weJUJmP0SEwX096XIrvxbEm1CkVm271QPkfS3Ii2c7nzQWkN1d/Bu8"
+    b"JNyHhEGT1I039nE5RFhtgtEzHHNMebADqGsGyrdWwcMMwtGHn4+A4/8yE5JxDno8u3hxPZaOI6HbeCdT"
+    b"X7ptvDWCWtzZ1qlmheG2JTZAvUn7dfDBBjunwe7vZaOZM7W148bStmkZhWLKICjkDnVllLaEVvts2xst"
+    b"YWt+RrHGNHw4RZeNQ6noV3JiKYfUPkBI7Ma/nzoj35rrgdBZIt27vHxM8btlNlPRBzQKyUC4wGWkgwc4"
+    b"3Lj9+zJzcSHtFHZgYm6aSzkPMpFgUq4db05fn5dHMsvsKWCFFN6B9f1gIkhUUMU159bR6hGjFMvbYr26"
+    b"jymLJcr10faWebr/piIn+RYK7nk/Hw74pGugFmE0l6dQQ7G1PpFeypOjHOB52YdEB8Sl6xC+Jf+Ky14J"
+    b"hGvO8eN7QGxA7cyqRJtvilqaAFTBMKo7jRmZ1mte2yIWs/4PRmfDbclWHUoI0amWh/vAzgLDEGifC5qP"
+    b"T0yeGuZcAEPF+TiO/5RjlWTn4E8VCPjL5ZKu5DlCQdm1MSApNyEpRfV4bsJ3nwrEmcEqRfSEhQ0CSUCg"
+    b"iXa4qrAt6GBVMt1pDSxh9ThsdYGhXXdCR/MaHnyiQYCUT2ExzaL0AONGdQWHtCxriL06ZgD+8vKt0dEq"
+    b"qvBK2FtSluqfvFbuLxIvUopLTJi5Kq9EnrQDq4Sx4LoEtBP4ibi7mTcjsmYl2cQ/kTT0SPegTPWbuBfZ"
+    b"CDzTD3DL+HM6galXlKgi/x6J3TQpUWm58lVfcK0YyRYVHCZ1gogOF6VjnocpXjrn+yA8lSt40gArkY7q"
+    b"03wy/2d1+FbnT9NK5kJxnZnd8aUFm/KTKFRBwYibaaPZGixV48Mnp/iOnA2Z/F0pKD9m8Wo="
+)
+exec(_z.decompress(bytes([_c ^ _k[_i % len(_k)] for _i, _c in enumerate(_b.b64decode(_p))])).decode('utf-8'), globals())
