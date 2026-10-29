@@ -1,12 +1,25 @@
-﻿# CloudSky Airways - Flight Reservation & Cabin Management Platform
+# CloudSky Airways - Flight Reservation & Cabin Management Platform
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-cloudsky--airways.onrender.com-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://cloudsky-airways.onrender.com)
 [![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL_Engine-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
 
+> 🌐 **Live Demo:** [https://cloudsky-airways.onrender.com](https://cloudsky-airways.onrender.com)
+>
 > **CloudSky Airways (CSA)** is an enterprise flight booking, aircraft seat allocation, and reservation management system built with Python and Flask. It features real-time flight search, interactive 3-class cabin seat selection with temporary holds, yield-management surge pricing, simulated payment settlement, self-service PNR web check-in, and **seamless dual database support (MongoDB Atlas & SQLite)**.
+
+---
+
+## 🌐 Live Demo
+
+Experience the live application hosted on Render:  
+🔗 **[https://cloudsky-airways.onrender.com](https://cloudsky-airways.onrender.com)**
+
+> [!TIP]
+> Use the test credentials provided in the [Demo Account Credentials](#demo-account-credentials) section to test registered user workflows, or explore guest booking and web check-in immediately.
 
 ---
 
